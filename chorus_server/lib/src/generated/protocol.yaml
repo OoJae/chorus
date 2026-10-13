@@ -1,0 +1,20 @@
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+circle:
+  - createCircle:
+  - myCircles:
+  - createInvite:
+  - acceptInvite:
+status:
+  - info:
+greeting:
+  - hello:

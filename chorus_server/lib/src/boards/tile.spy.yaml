@@ -1,0 +1,37 @@
+### A tile: one word on a board.
+###
+### Synced. Never hard-deleted. A tile is bound to one cell for life: it may
+### go from the tray into an empty cell, or from the board to the tray, never
+### from one cell to another.
+class: Tile
+table: tile
+database: sync
+fields:
+  circleId: UuidValue
+  board: Board?, relation(onDelete=NoAction, deferred)
+  ### The only place a tile's position lives. Three forms:
+  ### `<boardId>:<row>:<col>` (on the board), `tray:<tileId>` (unplaced or
+  ### archived, written by the app), and `<boardId>:<row>:<col>__conflict__<id>`
+  ### (written only by the sync engine to the loser of an offline collision).
+  ### The unique index is what turns two offline claims on one cell into a
+  ### visible "needs a home" item instead of a silent overwrite.
+  cellKey: String, unique(per=spaceId)
+  label: String
+  ### What is spoken; the label is spoken when this is null.
+  speech: String?
+  ### Part-of-speech colour key, e.g. `verb`.
+  colorKey: String?
+  ### Content hashes of the picture and the recorded voice. The files travel
+  ### by direct upload; only the hash is synced.
+  imageHash: String?
+  audioHash: String?
+  linkBoardId: UuidValue?
+  ### When true, taps on this tile are never logged, even if logging is on.
+  noLog: bool
+  archivedAt: DateTime?
+  createdBy: UuidValue
+  createdByName: String
+  createdAt: DateTime
+indexes:
+  tile_circle_idx:
+    fields: circleId

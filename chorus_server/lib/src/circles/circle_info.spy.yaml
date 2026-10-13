@@ -1,0 +1,9 @@
+### A circle as the signed-in adult sees it.
+class: CircleInfo
+fields:
+  ### UUID of the circle's sync space; pass it as `spaceId` when writing.
+  spaceUuid: UuidValue
+  childName: String
+  myRole: CircleRole
+  myDisplayName: String
+  members: List<MemberInfo>

@@ -1,0 +1,15 @@
+### One child's circle: the adults who share one set of boards.
+### Server-only. The boards themselves live in the circle's sync space.
+class: Circle
+table: circle
+serverOnly: true
+fields:
+  ### UUID of the circle's shared sync space. Also the circle's public id.
+  spaceUuid: UuidValue
+  childName: String
+  createdBy: UuidValue
+  createdAt: DateTime
+indexes:
+  circle_space_idx:
+    fields: spaceUuid
+    unique: true

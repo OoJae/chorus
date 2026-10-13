@@ -1,0 +1,8 @@
+### What an adult may do in a circle. Guardian, therapist and teacher can
+### edit the board (read-write in the sync space); a partner can only view it.
+enum: CircleRole
+values:
+  - guardian
+  - therapist
+  - teacher
+  - partner

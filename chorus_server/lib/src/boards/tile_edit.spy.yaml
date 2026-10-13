@@ -1,0 +1,27 @@
+### One change to one property of a tile. Append-only and synced.
+###
+### Same-property edits from two offline devices merge as last-writer-wins,
+### silently. This log is what makes the overwritten value visible and
+### restorable.
+class: TileEdit
+table: tile_edit
+database: sync
+fields:
+  circleId: UuidValue
+  tileId: UuidValue
+  ### Name of the changed property, e.g. `label`.
+  prop: String
+  oldValue: String?
+  newValue: String?
+  ### The newest edit of this tile and property the author could see.
+  baseEditId: UuidValue?
+  ### Why the edit happened, e.g. `edit`, `resolve`, `restore`, `seed`.
+  reason: String
+  actorId: UuidValue
+  actorName: String
+  editedAt: DateTime
+indexes:
+  tile_edit_circle_idx:
+    fields: circleId
+  tile_edit_tile_idx:
+    fields: tileId, prop

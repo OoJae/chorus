@@ -1,0 +1,16 @@
+### A single-use code that lets one more adult join a circle with a set role.
+class: Invitation
+table: invitation
+serverOnly: true
+fields:
+  code: String
+  circleSpace: UuidValue
+  role: CircleRole
+  createdBy: UuidValue
+  createdAt: DateTime
+  expiresAt: DateTime
+  acceptedBy: UuidValue?
+indexes:
+  invitation_code_idx:
+    fields: code
+    unique: true

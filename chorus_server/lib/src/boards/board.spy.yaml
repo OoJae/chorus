@@ -1,0 +1,20 @@
+### A board: a fixed grid of cells that tiles are placed on.
+###
+### Synced. Never hard-deleted; archiving sets [archivedAt].
+class: Board
+table: board
+database: sync
+fields:
+  ### The circle this board belongs to. Reads span every space a user is in
+  ### and the engine's own space id comes back null, so every synced row
+  ### carries this.
+  circleId: UuidValue
+  name: String
+  rows: int
+  cols: int
+  isHome: bool
+  archivedAt: DateTime?
+  createdAt: DateTime
+indexes:
+  board_circle_idx:
+    fields: circleId

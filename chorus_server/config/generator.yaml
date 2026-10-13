@@ -1,0 +1,12 @@
+type: server
+
+client_package_path: ../chorus_client
+server_test_tools_path: test/integration/test_tools
+
+# Offline sync is an experimental module, pinned to 0.0.10 (Serverpod 4.0.x).
+modules:
+  serverpod_offline_sync:
+    nickname: offline_sync
+
+experimental_features:
+  databaseSync: true

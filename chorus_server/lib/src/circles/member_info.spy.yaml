@@ -1,0 +1,6 @@
+### One adult in a circle, as shown to the other members.
+class: MemberInfo
+fields:
+  userId: UuidValue
+  displayName: String
+  role: CircleRole

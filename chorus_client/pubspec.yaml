@@ -1,0 +1,14 @@
+name: chorus_client
+description: Starting point for a Serverpod client.
+
+environment:
+  sdk: '^3.12.2'
+
+resolution: workspace
+
+dependencies:
+  serverpod_auth_idp_client: 4.0.4
+  serverpod_client: 4.0.4
+  serverpod_database: 4.0.4
+  # Exact pin: 0.0.11 needs a Serverpod 4.1 beta. Do not upgrade mid-build.
+  serverpod_offline_sync_client: 0.0.10

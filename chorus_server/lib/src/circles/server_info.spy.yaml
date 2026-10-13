@@ -1,0 +1,8 @@
+### What a client needs before it starts syncing.
+class: ServerInfo
+fields:
+  ### The server's clock. The sync engine refuses changes stamped more than a
+  ### minute ahead, so the app compares this with the device clock first.
+  serverTime: DateTime
+  ### Clients older than this build must update before syncing.
+  minBuild: int

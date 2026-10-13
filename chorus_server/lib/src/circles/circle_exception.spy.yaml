@@ -1,0 +1,4 @@
+### Sent to the client when a circle request is refused.
+exception: CircleException
+fields:
+  failure: CircleFailure

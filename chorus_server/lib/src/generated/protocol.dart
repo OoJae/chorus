@@ -1,0 +1,1008 @@
+/* AUTOMATICALLY GENERATED CODE DO NOT MODIFY */
+/*   To generate run: "serverpod generate"    */
+
+// ignore_for_file: implementation_imports
+// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: public_member_api_docs
+// ignore_for_file: type_literal_in_constant_pattern
+// ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
+// ignore_for_file: dead_code, unnecessary_type_check
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:chorus_server/src/generated/circles/circle_info.dart'
+    as _iun4jhfl;
+import 'package:serverpod/protocol.dart' as _isp;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _iacs;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _iais;
+import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
+    as _izehhkf5;
+import 'boards/board.dart' as _i3lcnjeo;
+import 'boards/tile.dart' as _ihyl55zs;
+import 'boards/tile_edit.dart' as _ignkl5py;
+import 'circles/circle.dart' as _ihms22h2;
+import 'circles/circle_exception.dart' as _i4ewpqfy;
+import 'circles/circle_failure.dart' as _igjnv98g;
+import 'circles/circle_info.dart' as _i5j3z7cn;
+import 'circles/circle_role.dart' as _il0wc3z7;
+import 'circles/invitation.dart' as _ib6idedo;
+import 'circles/member_info.dart' as _i5nn4t9p;
+import 'circles/membership.dart' as _i5ll2qlc;
+import 'circles/server_info.dart' as _iqe7186e;
+import 'greetings/greeting.dart' as _izw8z7ou;
+export 'boards/board.dart';
+export 'boards/tile.dart';
+export 'boards/tile_edit.dart';
+export 'circles/circle.dart';
+export 'circles/circle_exception.dart';
+export 'circles/circle_failure.dart';
+export 'circles/circle_info.dart';
+export 'circles/circle_role.dart';
+export 'circles/invitation.dart';
+export 'circles/member_info.dart';
+export 'circles/membership.dart';
+export 'circles/server_info.dart';
+export 'greetings/greeting.dart';
+export 'sync_tables.dart';
+
+class Protocol extends _is.DatabaseSerializationManager {
+  Protocol._();
+
+  factory Protocol() => _instance;
+
+  static final Protocol _instance = Protocol._().._registerHostProtocols();
+
+  static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'board',
+      dartName: 'Board',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spaceId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'rows',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'cols',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'isHome',
+          columnType: _isp.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+        ),
+        _isp.ColumnDefinition(
+          name: 'archivedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'board_fk_0',
+          columns: ['spaceId'],
+          referenceTable: 'offline_sync_spaces',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'board_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'circle',
+      dartName: 'Circle',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spaceUuid',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'childName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'circle_space_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'spaceUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'invitation',
+      dartName: 'Invitation',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'code',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'role',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:CircleRole',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'expiresAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'acceptedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'invitation_code_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'code',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'membership',
+      dartName: 'Membership',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'role',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:CircleRole',
+        ),
+        _isp.ColumnDefinition(
+          name: 'displayName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'joinedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'membership_circle_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'membership_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'tile',
+      dartName: 'Tile',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spaceId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'boardId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'cellKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'label',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'speech',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'colorKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'imageHash',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'audioHash',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'linkBoardId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'noLog',
+          columnType: _isp.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+        ),
+        _isp.ColumnDefinition(
+          name: 'archivedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdByName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'tile_fk_0',
+          columns: ['spaceId'],
+          referenceTable: 'offline_sync_spaces',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'tile_fk_1',
+          columns: ['boardId'],
+          referenceTable: 'board',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+          deferrable: _isp.DeferrableConstraint.initiallyDeferred,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'tile__spaceId__cellKey__unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'spaceId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'cellKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'tile_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'tile_edit',
+      dartName: 'TileEdit',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spaceId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tileId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'prop',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'oldValue',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'newValue',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'baseEditId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'reason',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'actorId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'actorName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'editedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'tile_edit_fk_0',
+          columns: ['spaceId'],
+          referenceTable: 'offline_sync_spaces',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'tile_edit_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'tile_edit_tile_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'tileId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'prop',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    ..._iais.Protocol.targetTableDefinitions,
+    ..._izehhkf5.Protocol.targetTableDefinitions,
+    ..._iacs.Protocol.targetTableDefinitions,
+    ..._isp.Protocol.targetTableDefinitions,
+  ];
+
+  static String? getClassNameFromObjectJson(dynamic data) {
+    if (data is! Map) return null;
+    final className = data['__className__'] as String?;
+    return className;
+  }
+
+  @override
+  T deserialize<T>(
+    dynamic data, [
+    Type? t,
+  ]) {
+    t ??= T;
+
+    final dataClassName = getClassNameFromObjectJson(data);
+    if (dataClassName != null && dataClassName != getClassNameForType(t)) {
+      try {
+        return deserializeByClassName({
+          'className': dataClassName,
+          'data': data,
+        });
+      } on _is.DeserializationClassNameNotFoundException catch (_) {
+        // If the className is not recognized (e.g., older client receiving
+        // data with a new subtype), fall back to deserializing without the
+        // className, using the expected type T.
+      }
+    }
+
+    if (t == _i3lcnjeo.Board) {
+      return _i3lcnjeo.Board.fromJson(data) as T;
+    }
+    if (t == _ihyl55zs.Tile) {
+      return _ihyl55zs.Tile.fromJson(data) as T;
+    }
+    if (t == _ignkl5py.TileEdit) {
+      return _ignkl5py.TileEdit.fromJson(data) as T;
+    }
+    if (t == _ihms22h2.Circle) {
+      return _ihms22h2.Circle.fromJson(data) as T;
+    }
+    if (t == _i4ewpqfy.CircleException) {
+      return _i4ewpqfy.CircleException.fromJson(data) as T;
+    }
+    if (t == _igjnv98g.CircleFailure) {
+      return _igjnv98g.CircleFailure.fromJson(data) as T;
+    }
+    if (t == _i5j3z7cn.CircleInfo) {
+      return _i5j3z7cn.CircleInfo.fromJson(data) as T;
+    }
+    if (t == _il0wc3z7.CircleRole) {
+      return _il0wc3z7.CircleRole.fromJson(data) as T;
+    }
+    if (t == _ib6idedo.Invitation) {
+      return _ib6idedo.Invitation.fromJson(data) as T;
+    }
+    if (t == _i5nn4t9p.MemberInfo) {
+      return _i5nn4t9p.MemberInfo.fromJson(data) as T;
+    }
+    if (t == _i5ll2qlc.Membership) {
+      return _i5ll2qlc.Membership.fromJson(data) as T;
+    }
+    if (t == _iqe7186e.ServerInfo) {
+      return _iqe7186e.ServerInfo.fromJson(data) as T;
+    }
+    if (t == _izw8z7ou.Greeting) {
+      return _izw8z7ou.Greeting.fromJson(data) as T;
+    }
+    if (t == _is.getType<_i3lcnjeo.Board?>()) {
+      return (data != null ? _i3lcnjeo.Board.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ihyl55zs.Tile?>()) {
+      return (data != null ? _ihyl55zs.Tile.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ignkl5py.TileEdit?>()) {
+      return (data != null ? _ignkl5py.TileEdit.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ihms22h2.Circle?>()) {
+      return (data != null ? _ihms22h2.Circle.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i4ewpqfy.CircleException?>()) {
+      return (data != null ? _i4ewpqfy.CircleException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_igjnv98g.CircleFailure?>()) {
+      return (data != null ? _igjnv98g.CircleFailure.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i5j3z7cn.CircleInfo?>()) {
+      return (data != null ? _i5j3z7cn.CircleInfo.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_il0wc3z7.CircleRole?>()) {
+      return (data != null ? _il0wc3z7.CircleRole.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ib6idedo.Invitation?>()) {
+      return (data != null ? _ib6idedo.Invitation.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i5nn4t9p.MemberInfo?>()) {
+      return (data != null ? _i5nn4t9p.MemberInfo.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i5ll2qlc.Membership?>()) {
+      return (data != null ? _i5ll2qlc.Membership.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iqe7186e.ServerInfo?>()) {
+      return (data != null ? _iqe7186e.ServerInfo.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_izw8z7ou.Greeting?>()) {
+      return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == List<_i5nn4t9p.MemberInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_i5nn4t9p.MemberInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iun4jhfl.CircleInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iun4jhfl.CircleInfo>(e))
+              .toList()
+          as T;
+    }
+    try {
+      return _iais.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _izehhkf5.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _iacs.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _isp.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
+    return super.deserialize<T>(data, t);
+  }
+
+  static String? getClassNameForType(Type type) {
+    return switch (type) {
+      _i3lcnjeo.Board => 'Board',
+      _ihyl55zs.Tile => 'Tile',
+      _ignkl5py.TileEdit => 'TileEdit',
+      _ihms22h2.Circle => 'Circle',
+      _i4ewpqfy.CircleException => 'CircleException',
+      _igjnv98g.CircleFailure => 'CircleFailure',
+      _i5j3z7cn.CircleInfo => 'CircleInfo',
+      _il0wc3z7.CircleRole => 'CircleRole',
+      _ib6idedo.Invitation => 'Invitation',
+      _i5nn4t9p.MemberInfo => 'MemberInfo',
+      _i5ll2qlc.Membership => 'Membership',
+      _iqe7186e.ServerInfo => 'ServerInfo',
+      _izw8z7ou.Greeting => 'Greeting',
+      _ => null,
+    };
+  }
+
+  @override
+  String? getClassNameForObject(Object? data) {
+    String? className = super.getClassNameForObject(data);
+    if (className != null) return className;
+
+    if (data is Map<String, dynamic> && data['__className__'] is String) {
+      return (data['__className__'] as String).replaceFirst('chorus.', '');
+    }
+
+    switch (data) {
+      case _i3lcnjeo.Board():
+        return 'Board';
+      case _ihyl55zs.Tile():
+        return 'Tile';
+      case _ignkl5py.TileEdit():
+        return 'TileEdit';
+      case _ihms22h2.Circle():
+        return 'Circle';
+      case _i4ewpqfy.CircleException():
+        return 'CircleException';
+      case _igjnv98g.CircleFailure():
+        return 'CircleFailure';
+      case _i5j3z7cn.CircleInfo():
+        return 'CircleInfo';
+      case _il0wc3z7.CircleRole():
+        return 'CircleRole';
+      case _ib6idedo.Invitation():
+        return 'Invitation';
+      case _i5nn4t9p.MemberInfo():
+        return 'MemberInfo';
+      case _i5ll2qlc.Membership():
+        return 'Membership';
+      case _iqe7186e.ServerInfo():
+        return 'ServerInfo';
+      case _izw8z7ou.Greeting():
+        return 'Greeting';
+    }
+    className = _iais.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return className.contains('.')
+          ? className
+          : 'serverpod_auth_idp.$className';
+    }
+    className = _izehhkf5.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return className.contains('.')
+          ? className
+          : 'serverpod_offline_sync.$className';
+    }
+    className = _iacs.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return className.contains('.')
+          ? className
+          : 'serverpod_auth_core.$className';
+    }
+    className = _isp.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return className.contains('.') ? className : 'serverpod.$className';
+    }
+    return null;
+  }
+
+  @override
+  dynamic deserializeByClassName(Map<String, dynamic> data) {
+    var dataClassName = data['className'];
+    if (dataClassName is! String) {
+      return super.deserializeByClassName(data);
+    }
+    if (dataClassName == 'Board') {
+      return deserialize<_i3lcnjeo.Board>(data['data']);
+    }
+    if (dataClassName == 'Tile') {
+      return deserialize<_ihyl55zs.Tile>(data['data']);
+    }
+    if (dataClassName == 'TileEdit') {
+      return deserialize<_ignkl5py.TileEdit>(data['data']);
+    }
+    if (dataClassName == 'Circle') {
+      return deserialize<_ihms22h2.Circle>(data['data']);
+    }
+    if (dataClassName == 'CircleException') {
+      return deserialize<_i4ewpqfy.CircleException>(data['data']);
+    }
+    if (dataClassName == 'CircleFailure') {
+      return deserialize<_igjnv98g.CircleFailure>(data['data']);
+    }
+    if (dataClassName == 'CircleInfo') {
+      return deserialize<_i5j3z7cn.CircleInfo>(data['data']);
+    }
+    if (dataClassName == 'CircleRole') {
+      return deserialize<_il0wc3z7.CircleRole>(data['data']);
+    }
+    if (dataClassName == 'Invitation') {
+      return deserialize<_ib6idedo.Invitation>(data['data']);
+    }
+    if (dataClassName == 'MemberInfo') {
+      return deserialize<_i5nn4t9p.MemberInfo>(data['data']);
+    }
+    if (dataClassName == 'Membership') {
+      return deserialize<_i5ll2qlc.Membership>(data['data']);
+    }
+    if (dataClassName == 'ServerInfo') {
+      return deserialize<_iqe7186e.ServerInfo>(data['data']);
+    }
+    if (dataClassName == 'Greeting') {
+      return deserialize<_izw8z7ou.Greeting>(data['data']);
+    }
+    if (dataClassName.startsWith('serverpod_auth_idp.')) {
+      data['className'] = dataClassName.substring(19);
+      return _iais.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName.startsWith('serverpod_offline_sync.')) {
+      data['className'] = dataClassName.substring(23);
+      return _izehhkf5.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName.startsWith('serverpod_auth_core.')) {
+      data['className'] = dataClassName.substring(20);
+      return _iacs.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName.startsWith('serverpod.')) {
+      data['className'] = dataClassName.substring(10);
+      return _isp.Protocol().deserializeByClassName(data);
+    }
+    return super.deserializeByClassName(data);
+  }
+
+  void _registerHostProtocols() {
+    _iais.Protocol().registerHostProtocol('chorus', this);
+    _izehhkf5.Protocol().registerHostProtocol('chorus', this);
+    _iacs.Protocol().registerHostProtocol('chorus', this);
+  }
+
+  @override
+  _is.Table? getTableForType(Type t) {
+    {
+      var table = _iais.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    {
+      var table = _izehhkf5.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    {
+      var table = _iacs.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    {
+      var table = _isp.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    switch (t) {
+      case _i3lcnjeo.Board:
+        return _i3lcnjeo.Board.t;
+      case _ihyl55zs.Tile:
+        return _ihyl55zs.Tile.t;
+      case _ignkl5py.TileEdit:
+        return _ignkl5py.TileEdit.t;
+      case _ihms22h2.Circle:
+        return _ihms22h2.Circle.t;
+      case _ib6idedo.Invitation:
+        return _ib6idedo.Invitation.t;
+      case _i5ll2qlc.Membership:
+        return _i5ll2qlc.Membership.t;
+    }
+    return null;
+  }
+
+  @override
+  List<_isp.TableDefinition> getTargetTableDefinitions() =>
+      targetTableDefinitions;
+
+  @override
+  String getModuleName() => 'chorus';
+
+  /// Maps any `Record`s known to this [Protocol] to their JSON representation
+  ///
+  /// Throws in case the record type is not known.
+  ///
+  /// This method will return `null` (only) for `null` inputs.
+  Map<String, dynamic>? mapRecordToJson(Record? record) {
+    if (record == null) {
+      return null;
+    }
+    try {
+      return _iais.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _izehhkf5.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _iacs.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    throw Exception('Unsupported record type ${record.runtimeType}');
+  }
+}

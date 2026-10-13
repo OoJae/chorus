@@ -1,0 +1,18 @@
+### An adult's place in a circle. Server-only; the source of truth for who
+### may invite or remove people. Kept in step with the sync space's own
+### read-write / read-only grants.
+class: Membership
+table: membership
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  userId: UuidValue
+  role: CircleRole
+  displayName: String
+  joinedAt: DateTime
+indexes:
+  membership_circle_user_idx:
+    fields: circleSpace, userId
+    unique: true
+  membership_user_idx:
+    fields: userId

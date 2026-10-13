@@ -1,0 +1,13 @@
+name: _
+publish_to: none
+
+environment:
+  sdk: '^3.12.2'
+
+workspace:
+  - chorus_client
+  - chorus_server
+  - chorus_flutter
+  - chorus_shared
+  - chorus_ui
+
