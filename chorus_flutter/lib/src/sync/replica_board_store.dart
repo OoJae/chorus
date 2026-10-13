@@ -66,6 +66,11 @@ class ReplicaBoardStore extends BoardStore {
   List<BoardFacts> _boards = const [];
   List<TileFacts> _tiles = const [];
   bool _disposed = false;
+  bool _hasLoaded = false;
+
+  /// False until the first read of this device has finished. Until then an
+  /// empty [boards] means "not read yet", not "no board".
+  bool get hasLoaded => _hasLoaded;
 
   /// The re-read in progress, if any, and whether another is owed after it.
   Future<void>? _refreshing;
@@ -125,7 +130,12 @@ class ReplicaBoardStore extends BoardStore {
     tileRows.sort((a, b) => _byAge(a.createdAt, a.id!, b.createdAt, b.id!));
     final boards = [for (final row in boardRows) boardFacts(row)];
     final tiles = [for (final row in tileRows) tileFacts(row)];
-    if (listEquals(boards, _boards) && listEquals(tiles, _tiles)) return;
+    final first = !_hasLoaded;
+    _hasLoaded = true;
+    if (listEquals(boards, _boards) && listEquals(tiles, _tiles)) {
+      if (first) notifyListeners();
+      return;
+    }
 
     _boards = List.unmodifiable(boards);
     _tiles = List.unmodifiable(tiles);

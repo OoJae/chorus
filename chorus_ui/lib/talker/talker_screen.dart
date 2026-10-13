@@ -1,6 +1,8 @@
 /// The child's screen: the board, the sentence strip and nothing else.
 library;
 
+import 'dart:async';
+
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,13 +15,20 @@ import 'talker_controller.dart';
 /// Shown to adults when speech would need a network.
 const String noOfflineVoiceMessage = 'No offline voice on this phone';
 
-/// How long the lock and the waiting pill must be held.
-const Duration _holdToConfirm = Duration(seconds: 3);
+/// How long the leave control and the waiting pill must be held.
+const Duration _holdToConfirm = Duration(seconds: 2);
+
+/// Label on the control that leaves the board.
+const String leaveLabel = 'Hold to leave';
+
+/// Shown when system back is pressed: back is blocked on purpose.
+const String howToLeaveMessage =
+    'To leave the board, press and hold "Hold to leave" for 2 seconds.';
 
 /// Full-screen talking board.
 ///
 /// Every cell keeps its row and column whatever the screen size; an empty
-/// cell is a blank gap. Leaving takes a 3-second hold on the lock, which
+/// cell is a blank gap. Leaving takes a 2-second hold on the leave control, which
 /// calls [onExit].
 class TalkerScreen extends StatefulWidget {
   const TalkerScreen({
@@ -109,6 +118,12 @@ class _TalkerScreenState extends State<TalkerScreen> {
     // made by [onExit] itself still goes through.
     return PopScope(
       canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        ScaffoldMessenger.maybeOf(context)
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text(howToLeaveMessage)));
+      },
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -382,13 +397,10 @@ class _StatusRow extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           _HoldTarget(
-            semanticsLabel: 'Hold for 3 seconds to leave the board',
+            semanticsLabel: 'Hold for 2 seconds to leave the board',
             onHeld: onExit,
-            child: const Icon(
-              Icons.lock_outline,
-              size: 20,
-              color: Colors.black,
-            ),
+            square: false,
+            child: const _LeavePill(),
           ),
         ],
       ),
@@ -396,7 +408,7 @@ class _StatusRow extends StatelessWidget {
   }
 }
 
-/// "N words waiting". When an adult is needed, holding it for 3 seconds
+/// "N words waiting". When an adult is needed, holding it for 2 seconds
 /// offers the update.
 class _WaitingPill extends StatelessWidget {
   const _WaitingPill({
@@ -447,7 +459,7 @@ class _WaitingPill extends StatelessWidget {
       );
     }
     return _HoldTarget(
-      semanticsLabel: '$text. An adult can hold for 3 seconds to update',
+      semanticsLabel: '$text. An adult can hold for 2 seconds to update',
       onHeld: onAdultUpdate,
       square: false,
       child: pill,
@@ -479,13 +491,23 @@ class _HoldTarget extends StatefulWidget {
 
 class _HoldTargetState extends State<_HoldTarget>
     with SingleTickerProviderStateMixin {
+  /// Draws the progress only. The hold itself completes on [_timer], so it
+  /// still works when the platform is not drawing frames (a background tab).
   late final AnimationController _hold = AnimationController(
     vsync: this,
     duration: _holdToConfirm,
-  )..addStatusListener(_onStatus);
+  );
+  Timer? _timer;
 
-  void _onStatus(AnimationStatus status) {
-    if (status != AnimationStatus.completed) return;
+  void _start() {
+    _timer?.cancel();
+    _hold.forward(from: 0);
+    _timer = Timer(_holdToConfirm, _complete);
+  }
+
+  void _complete() {
+    _timer = null;
+    if (!mounted) return;
     _hold.value = 0;
     HapticFeedback.mediumImpact();
     widget.onHeld?.call();
@@ -493,6 +515,7 @@ class _HoldTargetState extends State<_HoldTarget>
 
   @override
   void dispose() {
+    _timer?.cancel();
     _hold.dispose();
     super.dispose();
   }
@@ -508,7 +531,7 @@ class _HoldTargetState extends State<_HoldTarget>
       excludeSemantics: true,
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onPointerDown: (_) => _hold.forward(from: 0),
+        onPointerDown: (_) => _start(),
         onPointerUp: (_) => _cancel(),
         onPointerCancel: (_) => _cancel(),
         child: AnimatedBuilder(
@@ -563,6 +586,35 @@ class _HoldTargetState extends State<_HoldTarget>
   }
 
   void _cancel() {
-    if (_hold.isAnimating) _hold.value = 0;
+    _timer?.cancel();
+    _timer = null;
+    if (_hold.value > 0) _hold.value = 0;
+  }
+}
+
+/// The visible way out of the talker: a labelled control an adult holds.
+class _LeavePill extends StatelessWidget {
+  const _LeavePill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 1.5),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_outline, size: 18, color: Colors.black),
+          SizedBox(width: 6),
+          Text(
+            leaveLabel,
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+          ),
+        ],
+      ),
+    );
   }
 }

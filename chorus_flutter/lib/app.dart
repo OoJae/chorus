@@ -126,18 +126,35 @@ class SessionWorkspace implements Workspace {
 
   final ChorusSession _session;
 
-  /// Opens the user's replica and starts sync. Sync keeps itself going from
-  /// here; with no signal it simply waits.
+  /// How long sync waits for the first board to be read before starting
+  /// anyway (a signed-in device with no boards yet has nothing to read).
+  static const _localFirst = Duration(milliseconds: 1500);
+
+  bool _syncStarted = false;
+  Timer? _startTimer;
+
+  /// Opens the user's replica. Sync starts once the first board has been
+  /// read from this device, or after [_localFirst]: in the browser the
+  /// database has a single connection, and a sync that starts first holds it
+  /// for as long as the network takes, with the board unreadable meanwhile.
   static Future<SessionWorkspace> open(Client client) async {
     final session = await ChorusSession.open(client);
-    // Written to compile whether start() is synchronous or returns a future;
-    // a failed first connection is the supervisor's to show and retry.
+    final workspace = SessionWorkspace._(session);
+    workspace._startTimer = Timer(_localFirst, workspace._startSync);
+    return workspace;
+  }
+
+  /// Sync keeps itself going from here; with no signal it simply waits. A
+  /// failed first connection is the supervisor's to show and retry.
+  void _startSync() {
+    if (_syncStarted) return;
+    _syncStarted = true;
+    _startTimer?.cancel();
     unawaited(
       Future<void>.sync(
-        () => session.sync.start(),
+        () => _session.sync.start(),
       ).then<void>((_) {}, onError: (Object _) {}),
     );
-    return SessionWorkspace._(session);
   }
 
   @override
@@ -150,10 +167,16 @@ class SessionWorkspace implements Workspace {
   }) => _session.ensureCircleReady(circle, seedIfEmpty: seedIfEmpty);
 
   @override
-  BoardStore boardStore(CircleInfo circle) => _session.boardStore(circle);
+  BoardStore boardStore(CircleInfo circle) {
+    final store = _session.boardStore(circle);
+    if (!_syncStarted) unawaited(store.refresh().whenComplete(_startSync));
+    return store;
+  }
 
   @override
   Future<void> close() async {
+    _startTimer?.cancel();
+    _syncStarted = true;
     try {
       await Future<void>.sync(() => _session.sync.stop());
     } finally {

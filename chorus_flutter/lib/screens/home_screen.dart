@@ -9,6 +9,8 @@ import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
 
+import '../src/sync/replica_board_store.dart';
+
 import 'invite_screen.dart';
 import 'messages.dart';
 import 'services.dart';
@@ -99,6 +101,11 @@ class HomeScreen extends StatelessWidget {
                 // A board already on this device can be used straight away,
                 // whatever the network is doing.
                 final hasBoard = store.boards.any((board) => !board.archived);
+                // The replica's own store says when it has read this device;
+                // any other store (tests, fakes) is read from the start.
+                final current = store;
+                final loaded =
+                    current is! ReplicaBoardStore || current.hasLoaded;
                 return ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
@@ -126,6 +133,7 @@ class HomeScreen extends StatelessWidget {
                     _ReadinessNote(
                       readiness: readiness,
                       hasBoard: hasBoard,
+                      loaded: loaded,
                       childName: selected.childName,
                       onRetry: onRetryReady,
                     ),
@@ -188,12 +196,16 @@ class _ReadinessNote extends StatelessWidget {
   const _ReadinessNote({
     required this.readiness,
     required this.hasBoard,
+    required this.loaded,
     required this.childName,
     required this.onRetry,
   });
 
   final CircleReadiness readiness;
   final bool hasBoard;
+
+  /// Whether the boards saved on this device have been read yet.
+  final bool loaded;
   final String childName;
   final VoidCallback onRetry;
 
@@ -201,6 +213,22 @@ class _ReadinessNote extends StatelessWidget {
   Widget build(BuildContext context) {
     if (readiness == CircleReadiness.ready && hasBoard) {
       return const SizedBox.shrink();
+    }
+    if (!loaded && !hasBoard) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text("Opening $childName's board…")),
+          ],
+        ),
+      );
     }
     final failed = readiness == CircleReadiness.failed;
     // Ready with no board: an invited adult whose device is ahead of the
