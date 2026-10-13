@@ -58,6 +58,10 @@ class TalkerController extends ChangeNotifier {
   BoardSnapshot? _held;
   BoardSnapshot? _fresh;
   SnapshotPlan? _plan;
+
+  /// What the child last saw on each board they have left, by board id.
+  /// Coming back to a board starts from this, not from the replica.
+  final Map<String, BoardSnapshot> _heldByBoard = {};
   final List<TileFacts> _strip = [];
   // Monotonic: a wall clock set backwards would stall every merge.
   final Stopwatch _sinceTouch = Stopwatch()..start();
@@ -106,6 +110,17 @@ class TalkerController extends ChangeNotifier {
     if (live != null && live.shareSaid) live.shareSaid = false;
   }
 
+  /// Ids of the boards that hold a tile an adult is pointing at, so a tab
+  /// can show where the word is when it is not on the board on show.
+  Set<String> get pulsingBoardIds {
+    final ids = pulsing;
+    if (ids.isEmpty) return const {};
+    return {
+      for (final tile in _store.tiles)
+        if (!tile.archived && ids.contains(tile.id)) tile.boardId,
+    };
+  }
+
   /// Id of the board on show, if any.
   String? get boardId => _held?.board.id;
 
@@ -113,18 +128,28 @@ class TalkerController extends ChangeNotifier {
   List<BoardFacts> get boards => _store.boards;
 
   /// Goes to another board. Moving between boards is the child's own act,
-  /// so the board is shown as the replica has it now, with nothing waiting.
+  /// so it happens at once, strip or no strip.
+  ///
+  /// A board the child has not opened yet is shown as the replica has it
+  /// now. A board they are coming back to is shown as they left it: what
+  /// adults changed meanwhile waits like any other merge, and a swap, a move
+  /// or a resize still needs [applyAdultChanges]. Switching tabs is never a
+  /// way round that.
   void showBoard(String boardId) {
     noteTouch();
     final board = _store.boards
         .where((b) => !b.archived && b.id == boardId)
         .firstOrNull;
-    if (board == null || board.id == _held?.board.id) return;
+    final leaving = _held;
+    if (board == null || board.id == leaving?.board.id) return;
+    if (leaving != null) _heldByBoard[leaving.board.id] = leaving;
     _boardId = board.id;
     final fresh = BoardSnapshot.of(board, _store.tiles, _store.boards);
-    _held = fresh;
+    final held = _heldByBoard[board.id] ?? fresh;
+    _held = held;
     _fresh = fresh;
-    _plan = null;
+    final plan = reconcileSnapshot(held, fresh);
+    _plan = plan.isEmpty ? null : plan;
     notifyListeners();
   }
 

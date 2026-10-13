@@ -1,6 +1,7 @@
 // The second board joined up with photos, voices, the live session, the
 // tray and the edit log: everything acts on the board the tabs chose.
 import 'package:chorus_shared/chorus_shared.dart';
+import 'package:chorus_ui/contracts_live.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/editor/replaced_changes_panel.dart';
 import 'package:chorus_ui/fakes.dart';
@@ -139,8 +140,8 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
     });
 
-    test('showBoard drops a waiting plan and keeps the board through later '
-        'merges', () async {
+    test('showBoard keeps one held snapshot per board: a first visit shows '
+        'the board as it is, a return visit shows it as it was left', () async {
       final store = FakeBoardStore.seeded(leaveEmpty: const {(5, 5)});
       final speech = FakeSpeech();
       final talker = TalkerController(
@@ -159,6 +160,7 @@ void main() {
       );
       expect(talker.waitingCount, 1);
 
+      // A first visit: nothing held for this board, so it is shown as it is.
       talker.showBoard(store.wordsBoardId);
       expect(talker.boardId, store.wordsBoardId);
       expect(talker.waitingCount, 0);
@@ -174,10 +176,122 @@ void main() {
       expect(talker.boardId, store.wordsBoardId);
       expect(talker.waitingCount, 1);
 
-      // Back home, the word added meanwhile is simply there.
+      // Back home the board is as the child left it; the word added
+      // meanwhile is still waiting for a safe point.
       talker.showBoard(store.homeBoardId);
-      expect(talker.snapshot!.cells[(5, 5)]!.label, 'swing');
-      expect(talker.waitingCount, 0);
+      expect(talker.snapshot!.cells[(5, 5)], isNull);
+      expect(talker.waitingCount, 1);
+      expect(talker.needsAdult, isFalse);
+
+      // And the other board is as it was left too.
+      talker.showBoard(store.wordsBoardId);
+      expect(talker.snapshot!.cells, isEmpty);
+      expect(talker.waitingCount, 1);
+    });
+
+    test('switching boards and back does not apply a change that needs an '
+        'adult', () async {
+      final store = FakeBoardStore.seeded();
+      final talker = TalkerController(
+        store: store,
+        speech: FakeSpeech(),
+        // Long enough that nothing merges by itself during the test.
+        quiet: const Duration(hours: 1),
+      );
+      addTearDown(talker.dispose);
+      final want = store.tiles.singleWhere((t) => t.label == 'want');
+      final cell = talker.snapshot!.cells.entries
+          .singleWhere((e) => e.value.id == want.id)
+          .key;
+
+      // An adult removes a word the child uses and puts another in its
+      // cell before the board reaches a safe point: the cell would change
+      // meaning.
+      await store.archiveTile(want.id);
+      await store.addTile(
+        boardId: store.homeBoardId,
+        row: cell.$1,
+        col: cell.$2,
+        label: 'swing',
+      );
+      expect(talker.needsAdult, isTrue);
+      expect(talker.snapshot!.cells[cell]!.label, 'want');
+
+      talker.showBoard(store.wordsBoardId);
+      talker.showBoard(store.homeBoardId);
+      expect(talker.snapshot!.cells[cell]!.label, 'want');
+      expect(talker.needsAdult, isTrue);
+      expect(talker.checkSafePoint(), isFalse);
+      expect(talker.snapshot!.cells[cell]!.label, 'want');
+
+      // Only the adult's confirmation moves it.
+      talker.applyAdultChanges();
+      expect(talker.snapshot!.cells[cell]!.label, 'swing');
+      expect(talker.needsAdult, isFalse);
+    });
+
+    testWidgets('a word an adult points at on the other board rings that '
+        "board's tab", (tester) async {
+      final store = FakeBoardStore.seeded();
+      await store.addTile(
+        boardId: store.wordsBoardId,
+        row: 0,
+        col: 0,
+        label: 'Grandma',
+      );
+      final grandma = store.tiles.singleWhere((t) => t.label == 'Grandma');
+      final live = FakeLiveSession();
+      addTearDown(live.dispose);
+      await _pump(
+        tester,
+        TalkerScreen(
+          store: store,
+          speech: FakeSpeech(),
+          sync: FakeSyncStatus(),
+          live: live,
+        ),
+        const Size(1200, 1600),
+      );
+
+      double ring(String tab) {
+        final box = tester.widget<DecoratedBox>(
+          find
+              .ancestor(
+                of: find.descendant(
+                  of: find.byType(BoardTabs),
+                  matching: find.text(tab),
+                ),
+                matching: find.byWidgetPredicate(
+                  (w) =>
+                      w is DecoratedBox &&
+                      w.position == DecorationPosition.foreground,
+                ),
+              )
+              .first,
+        );
+        final border = (box.decoration as BoxDecoration).border! as Border;
+        expect(border.top.width, 4);
+        return border.top.color.a;
+      }
+
+      expect(ring('My words'), 0);
+      final tabs = tester.getRect(find.byType(BoardTabs));
+
+      live.receivePulse(grandma.id);
+      await tester.pump();
+      expect(ring('My words'), 1);
+      expect(ring('Home'), 0);
+      expect(find.text('Grandma'), findsNothing, reason: 'not switched');
+      expect(tester.getRect(find.byType(BoardTabs)), tabs);
+
+      // On that board the word itself glows, so its tab needs no ring.
+      await tester.tap(find.text('My words'));
+      await tester.pump();
+      expect(ring('My words'), 0);
+
+      await tester.pump(livePulseFor);
+      await tester.pump();
+      expect(ring('My words'), 0);
     });
   });
 

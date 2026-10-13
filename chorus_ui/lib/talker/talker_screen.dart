@@ -192,6 +192,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
                         boards: _controller.boards,
                         selectedId: _controller.boardId,
                         onSelect: _controller.showBoard,
+                        attentionIds: _controller.pulsingBoardIds,
                       ),
                       const SizedBox(height: 4),
                       if (_controller.sharingSaid) ...[

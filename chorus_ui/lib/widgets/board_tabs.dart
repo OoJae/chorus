@@ -17,18 +17,29 @@ List<BoardFacts> liveBoards(Iterable<BoardFacts> boards) {
 ///
 /// The tabs keep their order and size, like the tiles: a child finds a board
 /// by where its tab is.
+///
+/// A tab in [attentionIds] that is not the one on show wears a ring: an adult
+/// is pointing at a word on that board. The ring is drawn over the tab and
+/// takes no space.
 class BoardTabs extends StatelessWidget {
   const BoardTabs({
     super.key,
     required this.boards,
     required this.selectedId,
     required this.onSelect,
+    this.attentionIds = const {},
   });
+
+  /// Colour of the ring, the same as the glow round a pointed-at tile.
+  static const Color attentionColor = Color(0xFF1F4E9C);
 
   /// Every board of the circle; archived ones are left out here.
   final List<BoardFacts> boards;
   final String? selectedId;
   final ValueChanged<String> onSelect;
+
+  /// Ids of the boards to draw attention to.
+  final Set<String> attentionIds;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +56,8 @@ class BoardTabs extends StatelessWidget {
                 child: _Tab(
                   label: board.name,
                   selected: board.id == selectedId,
+                  attention:
+                      board.id != selectedId && attentionIds.contains(board.id),
                   onTap: () => onSelect(board.id),
                 ),
               ),
@@ -59,11 +72,13 @@ class _Tab extends StatelessWidget {
   const _Tab({
     required this.label,
     required this.selected,
+    required this.attention,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
+  final bool attention;
   final VoidCallback onTap;
 
   @override
@@ -71,26 +86,40 @@ class _Tab extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Board: $label',
+      label: attention
+          ? 'Board: $label. An adult is pointing at a word here'
+          : 'Board: $label',
       excludeSemantics: true,
-      child: Material(
-        color: selected ? Colors.black : Colors.white,
-        shape: RoundedRectangleBorder(
+      child: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: Colors.black, width: 1.5),
+          border: Border.all(
+            color: attention
+                ? BoardTabs.attentionColor
+                : BoardTabs.attentionColor.withValues(alpha: 0),
+            width: 4,
+          ),
         ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: selected ? null : onTap,
-          child: Center(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: selected ? Colors.white : Colors.black,
+        child: Material(
+          color: selected ? Colors.black : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.black, width: 1.5),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: selected ? null : onTap,
+            child: Center(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? Colors.white : Colors.black,
+                ),
               ),
             ),
           ),

@@ -290,9 +290,15 @@ class SyncSupervisor extends SyncStatus {
     notifyListeners();
     if (value) {
       await stop();
-      _setState(SyncState.offline);
+      // The adult may have switched back while the loop was stopping; a
+      // late "offline" must not land on a supervisor that is running again.
+      if (_workingOffline && !_disposed) _setState(SyncState.offline);
     } else {
-      start();
+      // A loop that is still stopping has to be gone first, or it would see
+      // the new run's flag and carry on beside the new loop. It never
+      // throws.
+      await _loopDone;
+      if (!_workingOffline && !_disposed) start();
     }
   }
 

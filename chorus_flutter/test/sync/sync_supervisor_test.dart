@@ -634,6 +634,52 @@ void main() {
     expect(sync.state, SyncState.live);
   });
 
+  supervised('working offline switched on and straight off again leaves '
+      'exactly one stream open', (tester) async {
+    sync.start();
+    await settle(tester);
+    expect(sync.state, SyncState.live);
+    expect(link.streamCalls - link.cancels, 1);
+
+    // Neither call is awaited: the second lands while the first is still
+    // stopping the loop.
+    final on = sync.setWorkingOffline(true);
+    final off = sync.setWorkingOffline(false);
+    await settle(tester);
+    await on;
+    await off;
+    await tester.pump(const Duration(seconds: 5));
+
+    expect(sync.workingOffline, isFalse);
+    expect(sync.state, SyncState.live);
+    expect(link.streamCalls - link.cancels, 1, reason: 'one loop, one stream');
+
+    // And the single loop still answers a stop.
+    await sync.setWorkingOffline(true);
+    expect(sync.state, SyncState.offline);
+    expect(link.streamCalls - link.cancels, 0);
+    await tester.pump(const Duration(minutes: 1));
+    expect(link.streamCalls - link.cancels, 0);
+  });
+
+  supervised('on, off and on again without waiting ends up offline', (
+    tester,
+  ) async {
+    sync.start();
+    await settle(tester);
+    final calls = [
+      sync.setWorkingOffline(true),
+      sync.setWorkingOffline(false),
+      sync.setWorkingOffline(true),
+    ];
+    await settle(tester);
+    await Future.wait(calls);
+    await tester.pump(const Duration(minutes: 1));
+    expect(sync.workingOffline, isTrue);
+    expect(sync.state, SyncState.offline);
+    expect(link.streamCalls - link.cancels, 0);
+  });
+
   testWidgets('calls after dispose are ignored', (tester) async {
     DateTime now() => tester.binding.clock.now();
     final local = SyncSupervisor(FakeLink(now), now: now);
