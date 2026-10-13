@@ -1,0 +1,4 @@
+### Sent to the client when a suggestion request is refused or fails.
+exception: SuggestException
+fields:
+  failure: SuggestFailure

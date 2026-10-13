@@ -1,0 +1,12 @@
+### A word proposed for a photo. Nothing is added to a board until an adult
+### approves it on their own device.
+class: WordSuggestion
+fields:
+  ### The text shown on the tile.
+  label: String
+  ### What the tile says aloud.
+  speech: String
+  ### A colour key from the shared palette.
+  colorKey: String
+  ### Other labels the adult may pick instead, best first.
+  alternatives: List<String>

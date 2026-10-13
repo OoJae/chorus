@@ -520,6 +520,70 @@ void main() {
     });
   });
 
+  group('setTileMedia', () {
+    test('sets, keeps and clears the two hashes, logs each change and '
+        'never touches the cell or the words', () async {
+      final before = tileAt(0, 1);
+      final photo = 'a' * 64, clip = 'b' * 64;
+
+      await store.setTileMedia(before.id, imageHash: photo, audioHash: clip);
+      var tile = tileAt(0, 1);
+      expect(tile.imageHash, photo);
+      expect(tile.audioHash, clip);
+      expect(tile.cellKey, before.cellKey);
+      expect(tile.label, before.label);
+
+      // Null leaves a property alone; an empty string clears it.
+      await store.setTileMedia(before.id, imageHash: '');
+      tile = tileAt(0, 1);
+      expect(tile.imageHash, isNull);
+      expect(tile.audioHash, clip);
+
+      final edits = await editsOf(before.id);
+      expect(
+        [for (final e in edits) (e.prop, e.oldValue, e.newValue)],
+        containsAll([
+          ('imageHash', null, photo),
+          ('audioHash', null, clip),
+          ('imageHash', photo, null),
+        ]),
+      );
+      expect(edits.every((e) => e.reason == EditReason.edit), isTrue);
+    });
+
+    test('with nothing to change writes nothing', () async {
+      final id = tileAt(0, 1).id;
+      await store.setTileMedia(id, imageHash: 'a' * 64);
+      final logged = (await editsOf(id)).length;
+      await store.setTileMedia(id, imageHash: 'a' * 64);
+      await store.setTileMedia(id);
+      expect(await editsOf(id), hasLength(logged));
+    });
+
+    test('is refused for a partner', () async {
+      final viewer = session.boardStore(circleAs(api.CircleRole.partner));
+      await viewer.refresh();
+      expect(
+        () => viewer.setTileMedia(tileAt(0, 1).id, imageHash: 'a' * 64),
+        throwsStateError,
+      );
+    });
+  });
+
+  group('the edit log', () {
+    test('is read with the tiles, and a restore is logged as one', () async {
+      final id = tileAt(0, 1).id;
+      await store.updateTile(id, label: 'need');
+      expect(store.edits.where((e) => e.tileId == id).single.reason, 'edit');
+
+      await store.updateTileAs(id, label: 'want', reason: EditReason.restore);
+      final mine = store.edits.where((e) => e.tileId == id).toList();
+      expect([for (final e in mine) e.reason], ['edit', 'restore']);
+      expect(mine.last.baseEditId, mine.first.id);
+      expect(tileAt(0, 1).label, 'want');
+    });
+  });
+
   group('updates name only the columns they change', () {
     // The engine keeps one clock stamp per updated column. A column stamped
     // without being changed would beat another device's edit of it, so the
@@ -555,6 +619,24 @@ void main() {
           () => store.updateTile(id, label: 'need', speech: 'I need'),
         ),
         {'speech'},
+      );
+    });
+
+    test('setTileMedia', () async {
+      final id = tileAt(0, 1).id;
+      expect(
+        await stampedBy(() => store.setTileMedia(id, imageHash: 'a' * 64)),
+        {'imageHash'},
+      );
+      expect(
+        await stampedBy(
+          () => store.setTileMedia(
+            id,
+            imageHash: 'a' * 64,
+            audioHash: 'b' * 64,
+          ),
+        ),
+        {'audioHash'},
       );
     });
 

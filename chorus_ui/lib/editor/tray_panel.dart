@@ -6,6 +6,7 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../contracts.dart';
+import '../contracts_media.dart';
 import '../widgets/tile_view.dart';
 
 /// One board drawn as a fixed grid: every tile in its own cell, every free
@@ -19,9 +20,13 @@ class EditorGrid extends StatelessWidget {
     this.onEmpty,
     this.emptyHint = 'Add a word here',
     this.dimTiles = false,
+    this.media,
   });
 
   final BoardFacts board;
+
+  /// Where the tiles' pictures come from. Null draws labels only.
+  final MediaStore? media;
 
   /// The board's occupied cells, as `gridOf` returns them.
   final Map<(int, int), TileFacts> cells;
@@ -80,6 +85,7 @@ class EditorGrid extends StatelessWidget {
     return TileView(
       key: ValueKey(tile.id),
       tile: tile,
+      media: media,
       dimmed: dimTiles,
       onTap: onTile == null ? null : () => onTile(tile),
     );

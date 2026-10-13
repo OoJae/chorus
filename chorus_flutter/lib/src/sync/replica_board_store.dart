@@ -13,10 +13,12 @@ import 'dart:async';
 import 'package:chorus_client/chorus_client.dart' hide CircleRole;
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:chorus_ui/contracts.dart';
+import 'package:chorus_ui/contracts_media.dart';
 import 'package:flutter/foundation.dart';
 import 'package:serverpod_database/serverpod_database.dart';
 
 import 'adapters.dart';
+import 'edit_log_store.dart';
 import 'replica_service.dart';
 
 /// Values of `TileEdit.reason` this store writes.
@@ -25,10 +27,13 @@ abstract final class EditReason {
   static const edit = 'edit';
   static const resolve = 'resolve';
   static const archive = 'archive';
+  static const restore = restoreReason;
 }
 
 /// The [BoardStore] of one circle on this device.
-class ReplicaBoardStore extends BoardStore {
+class ReplicaBoardStore extends BoardStore
+    with EditLogStore
+    implements TileMediaWriter {
   /// [circleId] is the UUID of the circle's sync space; every row of the
   /// circle carries it. [revision] is listened to and each change triggers a
   /// re-read. [onDispose] lets the owner forget the store.
@@ -52,7 +57,11 @@ class ReplicaBoardStore extends BoardStore {
   final VoidCallback? _onDispose;
 
   /// UUID of the circle's sync space.
+  @override
   final UuidValue circleId;
+
+  @override
+  ReplicaService get editLogReplica => _replica;
 
   @override
   final CircleRole role;
@@ -66,6 +75,11 @@ class ReplicaBoardStore extends BoardStore {
   List<BoardFacts> _boards = const [];
   List<TileFacts> _tiles = const [];
   bool _disposed = false;
+  bool _hasLoaded = false;
+
+  /// False until the first read of this device has finished. Until then an
+  /// empty [boards] means "not read yet", not "no board".
+  bool get hasLoaded => _hasLoaded;
 
   /// The re-read in progress, if any, and whether another is owed after it.
   Future<void>? _refreshing;
@@ -119,13 +133,19 @@ class ReplicaBoardStore extends BoardStore {
       );
       return (boards, tiles);
     });
+    final editsChanged = await reloadEdits();
     if (_disposed) return;
 
     boardRows.sort((a, b) => _byAge(a.createdAt, a.id!, b.createdAt, b.id!));
     tileRows.sort((a, b) => _byAge(a.createdAt, a.id!, b.createdAt, b.id!));
     final boards = [for (final row in boardRows) boardFacts(row)];
     final tiles = [for (final row in tileRows) tileFacts(row)];
-    if (listEquals(boards, _boards) && listEquals(tiles, _tiles)) return;
+    final first = !_hasLoaded;
+    _hasLoaded = true;
+    if (listEquals(boards, _boards) && listEquals(tiles, _tiles)) {
+      if (first || editsChanged) notifyListeners();
+      return;
+    }
 
     _boards = List.unmodifiable(boards);
     _tiles = List.unmodifiable(tiles);
@@ -258,6 +278,23 @@ class ReplicaBoardStore extends BoardStore {
     String? label,
     String? speech,
     String? colorKey,
+  }) => updateTileAs(
+    tileId,
+    label: label,
+    speech: speech,
+    colorKey: colorKey,
+    reason: EditReason.edit,
+  );
+
+  /// [updateTile] with the [reason] to record in the edit log, so a restore
+  /// takes the same write path as any other edit.
+  @override
+  Future<void> updateTileAs(
+    String tileId, {
+    String? label,
+    String? speech,
+    String? colorKey,
+    required String reason,
   }) async {
     _requireEditor();
     final id = uuidOf(tileId);
@@ -306,6 +343,68 @@ class ReplicaBoardStore extends BoardStore {
             if (changed.contains('label')) t.label,
             if (changed.contains('speech')) t.speech,
             if (changed.contains('colorKey')) t.colorKey,
+          ],
+          transaction: tx,
+        );
+        await _log(tx, id, reason, at, changes);
+      });
+    } on _NothingToWrite {
+      return;
+    }
+    await refresh();
+  }
+
+  /// Sets or clears a tile's picture and recording. A null argument leaves
+  /// that property alone; an empty one clears it. Never changes the cell.
+  @override
+  Future<void> setTileMedia(
+    String tileId, {
+    String? imageHash,
+    String? audioHash,
+  }) async {
+    _requireEditor();
+    final id = uuidOf(tileId);
+    try {
+      await _replica.write(circleId, (tx) async {
+        final tile = await _requireTile(tx, id);
+        final changes = <(String, String?, String?)>[
+          if (imageHash != null && _blankToNull(imageHash) != tile.imageHash)
+            ('imageHash', tile.imageHash, _blankToNull(imageHash)),
+          if (audioHash != null && _blankToNull(audioHash) != tile.audioHash)
+            ('audioHash', tile.audioHash, _blankToNull(audioHash)),
+        ];
+        if (changes.isEmpty) throw const _NothingToWrite();
+        final changed = {for (final change in changes) change.$1};
+
+        // Only the columns that changed are named, as in updateTile.
+        final at = _now().toUtc();
+        final next = Tile(
+          id: tile.id,
+          circleId: tile.circleId,
+          boardId: tile.boardId,
+          cellKey: tile.cellKey,
+          label: tile.label,
+          speech: tile.speech,
+          colorKey: tile.colorKey,
+          imageHash: changed.contains('imageHash')
+              ? _blankToNull(imageHash)
+              : tile.imageHash,
+          audioHash: changed.contains('audioHash')
+              ? _blankToNull(audioHash)
+              : tile.audioHash,
+          linkBoardId: tile.linkBoardId,
+          noLog: tile.noLog,
+          archivedAt: tile.archivedAt,
+          createdBy: tile.createdBy,
+          createdByName: tile.createdByName,
+          createdAt: tile.createdAt,
+        );
+        await Tile.db.updateRow(
+          _replica.session,
+          next,
+          columns: (t) => [
+            if (changed.contains('imageHash')) t.imageHash,
+            if (changed.contains('audioHash')) t.audioHash,
           ],
           transaction: tx,
         );

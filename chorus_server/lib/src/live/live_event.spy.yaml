@@ -1,0 +1,15 @@
+### One moment of a live session, relayed between the members who are joined
+### right now. Never stored.
+class: LiveEvent
+fields:
+  kind: LiveKind
+  ### The tile a pulse points at.
+  tileId: UuidValue?
+  ### The words of a `said` event.
+  text: String?
+  ### Who sent it. Stamped by the server; whatever the client sends is ignored.
+  fromUser: UuidValue?
+  ### The sender's display name in the circle. Stamped by the server.
+  fromName: String, defaultModel=''
+  ### When the server relayed it. Stamped by the server.
+  at: DateTime, defaultModel=now

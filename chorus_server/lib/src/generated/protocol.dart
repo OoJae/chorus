@@ -34,6 +34,16 @@ import 'circles/member_info.dart' as _i5nn4t9p;
 import 'circles/membership.dart' as _i5ll2qlc;
 import 'circles/server_info.dart' as _iqe7186e;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'live/live_event.dart' as _ixdzvre4;
+import 'live/live_kind.dart' as _il8wtxvt;
+import 'media/media_kind.dart' as _i8mjpd0r;
+import 'media/media_object.dart' as _i87lco0i;
+import 'media/upload_ticket.dart' as _illp1jkh;
+import 'printing/shared_snapshot.dart' as _if9s8td9;
+import 'suggest/ai_usage.dart' as _inv1atzh;
+import 'suggest/suggest_exception.dart' as _iw5bueja;
+import 'suggest/suggest_failure.dart' as _iv4peolp;
+import 'suggest/word_suggestion.dart' as _ifctwajg;
 export 'boards/board.dart';
 export 'boards/tile.dart';
 export 'boards/tile_edit.dart';
@@ -47,6 +57,16 @@ export 'circles/member_info.dart';
 export 'circles/membership.dart';
 export 'circles/server_info.dart';
 export 'greetings/greeting.dart';
+export 'live/live_event.dart';
+export 'live/live_kind.dart';
+export 'media/media_kind.dart';
+export 'media/media_object.dart';
+export 'media/upload_ticket.dart';
+export 'printing/shared_snapshot.dart';
+export 'suggest/ai_usage.dart';
+export 'suggest/suggest_exception.dart';
+export 'suggest/suggest_failure.dart';
+export 'suggest/word_suggestion.dart';
 export 'sync_tables.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
@@ -57,6 +77,60 @@ class Protocol extends _is.DatabaseSerializationManager {
   static final Protocol _instance = Protocol._().._registerHostProtocols();
 
   static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'ai_usage',
+      dartName: 'AiUsage',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'day',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'calls',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'ai_usage_circle_day_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'day',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     _isp.TableDefinition(
       name: 'board',
       dartName: 'Board',
@@ -279,6 +353,84 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'media_object',
+      dartName: 'MediaObject',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'sha256',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'kind',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:MediaKind',
+        ),
+        _isp.ColumnDefinition(
+          name: 'path',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'bytes',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'verifiedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'media_object_circle_hash_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'sha256',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'membership',
       dartName: 'Membership',
       schema: 'public',
@@ -352,6 +504,74 @@ class Protocol extends _is.DatabaseSerializationManager {
           ],
           type: 'btree',
           isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'shared_snapshot',
+      dartName: 'SharedSnapshot',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'token',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'boardJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'expiresAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'shared_snapshot_token_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'token',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
           isPrimary: false,
         ),
       ],
@@ -716,6 +936,36 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
+    if (t == _ixdzvre4.LiveEvent) {
+      return _ixdzvre4.LiveEvent.fromJson(data) as T;
+    }
+    if (t == _il8wtxvt.LiveKind) {
+      return _il8wtxvt.LiveKind.fromJson(data) as T;
+    }
+    if (t == _i8mjpd0r.MediaKind) {
+      return _i8mjpd0r.MediaKind.fromJson(data) as T;
+    }
+    if (t == _i87lco0i.MediaObject) {
+      return _i87lco0i.MediaObject.fromJson(data) as T;
+    }
+    if (t == _illp1jkh.UploadTicket) {
+      return _illp1jkh.UploadTicket.fromJson(data) as T;
+    }
+    if (t == _if9s8td9.SharedSnapshot) {
+      return _if9s8td9.SharedSnapshot.fromJson(data) as T;
+    }
+    if (t == _inv1atzh.AiUsage) {
+      return _inv1atzh.AiUsage.fromJson(data) as T;
+    }
+    if (t == _iw5bueja.SuggestException) {
+      return _iw5bueja.SuggestException.fromJson(data) as T;
+    }
+    if (t == _iv4peolp.SuggestFailure) {
+      return _iv4peolp.SuggestFailure.fromJson(data) as T;
+    }
+    if (t == _ifctwajg.WordSuggestion) {
+      return _ifctwajg.WordSuggestion.fromJson(data) as T;
+    }
     if (t == _is.getType<_i3lcnjeo.Board?>()) {
       return (data != null ? _i3lcnjeo.Board.fromJson(data) : null) as T;
     }
@@ -757,17 +1007,63 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ixdzvre4.LiveEvent?>()) {
+      return (data != null ? _ixdzvre4.LiveEvent.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_il8wtxvt.LiveKind?>()) {
+      return (data != null ? _il8wtxvt.LiveKind.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i8mjpd0r.MediaKind?>()) {
+      return (data != null ? _i8mjpd0r.MediaKind.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i87lco0i.MediaObject?>()) {
+      return (data != null ? _i87lco0i.MediaObject.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_illp1jkh.UploadTicket?>()) {
+      return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_if9s8td9.SharedSnapshot?>()) {
+      return (data != null ? _if9s8td9.SharedSnapshot.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_inv1atzh.AiUsage?>()) {
+      return (data != null ? _inv1atzh.AiUsage.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iw5bueja.SuggestException?>()) {
+      return (data != null ? _iw5bueja.SuggestException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iv4peolp.SuggestFailure?>()) {
+      return (data != null ? _iv4peolp.SuggestFailure.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ifctwajg.WordSuggestion?>()) {
+      return (data != null ? _ifctwajg.WordSuggestion.fromJson(data) : null)
+          as T;
+    }
     if (t == List<_i5nn4t9p.MemberInfo>) {
       return (data as List)
               .map((e) => deserialize<_i5nn4t9p.MemberInfo>(e))
               .toList()
           as T;
     }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
     if (t == List<_iun4jhfl.CircleInfo>) {
       return (data as List)
               .map((e) => deserialize<_iun4jhfl.CircleInfo>(e))
               .toList()
           as T;
+    }
+    if (t == Map<String, String>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
+          )
+          as T;
+    }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
     try {
       return _iais.Protocol().deserialize<T>(data, t);
@@ -799,6 +1095,16 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i5ll2qlc.Membership => 'Membership',
       _iqe7186e.ServerInfo => 'ServerInfo',
       _izw8z7ou.Greeting => 'Greeting',
+      _ixdzvre4.LiveEvent => 'LiveEvent',
+      _il8wtxvt.LiveKind => 'LiveKind',
+      _i8mjpd0r.MediaKind => 'MediaKind',
+      _i87lco0i.MediaObject => 'MediaObject',
+      _illp1jkh.UploadTicket => 'UploadTicket',
+      _if9s8td9.SharedSnapshot => 'SharedSnapshot',
+      _inv1atzh.AiUsage => 'AiUsage',
+      _iw5bueja.SuggestException => 'SuggestException',
+      _iv4peolp.SuggestFailure => 'SuggestFailure',
+      _ifctwajg.WordSuggestion => 'WordSuggestion',
       _ => null,
     };
   }
@@ -839,6 +1145,26 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'ServerInfo';
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _ixdzvre4.LiveEvent():
+        return 'LiveEvent';
+      case _il8wtxvt.LiveKind():
+        return 'LiveKind';
+      case _i8mjpd0r.MediaKind():
+        return 'MediaKind';
+      case _i87lco0i.MediaObject():
+        return 'MediaObject';
+      case _illp1jkh.UploadTicket():
+        return 'UploadTicket';
+      case _if9s8td9.SharedSnapshot():
+        return 'SharedSnapshot';
+      case _inv1atzh.AiUsage():
+        return 'AiUsage';
+      case _iw5bueja.SuggestException():
+        return 'SuggestException';
+      case _iv4peolp.SuggestFailure():
+        return 'SuggestFailure';
+      case _ifctwajg.WordSuggestion():
+        return 'WordSuggestion';
     }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -910,6 +1236,36 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
+    if (dataClassName == 'LiveEvent') {
+      return deserialize<_ixdzvre4.LiveEvent>(data['data']);
+    }
+    if (dataClassName == 'LiveKind') {
+      return deserialize<_il8wtxvt.LiveKind>(data['data']);
+    }
+    if (dataClassName == 'MediaKind') {
+      return deserialize<_i8mjpd0r.MediaKind>(data['data']);
+    }
+    if (dataClassName == 'MediaObject') {
+      return deserialize<_i87lco0i.MediaObject>(data['data']);
+    }
+    if (dataClassName == 'UploadTicket') {
+      return deserialize<_illp1jkh.UploadTicket>(data['data']);
+    }
+    if (dataClassName == 'SharedSnapshot') {
+      return deserialize<_if9s8td9.SharedSnapshot>(data['data']);
+    }
+    if (dataClassName == 'AiUsage') {
+      return deserialize<_inv1atzh.AiUsage>(data['data']);
+    }
+    if (dataClassName == 'SuggestException') {
+      return deserialize<_iw5bueja.SuggestException>(data['data']);
+    }
+    if (dataClassName == 'SuggestFailure') {
+      return deserialize<_iv4peolp.SuggestFailure>(data['data']);
+    }
+    if (dataClassName == 'WordSuggestion') {
+      return deserialize<_ifctwajg.WordSuggestion>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
       return _iais.Protocol().deserializeByClassName(data);
@@ -974,6 +1330,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _ib6idedo.Invitation.t;
       case _i5ll2qlc.Membership:
         return _i5ll2qlc.Membership.t;
+      case _i87lco0i.MediaObject:
+        return _i87lco0i.MediaObject.t;
+      case _if9s8td9.SharedSnapshot:
+        return _if9s8td9.SharedSnapshot.t;
+      case _inv1atzh.AiUsage:
+        return _inv1atzh.AiUsage.t;
     }
     return null;
   }

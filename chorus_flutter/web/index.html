@@ -32,8 +32,36 @@
 
   <title>Chorus</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    /* Shown until the app's first frame, so a slow connection is not a blank page. */
+    #loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+      font: 600 28px system-ui, sans-serif; color: #1F4E9C; background: #fff;
+    }
+    #loading .dots { display: flex; gap: 10px; }
+    #loading .dots i {
+      width: 14px; height: 14px; border-radius: 4px; background: #CCFFAA;
+      animation: chorus-pulse 1.2s ease-in-out infinite;
+    }
+    #loading .dots i:nth-child(2) { background: #FFFFAA; animation-delay: .15s; }
+    #loading .dots i:nth-child(3) { background: #AACCFF; animation-delay: .3s; }
+    #loading .dots i:nth-child(4) { background: #CCAAFF; animation-delay: .45s; }
+    @keyframes chorus-pulse { 0%, 100% { transform: scale(.8); opacity: .5; } 50% { transform: scale(1.15); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { #loading .dots i { animation: none; } }
+  </style>
 </head>
 <body>
+  <div id="loading" role="status" aria-live="polite">
+    <span>Chorus</span>
+    <span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var loading = document.getElementById('loading');
+      if (loading) loading.remove();
+    });
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

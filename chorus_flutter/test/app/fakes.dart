@@ -152,6 +152,9 @@ class FakeWorkspace implements Workspace {
   );
 
   @override
+  CircleServices? servicesFor(CircleInfo circle) => null;
+
+  @override
   Future<void> close() async {
     closed = true;
     await closeGate?.future;

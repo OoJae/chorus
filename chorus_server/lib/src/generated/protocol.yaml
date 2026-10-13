@@ -18,3 +18,14 @@ status:
   - info:
 greeting:
   - hello:
+live:
+  - join:
+media:
+  - requestUpload:
+  - confirmUpload:
+  - downloadUrls:
+printing:
+  - publishBoard:
+  - pageUrl:
+suggest:
+  - fromPhoto:

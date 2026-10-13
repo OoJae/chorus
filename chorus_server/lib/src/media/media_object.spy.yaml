@@ -1,0 +1,22 @@
+### One media file of a circle, named by the SHA-256 of its bytes.
+### Server-only and not synced: tiles carry only the hash.
+class: MediaObject
+table: media_object
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  ### Lowercase hex SHA-256 of the file's bytes.
+  sha256: String
+  kind: MediaKind
+  ### Path in private storage.
+  path: String
+  ### Size the uploader declared, in bytes.
+  bytes: int
+  createdBy: UuidValue
+  ### Set once the stored bytes were checked against [sha256]. Until then the
+  ### file is never handed out.
+  verifiedAt: DateTime?
+indexes:
+  media_object_circle_hash_idx:
+    fields: circleSpace, sha256
+    unique: true

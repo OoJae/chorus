@@ -1,0 +1,8 @@
+### Permission to upload one media file straight to private storage.
+class: UploadTicket
+fields:
+  ### Where the file lives in private storage.
+  path: String
+  ### Opaque upload instructions for the client's file uploader. Null when the
+  ### server already holds verified bytes for this hash: nothing to upload.
+  uploadDescription: String?
