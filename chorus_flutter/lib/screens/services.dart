@@ -6,6 +6,10 @@ library;
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncStatus;
+import 'package:chorus_ui/contracts_media.dart';
+import 'package:chorus_ui/contracts_suggest.dart';
+
+import '../src/live/chorus_live_session.dart';
 
 /// The circle calls on the server, plus the circles remembered on this
 /// device for a start with no signal.
@@ -43,8 +47,55 @@ abstract class Workspace {
 
   BoardStore boardStore(CircleInfo circle);
 
+  /// What [circle] offers beyond its board, or null for a workspace with
+  /// none of it. Cheap to call again: the same circle and role get the same
+  /// object.
+  CircleServices? servicesFor(CircleInfo circle);
+
   /// Stops sync and closes the replica.
   Future<void> close();
+}
+
+/// What one circle offers beyond its board: photos and voices, the live
+/// session, a suggested word, a paper copy.
+///
+/// Every part is optional and the screens work without any of them, so a
+/// part that cannot be made on this device is simply left out.
+class CircleServices {
+  const CircleServices({
+    required this.userId,
+    this.media,
+    this.speaker,
+    this.capture,
+    this.live,
+    this.suggester,
+    this.publishBoard,
+  });
+
+  /// UUID of the signed-in adult; names their settings on this device.
+  final String userId;
+
+  /// The circle's photos and clips on this device.
+  final MediaStore? media;
+
+  /// Says a word in its recorded voice when the clip is on this device.
+  final TileSpeaker? speaker;
+
+  /// Camera, photo library and microphone. Null for a read-only partner.
+  final MediaCapture? capture;
+
+  /// Makes a live session for one screen, which starts and disposes it.
+  /// Only the talker's session may share what is said, and only for a
+  /// guardian.
+  final ChorusLiveSession Function({required bool forTalker})? live;
+
+  /// Suggests a word for a picked photo. Null for a read-only partner.
+  final WordSuggester? suggester;
+
+  /// Sends a snapshot of the board (see `printSnapshotJson`) to be kept as
+  /// a printable page and completes with the page's address. Needs the
+  /// network; throws when the page could not be made.
+  final Future<String> Function(String boardJson)? publishBoard;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

@@ -6,11 +6,13 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../contracts.dart';
+import '../contracts_media.dart';
+import '../widgets/label_fit.dart';
 import '../widgets/tile_view.dart';
 
 /// One board drawn as a fixed grid: every tile in its own cell, every free
 /// cell as a tappable gap. Offers no way to move a tile.
-class EditorGrid extends StatelessWidget {
+class EditorGrid extends StatefulWidget {
   const EditorGrid({
     super.key,
     required this.board,
@@ -19,9 +21,13 @@ class EditorGrid extends StatelessWidget {
     this.onEmpty,
     this.emptyHint = 'Add a word here',
     this.dimTiles = false,
+    this.media,
   });
 
   final BoardFacts board;
+
+  /// Where the tiles' pictures come from. Null draws labels only.
+  final MediaStore? media;
 
   /// The board's occupied cells, as `gridOf` returns them.
   final Map<(int, int), TileFacts> cells;
@@ -39,48 +45,76 @@ class EditorGrid extends StatelessWidget {
   final bool dimTiles;
 
   @override
+  State<EditorGrid> createState() => _EditorGridState();
+}
+
+class _EditorGridState extends State<EditorGrid> {
+  /// Space round each cell.
+  static const double _gap = 2;
+
+  /// One label size for the whole board, as on the child's screen.
+  final TileLabelSizer _sizer = TileLabelSizer();
+
+  @override
   Widget build(BuildContext context) {
+    final board = widget.board;
     if (board.rows <= 0 || board.cols <= 0) return const SizedBox.shrink();
     return AspectRatio(
       aspectRatio: board.cols / board.rows,
-      child: Column(
-        children: [
-          for (var row = 0; row < board.rows; row++)
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var col = 0; col < board.cols; col++)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(2),
-                        child: _cell(row, col),
-                      ),
-                    ),
-                ],
-              ),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final labelSize = _sizer.sizeFor(
+            labels: widget.cells.values.map((tile) => tile.label),
+            tile: Size(
+              box.maxWidth / board.cols - 2 * _gap,
+              box.maxHeight / board.rows - 2 * _gap,
             ),
-        ],
+            style: DefaultTextStyle.of(context).style,
+            scaler: MediaQuery.textScalerOf(context),
+            direction: Directionality.of(context),
+          );
+          return Column(
+            children: [
+              for (var row = 0; row < board.rows; row++)
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var col = 0; col < board.cols; col++)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(_gap),
+                            child: _cell(row, col, labelSize),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _cell(int row, int col) {
-    final tile = cells[(row, col)];
+  Widget _cell(int row, int col, double labelSize) {
+    final tile = widget.cells[(row, col)];
     if (tile == null) {
-      final onEmpty = this.onEmpty;
+      final onEmpty = widget.onEmpty;
       return _EmptyCell(
         row: row,
         col: col,
-        hint: emptyHint,
+        hint: widget.emptyHint,
         onTap: onEmpty == null ? null : () => onEmpty(row, col),
       );
     }
-    final onTile = this.onTile;
+    final onTile = widget.onTile;
     return TileView(
       key: ValueKey(tile.id),
       tile: tile,
-      dimmed: dimTiles,
+      media: widget.media,
+      dimmed: widget.dimTiles,
+      labelSize: labelSize,
       onTap: onTile == null ? null : () => onTile(tile),
     );
   }
@@ -166,8 +200,7 @@ const String wordChangedMessage =
     'That word changed on another device. Nothing was moved.';
 
 /// Shown when any other write to the store failed.
-const String notSavedMessage =
-    'That could not be saved. Nothing was changed.';
+const String notSavedMessage = 'That could not be saved. Nothing was changed.';
 
 /// Why [entry] is waiting, in words for a parent. [cells] is the grid of the
 /// entry's board, used to name whose word holds the cell it wanted.
@@ -181,7 +214,8 @@ String trayReasonText(TrayEntry entry, Map<(int, int), TileFacts> cells) {
     TrayReason.contested => 'Added while offline; $whose got this spot first',
     TrayReason.unplaced => 'Its spot was already taken when it was added',
     TrayReason.offGrid => 'Its spot is no longer on this board',
-    TrayReason.duplicateCell => 'Shares a spot with $whose, which was there first',
+    TrayReason.duplicateCell =>
+      'Shares a spot with $whose, which was there first',
   };
 }
 
@@ -251,32 +285,41 @@ class TrayPanel extends StatelessWidget {
   }
 
   Future<void> _place(
-      BuildContext context, TileFacts tile, (int, int) cell) async {
+    BuildContext context,
+    TileFacts tile,
+    (int, int) cell,
+  ) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final bool placed;
     try {
       placed = await store.placeTile(tile.id, row: cell.$1, col: cell.$2);
     } on Object {
       // A merge placed or removed the word, or the role changed, meanwhile.
-      messenger?.showSnackBar(const SnackBar(content: Text(wordChangedMessage)));
+      messenger?.showSnackBar(
+        const SnackBar(content: Text(wordChangedMessage)),
+      );
       return;
     }
-    messenger?.showSnackBar(SnackBar(
-      content: Text(placed
-          ? '"${tile.label}" is on the board.'
-          : 'That spot was just taken. Choose another spot.'),
-    ));
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
+          placed
+              ? '"${tile.label}" is on the board.'
+              : 'That spot was just taken. Choose another spot.',
+        ),
+      ),
+    );
   }
 
   Future<void> _choose(
-      BuildContext context, BoardFacts board, TileFacts tile) async {
+    BuildContext context,
+    BoardFacts board,
+    TileFacts tile,
+  ) async {
     final cell = await showDialog<(int, int)>(
       context: context,
-      builder: (dialogContext) => _CellPicker(
-        store: store,
-        board: board,
-        tile: tile,
-      ),
+      builder: (dialogContext) =>
+          _CellPicker(store: store, board: board, tile: tile),
     );
     if (cell == null || !context.mounted) return;
     await _place(context, tile, cell);
@@ -284,8 +327,11 @@ class TrayPanel extends StatelessWidget {
 
   Future<void> _remove(BuildContext context, TileFacts tile) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
-    final confirmed = await confirmRemoveWord(context,
-        tile: tile, childName: store.childName);
+    final confirmed = await confirmRemoveWord(
+      context,
+      tile: tile,
+      childName: store.childName,
+    );
     if (!confirmed) return;
     try {
       await store.archiveTile(tile.id);
@@ -357,10 +403,7 @@ class _TrayCard extends StatelessWidget {
                   onPressed: onChoose,
                   child: const Text('Choose a spot'),
                 ),
-                TextButton(
-                  onPressed: onRemove,
-                  child: const Text('Remove'),
-                ),
+                TextButton(onPressed: onRemove, child: const Text('Remove')),
               ],
             ),
           ],
@@ -400,8 +443,10 @@ class _CellPicker extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Where should "${tile.label}" go?',
-                  style: theme.textTheme.titleLarge),
+              Text(
+                'Where should "${tile.label}" go?',
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 4),
               const Text('Tap an empty spot. Words already placed stay put.'),
               const SizedBox(height: 12),

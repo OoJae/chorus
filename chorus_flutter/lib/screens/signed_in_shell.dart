@@ -230,6 +230,16 @@ class _SignedInShellState extends State<SignedInShell> {
     }
   }
 
+  /// Photos, the live session and the rest are extras: if they cannot be
+  /// made on this device the board still opens without them.
+  CircleServices? _servicesFor(Workspace workspace, CircleInfo circle) {
+    try {
+      return workspace.servicesFor(circle);
+    } catch (_) {
+      return null;
+    }
+  }
+
   void _addBoard() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -306,6 +316,7 @@ class _SignedInShellState extends State<SignedInShell> {
       onRetryReady: () => _prepare(selected, retry: true),
       onSignOut: _signOut,
       onAddBoard: _addBoard,
+      services: _servicesFor(workspace, selected),
     );
   }
 }

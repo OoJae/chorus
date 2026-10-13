@@ -2,6 +2,9 @@
     <!-- Sync and sign-in talk to the server. Flutter adds this permission only
          to the debug and profile manifests, so a release build needs it here. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- An adult records how the family says a word. Asked for the first
+         time the record button is held; nothing is recorded otherwise. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="Chorus"
         android:name="${applicationName}"

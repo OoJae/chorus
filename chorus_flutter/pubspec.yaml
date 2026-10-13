@@ -46,6 +46,17 @@ dependencies:
   path_provider: ^2.1.6
   path: ^1.9.1
   uuid: ^4.6.0
+  # Family photos and recorded voices.
+  image_picker: ^1.1.2
+  # 6.x on purpose: 7.x was not tried against this Flutter pin.
+  record: ^6.0.0
+  audioplayers: ^6.1.0
+  crypto: ^3.0.6
+  # Pure Dart JPEG encoder, for shrinking a photo the same way everywhere.
+  image: ^4.5.0
+  http: ^1.2.0
+  # IndexedDB, where the browser keeps photos and clips.
+  web: ^1.1.1
 
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP

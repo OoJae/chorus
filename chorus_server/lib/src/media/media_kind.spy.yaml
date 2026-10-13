@@ -1,0 +1,5 @@
+### What a stored media file is: a tile's picture or its recorded voice clip.
+enum: MediaKind
+values:
+  - image
+  - audio

@@ -1,11 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_flutter/screens/home_screen.dart';
+import 'package:chorus_flutter/screens/services.dart';
+import 'package:chorus_flutter/src/live/chorus_live_session.dart';
 import 'package:chorus_flutter/screens/signed_in_shell.dart';
 import 'package:chorus_shared/chorus_shared.dart' show BoardFacts;
 import 'package:chorus_ui/contracts.dart' show BoardStore;
 import 'package:chorus_ui/fakes.dart';
+import 'package:chorus_ui/editor/editor_screen.dart';
+import 'package:chorus_ui/fakes_media.dart';
+import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +37,8 @@ void main() {
     VoidCallback? onRetryReady,
     ValueChanged<CircleInfo>? onSelect,
     BoardStore? store,
+    CircleServices? services,
+    FakeSyncStatus? sync,
   }) async {
     final gateway = FakeGateway();
     final workspace = FakeWorkspace();
@@ -40,16 +49,259 @@ void main() {
         selected: selected,
         onSelect: onSelect ?? (_) {},
         store: store ?? workspace.boardStore(selected),
-        sync: workspace.sync,
+        sync: sync ?? workspace.sync,
         speech: FakeSpeech(),
         gateway: gateway,
         readiness: readiness,
         onRetryReady: onRetryReady ?? () {},
         onSignOut: () {},
+        services: services,
       ),
     );
     return gateway;
   }
+
+  group('with the circle\'s services', () {
+    testWidgets('none of the extras are offered without them', (tester) async {
+      await pumpHome(tester, circle());
+      expect(find.text(printCopyLabel), findsNothing);
+      expect(find.text('Share what is said'), findsNothing);
+    });
+
+    testWidgets('a paper copy sends the board on this device and shows the '
+        'link', (tester) async {
+      final sent = <String>[];
+      await pumpHome(
+        tester,
+        circle(),
+        services: CircleServices(
+          userId: 'me',
+          publishBoard: (json) async {
+            sent.add(json);
+            return 'https://chorus.example/print/abc';
+          },
+        ),
+      );
+      await tester.tap(find.text(printCopyLabel));
+      await tester.pumpAndSettle();
+
+      final snapshot = jsonDecode(sent.single) as Map<String, dynamic>;
+      expect(snapshot['childName'], 'Maya');
+      expect(snapshot['rows'], 6);
+      expect(snapshot['cols'], 6);
+      expect(snapshot['tiles'], isNotEmpty);
+      expect(find.text('https://chorus.example/print/abc'), findsOneWidget);
+      expect(find.textContaining('Anyone with the link'), findsOneWidget);
+
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('https://chorus.example/print/abc'), findsNothing);
+    });
+
+    testWidgets('a paper copy that cannot be made says so and nothing '
+        'else', (tester) async {
+      await pumpHome(
+        tester,
+        circle(role: CircleRole.partner, myName: 'Gran'),
+        services: CircleServices(
+          userId: 'me',
+          publishBoard: (_) => throw StateError('offline'),
+        ),
+      );
+      await tester.tap(find.text(printCopyLabel));
+      await tester.pumpAndSettle();
+      expect(find.text(printCopyFailedMessage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('from the home screen the paper copy is of the home board; '
+        'from the editor, of the board the adult is looking at', (
+      tester,
+    ) async {
+      final sent = <Map<String, dynamic>>[];
+      await pumpHome(
+        tester,
+        circle(),
+        services: CircleServices(
+          userId: 'me',
+          publishBoard: (json) async {
+            sent.add(jsonDecode(json) as Map<String, dynamic>);
+            return 'https://chorus.example/print/abc';
+          },
+        ),
+      );
+      await tester.tap(find.text(printCopyLabel));
+      await tester.pumpAndSettle();
+      expect(sent.single['name'], 'Home');
+      expect(sent.single['tiles'], hasLength(36));
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Edit board'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('My words'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(printThisBoardLabel));
+      await tester.pumpAndSettle();
+      expect(sent, hasLength(2));
+      expect(sent.last['name'], 'My words');
+      expect(sent.last['tiles'], isEmpty);
+      expect(find.text('https://chorus.example/print/abc'), findsOneWidget);
+    });
+
+    testWidgets('Work offline sits with the extras, pauses sync and keeps '
+        'the paper copy off the network', (tester) async {
+      final sync = FakeSyncStatus();
+      final media = FakeMediaStore();
+      var published = 0;
+      await pumpHome(
+        tester,
+        circle(),
+        sync: sync,
+        services: CircleServices(
+          userId: 'me',
+          media: media,
+          publishBoard: (_) async {
+            published++;
+            return 'https://chorus.example/print/abc';
+          },
+        ),
+      );
+      expect(find.text(printCopyLabel), findsOneWidget);
+      final offline = find.widgetWithText(SwitchListTile, 'Work offline');
+      expect(tester.widget<SwitchListTile>(offline).value, isFalse);
+
+      await tester.tap(offline);
+      await tester.pumpAndSettle();
+      expect(sync.workingOffline, isTrue);
+      expect(tester.widget<SwitchListTile>(offline).value, isTrue);
+      expect(find.text('Working offline, saved on this phone'), findsOneWidget);
+      expect(find.text('Sync now'), findsNothing);
+
+      await tester.tap(find.text(printCopyLabel));
+      await tester.pumpAndSettle();
+      expect(find.text(printCopyOfflineMessage), findsOneWidget);
+      expect(published, 0);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(offline);
+      await tester.pumpAndSettle();
+      expect(sync.workingOffline, isFalse);
+      await tester.tap(find.text(printCopyLabel));
+      await tester.pumpAndSettle();
+      expect(published, 1);
+    });
+
+    testWidgets('only a guardian is offered the sharing switch', (
+      tester,
+    ) async {
+      ChorusLiveSession live({required bool forTalker}) => ChorusLiveSession(
+        join: (_, _) => const Stream.empty(),
+        circleSpace: mayaSpace,
+      );
+      await pumpHome(
+        tester,
+        circle(),
+        services: CircleServices(userId: 'me', live: live),
+      );
+      expect(find.text('Share what is said'), findsOneWidget);
+
+      await pumpHome(
+        tester,
+        circle(role: CircleRole.therapist, myName: 'Sam'),
+        services: CircleServices(userId: 'me', live: live),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Share what is said'), findsNothing);
+    });
+
+    testWidgets('the talker and the editor each open a live session and '
+        'close it when they are left', (tester) async {
+      final opened = <bool>[];
+      var streams = 0, cancelled = 0;
+      ChorusLiveSession live({required bool forTalker}) {
+        opened.add(forTalker);
+        return ChorusLiveSession(
+          join: (_, _) {
+            streams++;
+            final down = StreamController<LiveEvent>();
+            down.onCancel = () => cancelled++;
+            return down.stream;
+          },
+          circleSpace: mayaSpace,
+        );
+      }
+
+      final media = FakeMediaStore();
+      await pumpHome(
+        tester,
+        circle(),
+        services: CircleServices(
+          userId: 'me',
+          live: live,
+          media: media,
+          speaker: FakeTileSpeaker(),
+        ),
+      );
+      // Nothing is joined from the home screen.
+      expect(opened, isEmpty);
+
+      await tester.tap(find.text('Talker'));
+      await tester.pumpAndSettle();
+      final talker = tester.widget<TalkerScreen>(find.byType(TalkerScreen));
+      expect(talker.live, isNotNull);
+      expect(talker.media, same(media));
+      expect(talker.speaker, isNotNull);
+      expect(opened, [true]);
+      expect((streams, cancelled), (1, 0));
+
+      final hold = await tester.startGesture(
+        tester.getCenter(find.text(leaveLabel)),
+      );
+      await tester.pump(const Duration(milliseconds: 2100));
+      await hold.up();
+      await tester.pumpAndSettle();
+      expect(find.byType(TalkerScreen), findsNothing);
+      expect(cancelled, 1);
+
+      await tester.tap(find.text('Edit board'));
+      await tester.pumpAndSettle();
+      final editor = tester.widget<EditorScreen>(find.byType(EditorScreen));
+      expect(editor.live, isNotNull);
+      expect(editor.media, same(media));
+      expect(opened, [true, false]);
+      expect(streams, 2);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(cancelled, 2);
+    });
+
+    testWidgets('files still to be sent are counted on the home screen', (
+      tester,
+    ) async {
+      final media = FakeMediaStore();
+      await pumpHome(
+        tester,
+        circle(),
+        services: CircleServices(userId: 'me', media: media),
+      );
+      expect(find.textContaining('waiting to be sent'), findsNothing);
+
+      await media.addAudio(Uint8List.fromList([1, 2, 3]));
+      await tester.pump();
+      expect(
+        find.text(
+          '1 photo or recording is waiting to be sent from this device.',
+        ),
+        findsOneWidget,
+      );
+      media.finishUploads();
+      await tester.pump();
+      expect(find.textContaining('waiting to be sent'), findsNothing);
+    });
+  });
 
   testWidgets('a guardian sees every action and the sync chip', (tester) async {
     await pumpHome(tester, circle());

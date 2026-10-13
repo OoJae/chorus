@@ -21,10 +21,17 @@ String syncLabel(SyncStatus sync) => sync.workingOffline
 
 /// Says in plain words whether this phone is in step with the others, and
 /// offers "Sync now" whenever it is not live.
+///
+/// With [compact] it is the state's icon alone in a 48dp target, for a row
+/// with no room for the words: the words are its tooltip and what a screen
+/// reader says, and a tap retries whenever "Sync now" would be offered.
 class SyncChip extends StatelessWidget {
-  const SyncChip({super.key, required this.sync});
+  const SyncChip({super.key, required this.sync, this.compact = false});
 
   final SyncStatus sync;
+
+  /// Icon only.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +42,48 @@ class SyncChip extends StatelessWidget {
         // Nothing to retry while live, or while paused on purpose.
         final live = state == SyncState.live || sync.workingOffline;
         final label = syncLabel(sync);
+        if (compact) {
+          void retry() {
+            // Failures show up as the next state; nothing to await.
+            sync.syncNow().catchError((Object _) {});
+          }
+
+          return Semantics(
+            container: true,
+            liveRegion: true,
+            button: !live,
+            label: live ? label : '$label. Tap to sync now',
+            excludeSemantics: true,
+            onTap: live ? null : retry,
+            child: Tooltip(
+              message: label,
+              child: InkResponse(
+                onTap: live ? null : retry,
+                radius: 24,
+                child: SizedBox(
+                  width: 44,
+                  height: 48,
+                  child: Center(
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black, width: 1.5),
+                      ),
+                      child: Icon(
+                        _icon(state, sync.hasUnsent),
+                        size: 18,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
         return Semantics(
           container: true,
           liveRegion: true,

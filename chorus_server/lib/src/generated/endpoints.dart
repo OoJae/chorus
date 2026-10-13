@@ -12,6 +12,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_role.dart'
     as _iwu0lutr;
+import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
+import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -24,6 +26,10 @@ import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../circles/circle_endpoint.dart' as _ixefnrd7;
 import '../circles/status_endpoint.dart' as _iy5k9ngi;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../live/live_endpoint.dart' as _i4k4ewet;
+import '../media/media_endpoint.dart' as _i9ppd1x8;
+import '../printing/printing_endpoint.dart' as _i0tflb56;
+import '../suggest/suggest_endpoint.dart' as _idurguj6;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -57,6 +63,30 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'live': _i4k4ewet.LiveEndpoint()
+        ..initialize(
+          server,
+          'live',
+          null,
+        ),
+      'media': _i9ppd1x8.MediaEndpoint()
+        ..initialize(
+          server,
+          'media',
+          null,
+        ),
+      'printing': _i0tflb56.PrintingEndpoint()
+        ..initialize(
+          server,
+          'printing',
+          null,
+        ),
+      'suggest': _idurguj6.SuggestEndpoint()
+        ..initialize(
+          server,
+          'suggest',
           null,
         ),
     };
@@ -395,6 +425,219 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['greeting'] as _il624ik7.GreetingEndpoint).hello(
                     session,
                     params['name'],
+                  ),
+        ),
+      },
+    );
+    connectors['live'] = _is.EndpointConnector(
+      name: 'live',
+      endpoint: endpoints['live']!,
+      methodConnectors: {
+        'join': _is.MethodStreamConnector(
+          name: 'join',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {
+            'outgoing': _is.StreamParameterDescription<_iclh8zz1.LiveEvent>(
+              name: 'outgoing',
+              nullable: false,
+            ),
+          },
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['live'] as _i4k4ewet.LiveEndpoint).join(
+                session,
+                params['circleSpace'],
+                streamParams['outgoing']!.cast<_iclh8zz1.LiveEvent>(),
+              ),
+        ),
+      },
+    );
+    connectors['media'] = _is.EndpointConnector(
+      name: 'media',
+      endpoint: endpoints['media']!,
+      methodConnectors: {
+        'requestUpload': _is.MethodConnector(
+          name: 'requestUpload',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'sha256': _is.ParameterDescription(
+              name: 'sha256',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'kind': _is.ParameterDescription(
+              name: 'kind',
+              type: _is.getType<_inazphuo.MediaKind>(),
+              nullable: false,
+            ),
+            'bytes': _is.ParameterDescription(
+              name: 'bytes',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['media'] as _i9ppd1x8.MediaEndpoint).requestUpload(
+                    session,
+                    params['circleSpace'],
+                    params['sha256'],
+                    params['kind'],
+                    params['bytes'],
+                  ),
+        ),
+        'confirmUpload': _is.MethodConnector(
+          name: 'confirmUpload',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'sha256': _is.ParameterDescription(
+              name: 'sha256',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['media'] as _i9ppd1x8.MediaEndpoint).confirmUpload(
+                    session,
+                    params['circleSpace'],
+                    params['sha256'],
+                  ),
+        ),
+        'downloadUrls': _is.MethodConnector(
+          name: 'downloadUrls',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'hashes': _is.ParameterDescription(
+              name: 'hashes',
+              type: _is.getType<List<String>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['media'] as _i9ppd1x8.MediaEndpoint).downloadUrls(
+                    session,
+                    params['circleSpace'],
+                    params['hashes'],
+                  ),
+        ),
+      },
+    );
+    connectors['printing'] = _is.EndpointConnector(
+      name: 'printing',
+      endpoint: endpoints['printing']!,
+      methodConnectors: {
+        'publishBoard': _is.MethodConnector(
+          name: 'publishBoard',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'boardJson': _is.ParameterDescription(
+              name: 'boardJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['printing'] as _i0tflb56.PrintingEndpoint)
+                  .publishBoard(
+                    session,
+                    params['circleSpace'],
+                    params['boardJson'],
+                  ),
+        ),
+        'pageUrl': _is.MethodConnector(
+          name: 'pageUrl',
+          params: {
+            'token': _is.ParameterDescription(
+              name: 'token',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['printing'] as _i0tflb56.PrintingEndpoint).pageUrl(
+                    session,
+                    params['token'],
+                  ),
+        ),
+      },
+    );
+    connectors['suggest'] = _is.EndpointConnector(
+      name: 'suggest',
+      endpoint: endpoints['suggest']!,
+      methodConnectors: {
+        'fromPhoto': _is.MethodConnector(
+          name: 'fromPhoto',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'imageSha256': _is.ParameterDescription(
+              name: 'imageSha256',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'locale': _is.ParameterDescription(
+              name: 'locale',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['suggest'] as _idurguj6.SuggestEndpoint).fromPhoto(
+                    session,
+                    params['circleSpace'],
+                    params['imageSha256'],
+                    params['locale'],
                   ),
         ),
       },

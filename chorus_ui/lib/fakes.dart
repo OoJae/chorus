@@ -6,22 +6,27 @@
 library;
 
 import 'package:chorus_shared/chorus_shared.dart';
+import 'package:chorus_shared/chorus_shared.dart' as chorus show wordsBoardId;
 import 'package:flutter/foundation.dart';
 
 import 'contracts.dart';
 
-/// A [BoardStore] held in memory, seeded with the starter board.
+/// A [BoardStore] held in memory, seeded with the starter board and the
+/// empty "My words" board, as a guardian's device seeds a circle.
 class FakeBoardStore extends BoardStore {
-  /// Starts from `starterBoard` / `starterTiles`. The starter board fills
-  /// every cell, so [leaveEmpty] names (row, col) cells to leave out when a
-  /// demo or test needs free spots.
+  /// Starts from `starterBoard` / `starterTiles` and `wordsBoard`. The
+  /// starter board fills every cell, so [leaveEmpty] names (row, col) cells
+  /// to leave out when a demo or test needs free spots on it.
+  /// [withWordsBoard] false gives a circle with the home board only.
   FakeBoardStore.seeded({
     this._role = CircleRole.guardian,
     this.childName = 'Maya',
     this.myName = 'Mum',
     Set<(int, int)> leaveEmpty = const {},
+    bool withWordsBoard = true,
   }) {
     _boards.add(starterBoard(circleId));
+    if (withWordsBoard) _boards.add(wordsBoard(circleId));
     final seeded = starterTiles(
       circleId: circleId,
       createdBy: _userId(myName),
@@ -66,6 +71,9 @@ class FakeBoardStore extends BoardStore {
 
   /// Id of the seeded home board.
   String get homeBoardId => starterBoardId(circleId);
+
+  /// Id of the seeded "My words" board.
+  String get wordsBoardId => chorus.wordsBoardId(circleId);
 
   @override
   List<BoardFacts> get boards => List.unmodifiable(_boards);
@@ -315,8 +323,22 @@ class FakeSyncStatus extends SyncStatus {
   bool _hasUnsent;
   DateTime? _lastMergeAt;
 
+  bool _workingOffline = false;
+
   /// How many times [syncNow] ran.
   int syncNowCalls = 0;
+
+  @override
+  bool get workingOffline => _workingOffline;
+
+  /// Pausing shows as offline; resuming goes straight back to live.
+  @override
+  Future<void> setWorkingOffline(bool value) async {
+    if (value == _workingOffline) return;
+    _workingOffline = value;
+    _state = value ? SyncState.offline : SyncState.live;
+    notifyListeners();
+  }
 
   @override
   SyncState get state => _state;

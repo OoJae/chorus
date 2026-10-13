@@ -9,6 +9,10 @@ environment:
 resolution: workspace
 
 dependencies:
+  # Hashing uploaded media. Already resolved in the workspace at 3.0.7.
+  crypto: ^3.0.7
+  # The suggestion service is called over plain HTTPS. Resolved at 1.6.0.
+  http: ^1.6.0
   serverpod: 4.0.4
   serverpod_auth_idp_server: 4.0.4
   serverpod_cloud_storage: 4.0.4

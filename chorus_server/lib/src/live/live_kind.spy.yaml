@@ -1,0 +1,10 @@
+### What a live event tells the other members of a circle.
+enum: LiveKind
+values:
+  ### An adult tapped a tile; it glows on the other devices.
+  - pulse
+  ### The child's device said something. Sent only while a guardian has
+  ### turned sharing on.
+  - said
+  ### A member joined or is still here.
+  - presence

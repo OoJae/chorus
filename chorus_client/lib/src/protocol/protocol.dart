@@ -31,6 +31,13 @@ import 'circles/circle_role.dart' as _il0wc3z7;
 import 'circles/member_info.dart' as _i5nn4t9p;
 import 'circles/server_info.dart' as _iqe7186e;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'live/live_event.dart' as _ixdzvre4;
+import 'live/live_kind.dart' as _il8wtxvt;
+import 'media/media_kind.dart' as _i8mjpd0r;
+import 'media/upload_ticket.dart' as _illp1jkh;
+import 'suggest/suggest_exception.dart' as _iw5bueja;
+import 'suggest/suggest_failure.dart' as _iv4peolp;
+import 'suggest/word_suggestion.dart' as _ifctwajg;
 export 'boards/board.dart';
 export 'boards/tile.dart';
 export 'boards/tile_edit.dart';
@@ -41,6 +48,13 @@ export 'circles/circle_role.dart';
 export 'circles/member_info.dart';
 export 'circles/server_info.dart';
 export 'greetings/greeting.dart';
+export 'live/live_event.dart';
+export 'live/live_kind.dart';
+export 'media/media_kind.dart';
+export 'media/upload_ticket.dart';
+export 'suggest/suggest_exception.dart';
+export 'suggest/suggest_failure.dart';
+export 'suggest/word_suggestion.dart';
 export 'client.dart';
 export 'sync_tables.dart';
 
@@ -501,6 +515,27 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
+    if (t == _ixdzvre4.LiveEvent) {
+      return _ixdzvre4.LiveEvent.fromJson(data) as T;
+    }
+    if (t == _il8wtxvt.LiveKind) {
+      return _il8wtxvt.LiveKind.fromJson(data) as T;
+    }
+    if (t == _i8mjpd0r.MediaKind) {
+      return _i8mjpd0r.MediaKind.fromJson(data) as T;
+    }
+    if (t == _illp1jkh.UploadTicket) {
+      return _illp1jkh.UploadTicket.fromJson(data) as T;
+    }
+    if (t == _iw5bueja.SuggestException) {
+      return _iw5bueja.SuggestException.fromJson(data) as T;
+    }
+    if (t == _iv4peolp.SuggestFailure) {
+      return _iv4peolp.SuggestFailure.fromJson(data) as T;
+    }
+    if (t == _ifctwajg.WordSuggestion) {
+      return _ifctwajg.WordSuggestion.fromJson(data) as T;
+    }
     if (t == _isc.getType<_i3lcnjeo.Board?>()) {
       return (data != null ? _i3lcnjeo.Board.fromJson(data) : null) as T;
     }
@@ -533,17 +568,53 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_ixdzvre4.LiveEvent?>()) {
+      return (data != null ? _ixdzvre4.LiveEvent.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_il8wtxvt.LiveKind?>()) {
+      return (data != null ? _il8wtxvt.LiveKind.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i8mjpd0r.MediaKind?>()) {
+      return (data != null ? _i8mjpd0r.MediaKind.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_illp1jkh.UploadTicket?>()) {
+      return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_iw5bueja.SuggestException?>()) {
+      return (data != null ? _iw5bueja.SuggestException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iv4peolp.SuggestFailure?>()) {
+      return (data != null ? _iv4peolp.SuggestFailure.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ifctwajg.WordSuggestion?>()) {
+      return (data != null ? _ifctwajg.WordSuggestion.fromJson(data) : null)
+          as T;
+    }
     if (t == List<_i5nn4t9p.MemberInfo>) {
       return (data as List)
               .map((e) => deserialize<_i5nn4t9p.MemberInfo>(e))
               .toList()
           as T;
     }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
     if (t == List<_icfd3qx2.CircleInfo>) {
       return (data as List)
               .map((e) => deserialize<_icfd3qx2.CircleInfo>(e))
               .toList()
           as T;
+    }
+    if (t == Map<String, String>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
+          )
+          as T;
+    }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
     try {
       return _iaic.Protocol().deserialize<T>(data, t);
@@ -569,6 +640,13 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _i5nn4t9p.MemberInfo => 'MemberInfo',
       _iqe7186e.ServerInfo => 'ServerInfo',
       _izw8z7ou.Greeting => 'Greeting',
+      _ixdzvre4.LiveEvent => 'LiveEvent',
+      _il8wtxvt.LiveKind => 'LiveKind',
+      _i8mjpd0r.MediaKind => 'MediaKind',
+      _illp1jkh.UploadTicket => 'UploadTicket',
+      _iw5bueja.SuggestException => 'SuggestException',
+      _iv4peolp.SuggestFailure => 'SuggestFailure',
+      _ifctwajg.WordSuggestion => 'WordSuggestion',
       _ => null,
     };
   }
@@ -603,6 +681,20 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'ServerInfo';
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _ixdzvre4.LiveEvent():
+        return 'LiveEvent';
+      case _il8wtxvt.LiveKind():
+        return 'LiveKind';
+      case _i8mjpd0r.MediaKind():
+        return 'MediaKind';
+      case _illp1jkh.UploadTicket():
+        return 'UploadTicket';
+      case _iw5bueja.SuggestException():
+        return 'SuggestException';
+      case _iv4peolp.SuggestFailure():
+        return 'SuggestFailure';
+      case _ifctwajg.WordSuggestion():
+        return 'WordSuggestion';
     }
     className = _iaic.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -660,6 +752,27 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
+    }
+    if (dataClassName == 'LiveEvent') {
+      return deserialize<_ixdzvre4.LiveEvent>(data['data']);
+    }
+    if (dataClassName == 'LiveKind') {
+      return deserialize<_il8wtxvt.LiveKind>(data['data']);
+    }
+    if (dataClassName == 'MediaKind') {
+      return deserialize<_i8mjpd0r.MediaKind>(data['data']);
+    }
+    if (dataClassName == 'UploadTicket') {
+      return deserialize<_illp1jkh.UploadTicket>(data['data']);
+    }
+    if (dataClassName == 'SuggestException') {
+      return deserialize<_iw5bueja.SuggestException>(data['data']);
+    }
+    if (dataClassName == 'SuggestFailure') {
+      return deserialize<_iv4peolp.SuggestFailure>(data['data']);
+    }
+    if (dataClassName == 'WordSuggestion') {
+      return deserialize<_ifctwajg.WordSuggestion>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);

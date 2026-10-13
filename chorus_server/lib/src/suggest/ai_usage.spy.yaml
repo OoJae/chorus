@@ -1,0 +1,14 @@
+### How many suggestions a circle asked for on one day. Server-only; holds no
+### photo and no words.
+class: AiUsage
+table: ai_usage
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  ### The UTC date as `yyyy-MM-dd`.
+  day: String
+  calls: int
+indexes:
+  ai_usage_circle_day_idx:
+    fields: circleSpace, day
+    unique: true

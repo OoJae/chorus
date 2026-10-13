@@ -5,7 +5,9 @@ import 'package:serverpod_auth_idp_server/providers/email.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
+import 'src/demo/demo_seed.dart';
 import 'src/generated/serverpod.dart';
+import 'src/printing/print_routes.dart';
 import 'src/web/routes/app_config_route.dart';
 
 /// The starting point of the Serverpod server.
@@ -100,6 +102,12 @@ void run(List<String> args) async {
     ),
   );
 
+  // The printable page of a published board.
+  registerPrintRoutes(pod);
+
   // Start the server.
   await pod.start();
+
+  // Demo accounts and their circle, once the database is up.
+  scheduleDemoSeed(pod);
 }

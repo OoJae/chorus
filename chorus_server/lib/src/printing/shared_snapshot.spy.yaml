@@ -1,0 +1,18 @@
+### A board as one member's device saw it, kept so it can be printed from a
+### link. Server-only and not synced.
+class: SharedSnapshot
+table: shared_snapshot
+serverOnly: true
+fields:
+  ### Unguessable; the only key to the printable page.
+  token: String
+  circleSpace: UuidValue
+  ### The board and its tiles as JSON, built by the client from its replica.
+  boardJson: String
+  createdBy: UuidValue
+  createdAt: DateTime
+  expiresAt: DateTime
+indexes:
+  shared_snapshot_token_idx:
+    fields: token
+    unique: true

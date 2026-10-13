@@ -1,0 +1,10 @@
+### Why a word could not be suggested.
+enum: SuggestFailure
+values:
+  ### The server has no suggestion service set up.
+  - notConfigured
+  ### The circle used up today's suggestions.
+  - overBudget
+  ### The photo is missing, unverified or could not be read.
+  - unreadable
+  - failed
