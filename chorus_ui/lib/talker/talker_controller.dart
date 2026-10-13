@@ -37,7 +37,7 @@ class TalkerController extends ChangeNotifier {
 
   final BoardStore _store;
   final SpeechService _speech;
-  final String? _boardId;
+  String? _boardId;
   final Duration _quiet;
 
   Timer? _timer;
@@ -62,8 +62,7 @@ class TalkerController extends ChangeNotifier {
 
   /// True when some waiting change would swap or move a visible tile, or
   /// the grid was resized.
-  bool get needsAdult =>
-      (_plan?.needsAdult.isNotEmpty ?? false) || _resized;
+  bool get needsAdult => (_plan?.needsAdult.isNotEmpty ?? false) || _resized;
 
   /// The replica's grid has a different size from the one shown. The plan
   /// keeps the held board, so this is true until an adult accepts.
@@ -73,6 +72,28 @@ class TalkerController extends ChangeNotifier {
         fresh != null &&
         (held.board.rows != fresh.board.rows ||
             held.board.cols != fresh.board.cols);
+  }
+
+  /// Id of the board on show, if any.
+  String? get boardId => _held?.board.id;
+
+  /// Every board of the circle, for the tabs.
+  List<BoardFacts> get boards => _store.boards;
+
+  /// Goes to another board. Moving between boards is the child's own act,
+  /// so the board is shown as the replica has it now, with nothing waiting.
+  void showBoard(String boardId) {
+    noteTouch();
+    final board = _store.boards
+        .where((b) => !b.archived && b.id == boardId)
+        .firstOrNull;
+    if (board == null || board.id == _held?.board.id) return;
+    _boardId = board.id;
+    final fresh = BoardSnapshot.of(board, _store.tiles, _store.boards);
+    _held = fresh;
+    _fresh = fresh;
+    _plan = null;
+    notifyListeners();
   }
 
   /// Adds [tile] to the strip and speaks it.

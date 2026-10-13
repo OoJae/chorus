@@ -5,6 +5,7 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../contracts.dart';
+import '../widgets/board_tabs.dart';
 import '../widgets/sync_chip.dart';
 import 'add_word_sheet.dart';
 import 'tray_panel.dart';
@@ -34,10 +35,15 @@ class EditorScreen extends StatefulWidget {
 class _EditorScreenState extends State<EditorScreen> {
   BoardStore get _store => widget.store;
 
-  /// The home board, or failing that the first board still in use.
+  /// The board chosen with the tabs; null means the home board.
+  String? _selectedBoardId;
+
+  /// The chosen board, else the home board, else the first still in use.
   BoardFacts? _currentBoard() {
     final live = _store.boards.where((board) => !board.archived);
-    return live.where((board) => board.isHome).firstOrNull ?? live.firstOrNull;
+    return live.where((board) => board.id == _selectedBoardId).firstOrNull ??
+        live.where((board) => board.isHome).firstOrNull ??
+        live.firstOrNull;
   }
 
   Future<void> _editTile(TileFacts tile) async {
@@ -60,14 +66,19 @@ class _EditorScreenState extends State<EditorScreen> {
         .where((t) => t.id == tile.id && !t.archived)
         .firstOrNull;
     if (current == null) {
-      messenger.showSnackBar(const SnackBar(
-        content: Text('That word was removed on another device.'),
-      ));
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('That word was removed on another device.'),
+        ),
+      );
       return;
     }
     if (identical(result, _removeRequested)) {
-      final confirmed = await confirmRemoveWord(context,
-          tile: current, childName: _store.childName);
+      final confirmed = await confirmRemoveWord(
+        context,
+        tile: current,
+        childName: _store.childName,
+      );
       if (!confirmed) return;
       try {
         await _store.archiveTile(current.id);
@@ -90,8 +101,12 @@ class _EditorScreenState extends State<EditorScreen> {
     final speech = draft.speech == (tile.speech ?? '') ? null : draft.speech;
     final colorKey = draft.colorKey == tile.colorKey ? null : draft.colorKey;
     if (label == null && speech == null && colorKey == null) return;
-    await _store.updateTile(tile.id,
-        label: label, speech: speech, colorKey: colorKey);
+    await _store.updateTile(
+      tile.id,
+      label: label,
+      speech: speech,
+      colorKey: colorKey,
+    );
   }
 
   @override
@@ -118,15 +133,20 @@ class _EditorScreenState extends State<EditorScreen> {
               onTile: canEdit ? _editTile : null,
               onEmpty: canEdit
                   ? (row, col) => showAddWordSheet(
-                        context,
-                        store: _store,
-                        boardId: board.id,
-                        row: row,
-                        col: col,
-                      )
+                      context,
+                      store: _store,
+                      boardId: board.id,
+                      row: row,
+                      col: col,
+                    )
                   : null,
             );
             final tray = TrayPanel(store: _store, boardId: board.id);
+            final tabs = BoardTabs(
+              boards: _store.boards,
+              selectedId: board.id,
+              onSelect: (id) => setState(() => _selectedBoardId = id),
+            );
             return LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 900) {
@@ -135,6 +155,8 @@ class _EditorScreenState extends State<EditorScreen> {
                     children: [
                       header,
                       const SizedBox(height: 12),
+                      tabs,
+                      const SizedBox(height: 8),
                       grid,
                       const SizedBox(height: 24),
                       tray,
@@ -152,6 +174,8 @@ class _EditorScreenState extends State<EditorScreen> {
                           children: [
                             header,
                             const SizedBox(height: 12),
+                            tabs,
+                            const SizedBox(height: 8),
                             // Align loosens the constraints so the grid keeps
                             // its shape when the window is short.
                             Expanded(
@@ -221,8 +245,10 @@ class _Header extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.visibility_outlined,
-                      color: scheme.onSecondaryContainer),
+                  Icon(
+                    Icons.visibility_outlined,
+                    color: scheme.onSecondaryContainer,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

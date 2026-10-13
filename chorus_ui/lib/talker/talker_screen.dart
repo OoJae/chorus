@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../contracts.dart';
+import '../widgets/board_tabs.dart';
 import '../widgets/sync_chip.dart';
 import '../widgets/tile_view.dart';
 import 'talker_controller.dart';
@@ -149,6 +150,12 @@ class _TalkerScreenState extends State<TalkerScreen> {
                         sync: widget.sync,
                         onExit: widget.onExit,
                         onAdultUpdate: _confirmAdultChanges,
+                      ),
+                      const SizedBox(height: 4),
+                      BoardTabs(
+                        boards: _controller.boards,
+                        selectedId: _controller.boardId,
+                        onSelect: _controller.showBoard,
                       ),
                       const SizedBox(height: 4),
                       Expanded(
