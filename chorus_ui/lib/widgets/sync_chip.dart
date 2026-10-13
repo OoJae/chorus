@@ -6,16 +6,18 @@ import 'package:flutter/material.dart';
 import '../contracts.dart';
 
 /// Plain-words description of [sync]'s state.
-String syncLabel(SyncStatus sync) => switch (sync.state) {
-      SyncState.signedOut => 'Signed out, saved on this phone',
-      SyncState.offline => 'Offline, saved on this phone',
-      SyncState.clockSkew => "Check this phone's clock",
-      SyncState.connecting => 'Connecting',
-      SyncState.live => sync.hasUnsent ? 'Sending changes' : 'Up to date',
-      SyncState.backoff => 'Reconnecting',
-      SyncState.needsUpdate => 'Update the app to sync',
-      SyncState.accessLost => 'No longer shared with you',
-    };
+String syncLabel(SyncStatus sync) => sync.workingOffline
+    ? 'Working offline, saved on this phone'
+    : switch (sync.state) {
+        SyncState.signedOut => 'Signed out, saved on this phone',
+        SyncState.offline => 'Offline, saved on this phone',
+        SyncState.clockSkew => "Check this phone's clock",
+        SyncState.connecting => 'Connecting',
+        SyncState.live => sync.hasUnsent ? 'Sending changes' : 'Up to date',
+        SyncState.backoff => 'Reconnecting',
+        SyncState.needsUpdate => 'Update the app to sync',
+        SyncState.accessLost => 'No longer shared with you',
+      };
 
 /// Says in plain words whether this phone is in step with the others, and
 /// offers "Sync now" whenever it is not live.
@@ -30,7 +32,8 @@ class SyncChip extends StatelessWidget {
       listenable: sync,
       builder: (context, _) {
         final state = sync.state;
-        final live = state == SyncState.live;
+        // Nothing to retry while live, or while paused on purpose.
+        final live = state == SyncState.live || sync.workingOffline;
         final label = syncLabel(sync);
         return Semantics(
           container: true,
@@ -46,8 +49,11 @@ class SyncChip extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(_icon(state, sync.hasUnsent),
-                    size: 18, color: Colors.black),
+                Icon(
+                  _icon(state, sync.hasUnsent),
+                  size: 18,
+                  color: Colors.black,
+                ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
@@ -82,11 +88,11 @@ class SyncChip extends StatelessWidget {
   }
 
   static IconData _icon(SyncState state, bool hasUnsent) => switch (state) {
-        SyncState.live => hasUnsent ? Icons.upload : Icons.check_circle,
-        SyncState.connecting || SyncState.backoff => Icons.sync,
-        SyncState.offline || SyncState.signedOut => Icons.phone_android,
-        SyncState.clockSkew => Icons.schedule,
-        SyncState.needsUpdate => Icons.system_update,
-        SyncState.accessLost => Icons.block,
-      };
+    SyncState.live => hasUnsent ? Icons.upload : Icons.check_circle,
+    SyncState.connecting || SyncState.backoff => Icons.sync,
+    SyncState.offline || SyncState.signedOut => Icons.phone_android,
+    SyncState.clockSkew => Icons.schedule,
+    SyncState.needsUpdate => Icons.system_update,
+    SyncState.accessLost => Icons.block,
+  };
 }

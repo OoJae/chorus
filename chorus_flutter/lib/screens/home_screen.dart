@@ -1,6 +1,8 @@
 /// Home for one circle: the large actions an adult chooses from.
 library;
 
+import 'dart:async';
+
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
 import 'package:chorus_ui/credits/credits_screen.dart';
@@ -151,6 +153,20 @@ class HomeScreen extends StatelessWidget {
                               EditorScreen(store: store, sync: sync),
                             )
                           : null,
+                    ),
+                    ListenableBuilder(
+                      listenable: sync,
+                      builder: (context, _) => SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Work offline'),
+                        subtitle: const Text(
+                          'Pauses sync on this device. Changes are kept here '
+                          'and sent when you switch it back.',
+                        ),
+                        value: sync.workingOffline,
+                        onChanged: (value) =>
+                            unawaited(sync.setWorkingOffline(value)),
+                      ),
                     ),
                     if (canInvite)
                       BigButton(
