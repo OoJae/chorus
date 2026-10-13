@@ -50,6 +50,15 @@ Tick each line against the deployed build. A line that cannot be ticked removes 
 - [ ] An invited adult who joins before the starter board has arrived sees "There is no board here yet" with Retry, and the board appears by itself once it has synced.
 - [ ] Restart the server while the app is live: the chip leaves "Up to date" and returns to it without restarting the app.
 
+**The child's screen on the phone (added with the layout change on 13 Oct; automated at 360x800 and 800x360 with the test font only, not yet seen on a device)**
+
+- [ ] Upright: the sentence strip spans the screen, the three buttons are in a row under it, and a two-word sentence starts at the left of the strip.
+- [ ] Upright and on its side: every word on a board is the same size ("I" is not larger than "want"). On a small phone the longest words ("different", "finished") may be drawn a little smaller than the rest: the shared size stops at 14.
+- [ ] On its side: strip, buttons, status icon and "Hold to leave" are one row, the board tabs stand to the left of the grid, and the grid has most of the height. Hold "Hold to leave" for 2 seconds: it leaves.
+- [ ] Two boards: add a word on Home from another device while the child is on "My words"; go back to Home. The word is not there yet and "1 waiting" shows; it lands at a safe moment.
+- [ ] Model mode across boards: with the child on Home, point at a word on "My words" from another device. The "My words" tab on the child's phone gets a blue ring; the board is not switched for them. For the video, model on the board the child has open.
+- [ ] Switch "Work offline" on and straight off again: the chip returns to "Up to date" and stays there.
+
 Notes for running the beats:
 
 - The phone must reach the server by the Cloud URL (or a LAN address), never through a USB tunnel: airplane mode does not cut a USB tunnel, so the test would pass without proving anything.

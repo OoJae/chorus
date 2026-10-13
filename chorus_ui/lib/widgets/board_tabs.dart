@@ -28,6 +28,7 @@ class BoardTabs extends StatelessWidget {
     required this.selectedId,
     required this.onSelect,
     this.attentionIds = const {},
+    this.axis = Axis.horizontal,
   });
 
   /// Colour of the ring, the same as the glow round a pointed-at tile.
@@ -41,30 +42,40 @@ class BoardTabs extends StatelessWidget {
   /// Ids of the boards to draw attention to.
   final Set<String> attentionIds;
 
+  /// Horizontal is a 48dp row of tabs side by side. Vertical stacks them in
+  /// a column that fills the height it is given, for a short, wide screen
+  /// where a row of tabs would take height from the board.
+  final Axis axis;
+
   @override
   Widget build(BuildContext context) {
     final live = liveBoards(boards);
     if (live.length < 2) return const SizedBox.shrink();
-    return SizedBox(
-      height: 48,
-      child: Row(
-        children: [
-          for (final board in live)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: _Tab(
-                  label: board.name,
-                  selected: board.id == selectedId,
-                  attention:
-                      board.id != selectedId && attentionIds.contains(board.id),
-                  onTap: () => onSelect(board.id),
-                ),
-              ),
+    final vertical = axis == Axis.vertical;
+    final tabs = [
+      for (final board in live)
+        Expanded(
+          child: Padding(
+            padding: vertical
+                ? const EdgeInsets.symmetric(vertical: 3)
+                : const EdgeInsets.symmetric(horizontal: 2),
+            child: _Tab(
+              label: board.name,
+              selected: board.id == selectedId,
+              attention:
+                  board.id != selectedId && attentionIds.contains(board.id),
+              onTap: () => onSelect(board.id),
             ),
-        ],
-      ),
-    );
+          ),
+        ),
+    ];
+    if (vertical) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: tabs,
+      );
+    }
+    return SizedBox(height: 48, child: Row(children: tabs));
   }
 }
 
@@ -111,14 +122,17 @@ class _Tab extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             onTap: selected ? null : onTap,
             child: Center(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? Colors.white : Colors.black,
+                  ),
                 ),
               ),
             ),

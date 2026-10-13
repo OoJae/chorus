@@ -6,12 +6,18 @@ import 'package:flutter/material.dart';
 
 import '../contracts_media.dart';
 import '../theme.dart';
+import 'label_fit.dart';
 
 /// A tile drawn as a coloured block with a large label.
 ///
 /// Fills the space its parent gives it and never shrinks below 48dp. The label
 /// scales down to fit rather than wrapping or clipping. Screen readers hear the
 /// label only.
+///
+/// A grid passes [labelSize], the one size shared by every tile of its board
+/// (see `TileLabelSizer`), so a short word is not drawn larger than a long
+/// one. Scaling down is then only the fallback for a label that does not fit
+/// even at the smallest size, and for the narrow strip under a picture.
 ///
 /// With a [media] store, a tile that has a picture on this device shows it
 /// above a smaller label. Until the picture arrives the tile is its label
@@ -24,7 +30,11 @@ class TileView extends StatelessWidget {
     this.highlighted = false,
     this.dimmed = false,
     this.media,
+    this.labelSize,
   });
+
+  /// Font size of the label. Null sizes this tile by itself.
+  final double? labelSize;
 
   final TileFacts tile;
   final VoidCallback? onTap;
@@ -63,8 +73,8 @@ class TileView extends StatelessWidget {
         maxLines: 1,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: image == null ? 32 : 22,
-          fontWeight: FontWeight.w700,
+          fontSize: labelSize ?? (image == null ? maxTileLabelSize : 22),
+          fontWeight: tileLabelWeight,
           color: ink,
         ),
       ),
@@ -86,7 +96,7 @@ class TileView extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(tileLabelPadding),
                 child: image == null
                     ? Center(child: label)
                     : Column(
