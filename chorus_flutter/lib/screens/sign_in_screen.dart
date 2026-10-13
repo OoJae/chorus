@@ -3,75 +3,36 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../client.dart';
 
-class SignInScreen extends StatefulWidget {
-  final Widget child;
-  const SignInScreen({super.key, required this.child});
-
-  @override
-  State<SignInScreen> createState() => _SignInScreenState();
-}
-
-class _SignInScreenState extends State<SignInScreen> {
-  bool _isSignedIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    client.auth.authInfoListenable.addListener(_updateSignedInState);
-    _isSignedIn = client.auth.isAuthenticated;
-  }
-
-  @override
-  void dispose() {
-    client.auth.authInfoListenable.removeListener(_updateSignedInState);
-    super.dispose();
-  }
-
-  void _updateSignedInState() {
-    setState(() {
-      _isSignedIn = client.auth.isAuthenticated;
-    });
-  }
+/// Email sign-in with an emailed code.
+class SignInScreen extends StatelessWidget {
+  const SignInScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-
-    return _isSignedIn
-        ? widget.child
-        : Center(
-            child: SignInWidget(
-              client: client,
-              onAuthenticated: () {
-                context.showSnackBar(
-                  message: 'User authenticated.',
-                  backgroundColor: colors.primaryContainer,
-                  foregroundColor: colors.onPrimaryContainer,
+    return Scaffold(
+      appBar: AppBar(title: const Text('Chorus')),
+      body: SafeArea(
+        child: Center(
+          child: SignInWidget(
+            client: client,
+            onError: (error) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Sign-in did not work. Check the email and the code, '
+                      'then try again.',
+                      style: TextStyle(color: colors.onErrorContainer),
+                    ),
+                    backgroundColor: colors.errorContainer,
+                    duration: const Duration(seconds: 5),
+                  ),
                 );
-              },
-              onError: (error) {
-                context.showSnackBar(
-                  message: 'Authentication failed: $error',
-                  backgroundColor: colors.errorContainer,
-                  foregroundColor: colors.onErrorContainer,
-                );
-              },
-            ),
-          );
-  }
-}
-
-extension on BuildContext {
-  void showSnackBar({
-    required String message,
-    required Color backgroundColor,
-    required Color foregroundColor,
-  }) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(color: foregroundColor)),
-        backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 5),
+            },
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Sync and sign-in talk to the server. Flutter adds this permission only
+         to the debug and profile manifests, so a release build needs it here. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="chorus_flutter"
+        android:label="Chorus"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -40,6 +43,11 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- On-device speech: from Android 11 an app must declare that it
+             looks up the text-to-speech service, or no engine is found. -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
         </intent>
     </queries>
 </manifest>

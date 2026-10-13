@@ -16,7 +16,7 @@ Nothing below is verified yet. Nothing has been built or run.
 | # | Claim | Where it is said | Proof | Status |
 |---|---|---|---|---|
 | B1a | The phone speaks a sentence. | Video 0:00-0:30, first 3 seconds | Manual: before-submitting check "beat 1, twice, on the physical phone, with a stopwatch". TODO measure: seconds from first frame to first spoken word (target under 3). | not yet |
-| B1b | With airplane mode on, it still speaks. | Video 0:00-0:30; description, flow | Manual: beat 1 with OS airplane mode on and the airplane icon visible; cold start in airplane mode (kill the app, start it, tap, hear speech). Spike S2 ("cold start offline works") and S7 (offline voice installed). | not yet |
+| B1b | With airplane mode on, it still speaks. | Video 0:00-0:30; description, flow | Manual: beat 1 with OS airplane mode on and the airplane icon visible; cold start in airplane mode (kill the app, start it, tap, hear speech). Spike S2 ("cold start offline works") and S7 (offline voice installed). Run the cold start on the phone and, separately, in the browser: the web app keeps the circle list in the browser's local storage, which a private window or blocked site data switches off. Say "the phone" in the sentence unless the browser check also passes. | not yet |
 | B2a | An adult on another device adds a word and it arrives on the child's board. | Video 0:30-1:02; description, flow | Manual: smoke test steps 1 and 2 (word appears within 20 s). TODO measure: seconds from "add" on the web app to "1 word waiting" on the phone. | not yet |
 | B2b | The new word lands at a safe moment, between sentences: the board shows "1 word waiting" first. | Video 0:30-1:02; description, flow | Unit: `chorus_shared` tests for `isSafePoint` (strip empty, not speaking, 2 s since last touch) and `reconcileSnapshot` (an added tile into an empty cell is an auto change). TODO test names. Manual: beat 2 twice on the physical phone. | not yet |
 | B2c | The new word is spoken when tapped. | Video 0:30-1:02 | Manual: beat 2, tap the arrived word, hear it. | not yet |
@@ -79,3 +79,6 @@ These are said in the description and README, and the short ones on the video's 
 - Two adults editing the same label offline is last-writer-wins until the edit log ships. The losing edit is not shown or recoverable.
 - Every member of a circle can read the whole board, including read-only members. The app says so.
 - A removed member keeps what was already downloaded to their device.
+- An edit made offline by a member whose role was then reduced to read-only is dropped by the server without an error, and still looks saved on that member's device (spike T8 stale). Chorus has no way to change or remove a member's role today, so this cannot happen yet. Revisit this line, and the "Sending changes" status, before adding one.
+- "Up to date" in the status chip means the last sync finished without an error. It is not a receipt for each edit.
+- A cold start with no signal opens the board only on a device that has opened it before while connected.

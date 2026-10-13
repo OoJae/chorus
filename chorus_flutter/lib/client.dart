@@ -28,5 +28,19 @@ Future<void> initializeClient() async {
   client = Client(await serverUrl)
     ..connectivityMonitor = FlutterConnectivityMonitor()
     ..authSessionManager = FlutterAuthSessionManager();
-  unawaited(client.auth.initialize());
+  // Read the saved sign-in before the first frame. This touches storage
+  // only, so a signed-in adult, or the child's device started with no
+  // signal, opens on the board instead of the sign-in screen.
+  try {
+    await client.auth.restore();
+  } catch (_) {
+    // Unreadable storage: start signed out rather than not at all.
+  }
+  // Then check it with the server in the background. An invalid sign-in
+  // signs the device out; a network failure changes nothing.
+  unawaited(
+    client.auth
+        .validateAuthentication(timeout: const Duration(seconds: 5))
+        .then<void>((_) {}, onError: (Object _) {}),
+  );
 }

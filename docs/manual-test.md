@@ -44,7 +44,11 @@ Tick each line against the deployed build. A line that cannot be ticked removes 
 - [ ] Beat 2, second run. Time: `TODO` s
 - [ ] Beat 3, first run: two adults offline fill the same empty cell; after reconnect one word holds the cell, the other is under "Needs a home", and no existing button moved. Time from reconnect to tray: `TODO` s
 - [ ] Beat 3, second run. Time: `TODO` s
-- [ ] Cold start in airplane mode: with airplane mode on, force-stop the app, open it, tap a word, hear it.
+- [ ] Cold start in airplane mode: with airplane mode on, force-stop the app, open it, tap a word, hear it. The app must open on the board, not on the sign-in screen and not on "could not reach the server".
+- [ ] Cold start offline in the browser (not a private window): sign in and open the board once while connected, set the Network tab to "Offline", reload. The board opens. If it stops at "could not reach the server", claim B1b is for the phone only.
+- [ ] Sign out with airplane mode on: the sign-in screen appears within about 10 seconds.
+- [ ] An invited adult who joins before the starter board has arrived sees "There is no board here yet" with Retry, and the board appears by itself once it has synced.
+- [ ] Restart the server while the app is live: the chip leaves "Up to date" and returns to it without restarting the app.
 
 Notes for running the beats:
 

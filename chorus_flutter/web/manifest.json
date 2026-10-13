@@ -1,12 +1,12 @@
 {
-    "name": "chorus_flutter",
-    "short_name": "chorus_flutter",
+    "name": "Chorus",
+    "short_name": "Chorus",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#FFFFFF",
+    "theme_color": "#1F4E9C",
+    "description": "A talking picture board that a child's whole circle keeps in step, and that still speaks with no signal.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
