@@ -92,9 +92,46 @@ class ChorusSession {
     for (var round = 0; !await _hasHomeBoard(space); round++) {
       if (upToDate) {
         await _seed(circle);
-        return;
+        break;
       }
       upToDate = await _syncedOrTick(first: round == 0);
+    }
+    await _ensureWordsBoard(circle);
+  }
+
+  /// Adds the empty "My words" board if this device does not have it.
+  ///
+  /// The starter board fills every cell, so added words need a page of their
+  /// own. The id is derived from the circle: two devices adding it apart
+  /// write the same row, and the merge keeps one board.
+  Future<void> _ensureWordsBoard(CircleInfo circle) async {
+    _checkOpen();
+    final space = circle.spaceUuid;
+    final words = wordsBoard(idOf(space));
+    final wordsId = uuidOf(words.id);
+    final session = _replica.session;
+    try {
+      await _replica.write(space, (tx) async {
+        final existing = await Board.db.findFirstRow(
+          session,
+          where: (t) => t.id.equals(wordsId),
+          transaction: tx,
+        );
+        if (existing != null) throw const _AlreadySeeded();
+        await Board.db.insertRow(
+          session,
+          starterBoardRow(
+            words,
+            circleId: space,
+            createdAt: DateTime.now().toUtc(),
+          ),
+          transaction: tx,
+        );
+      });
+    } on _AlreadySeeded {
+      // Nothing was written.
+    } on DatabaseQueryException {
+      // The row is already on this device (for example archived).
     }
   }
 

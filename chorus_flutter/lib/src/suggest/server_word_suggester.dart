@@ -72,12 +72,15 @@ class ServerWordSuggester implements WordSuggester {
   @override
   ValueListenable<bool> get available => _available;
 
-  /// Online means sync is live: the same server answers both.
+  /// Online means sync is live: the same server answers both. Never while
+  /// an adult has this device working offline.
   void _update() {
     if (_disposed) return;
     final sync = _sync;
     _available.value =
-        !_notConfigured && (sync == null || sync.state == SyncState.live);
+        !_notConfigured &&
+        (sync == null ||
+            (sync.state == SyncState.live && !sync.workingOffline));
   }
 
   @override

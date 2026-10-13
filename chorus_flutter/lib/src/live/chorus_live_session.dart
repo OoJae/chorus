@@ -217,14 +217,17 @@ class ChorusLiveSession extends LiveSession {
   }
 
   /// Whether a connection is worth trying. Clock skew and sync backoff do
-  /// not stop the stream; it has its own backoff.
-  bool get _online => switch (_sync?.state) {
-    SyncState.signedOut ||
-    SyncState.offline ||
-    SyncState.needsUpdate ||
-    SyncState.accessLost => false,
-    _ => true,
-  };
+  /// not stop the stream; it has its own backoff. While an adult has this
+  /// device working offline the stream stays closed, with no retries.
+  bool get _online =>
+      !(_sync?.workingOffline ?? false) &&
+      switch (_sync?.state) {
+        SyncState.signedOut ||
+        SyncState.offline ||
+        SyncState.needsUpdate ||
+        SyncState.accessLost => false,
+        _ => true,
+      };
 
   void _onSyncChanged() {
     if (_disposed || !_started) return;

@@ -73,11 +73,12 @@ class _LoggedStore extends FakeBoardStore implements EditLog {
 }
 
 void main() {
-  Future<void> pump(WidgetTester tester, BoardStore store) =>
+  Future<void> pump(WidgetTester tester, BoardStore store,
+          {String? boardId}) =>
       tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ReplacedChangesPanel(store: store),
+            child: ReplacedChangesPanel(store: store, boardId: boardId),
           ),
         ),
       ));
@@ -121,6 +122,16 @@ void main() {
     expect(find.text('Replaced changes (1)'), findsOneWidget);
     expect(find.text('$sentence Use "snack" instead?'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Restore'), findsOneWidget);
+  });
+
+  testWidgets('given a board, lists only the replaced changes to its words',
+      (tester) async {
+    final store = await overwritten();
+    await pump(tester, store, boardId: store.wordsBoardId);
+    expect(find.byType(Text), findsNothing);
+
+    await pump(tester, store, boardId: store.homeBoardId);
+    expect(find.text('Replaced changes (1)'), findsOneWidget);
   });
 
   testWidgets('Restore puts the replaced word back and the entry goes',

@@ -58,6 +58,20 @@ LiveEvent _presence(UuidValue user, String name, {String text = 'here'}) =>
       text: text,
     );
 
+/// Sync that an adult can pause without the state changing, as in the
+/// moment between flipping "Work offline" and the loop having stopped.
+class _Pausable extends FakeSyncStatus {
+  bool _paused = false;
+
+  @override
+  bool get workingOffline => _paused;
+
+  set paused(bool value) {
+    _paused = value;
+    notifyListeners();
+  }
+}
+
 void main() {
   late _Server server;
 
@@ -191,6 +205,41 @@ void main() {
       expect(server.last.closedByClient, isTrue);
       await tester.pump(const Duration(minutes: 1));
       expect(server.calls, hasLength(1));
+      live.dispose();
+    });
+
+    testWidgets('stays closed and quiet while the adult works offline', (
+      tester,
+    ) async {
+      final sync = _Pausable();
+      final live = open(sync: sync);
+      await settle(tester);
+      expect(live.connected, isTrue);
+
+      // The switch flips before sync has stopped: the state still says live.
+      sync.paused = true;
+      await tester.pump();
+      expect(live.connected, isFalse);
+      expect(server.last.closedByClient, isTrue);
+      await tester.pump(const Duration(minutes: 10));
+      expect(server.calls, hasLength(1));
+
+      sync.paused = false;
+      await tester.pump();
+      expect(server.calls, hasLength(2));
+      await settle(tester);
+      expect(live.connected, isTrue);
+      live.dispose();
+    });
+
+    testWidgets('started while working offline, it opens nothing', (
+      tester,
+    ) async {
+      final sync = _Pausable()..paused = true;
+      final live = open(sync: sync);
+      await tester.pump(const Duration(minutes: 10));
+      expect(server.calls, isEmpty);
+      expect(live.connected, isFalse);
       live.dispose();
     });
 

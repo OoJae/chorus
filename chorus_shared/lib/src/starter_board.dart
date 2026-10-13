@@ -90,12 +90,12 @@ String starterBoardId(String circleId) =>
 
 /// The circle's home board: 'Home', 6x6.
 BoardFacts starterBoard(String circleId) => BoardFacts(
-      id: starterBoardId(circleId),
-      name: 'Home',
-      rows: starterRows,
-      cols: starterCols,
-      isHome: true,
-    );
+  id: starterBoardId(circleId),
+  name: 'Home',
+  rows: starterRows,
+  cols: starterCols,
+  isHome: true,
+);
 
 /// The 36 starter tiles, placed on the circle's home board in row-major
 /// order. Each id is derived from the circle and the tile's cell key.
@@ -139,3 +139,17 @@ TileFacts _starterTile({
     createdAt: createdAt,
   );
 }
+
+/// Id of the empty second board, where adults add the child's own words.
+String wordsBoardId(String circleId) =>
+    deterministicId(circleId, 'board:words');
+
+/// The empty second board. The starter board fills every cell with core
+/// vocabulary, so words added later (people, foods, places) need a page of
+/// their own. Same grid as the starter board, so cells line up.
+BoardFacts wordsBoard(String circleId) => BoardFacts(
+  id: wordsBoardId(circleId),
+  name: 'My words',
+  rows: starterRows,
+  cols: starterCols,
+);

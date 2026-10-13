@@ -56,11 +56,11 @@ class CachedMediaStore extends MediaStore implements ClipSource {
     Future<Uint8List> Function(Uint8List bytes)? shrink,
     Duration retryBase = const Duration(seconds: 2),
     Duration retryMax = const Duration(minutes: 5),
-  })  : _sync = sync,
-        _shrink = shrink ?? _shrinkOffThread,
-        _retryBase = retryBase,
-        _retryMax = retryMax,
-        _queueName = 'uploads_$queueName' {
+  }) : _sync = sync,
+       _shrink = shrink ?? _shrinkOffThread,
+       _retryBase = retryBase,
+       _retryMax = retryMax,
+       _queueName = 'uploads_$queueName' {
     _queue = MediaUploadQueue(
       send: _send,
       load: () async => (await _opening).readNote(_queueName),
@@ -69,7 +69,8 @@ class CachedMediaStore extends MediaStore implements ClipSource {
       retryBase: retryBase,
       retryMax: retryMax,
     );
-    _wasLive = sync?.state == SyncState.live;
+    _wasLive =
+        sync?.state == SyncState.live && !(sync?.workingOffline ?? false);
     sync?.addListener(_onSync);
     _opening = files.then((opened) {
       _files = opened;
@@ -187,7 +188,10 @@ class CachedMediaStore extends MediaStore implements ClipSource {
     }
     if (bytes.length > maxClipBytes) {
       throw ArgumentError.value(
-          bytes.length, 'bytes', 'A clip is at most $maxClipBytes bytes');
+        bytes.length,
+        'bytes',
+        'A clip is at most $maxClipBytes bytes',
+      );
     }
     final hash = await _keep(bytes, isAudio: true);
     _changed();
@@ -206,7 +210,13 @@ class CachedMediaStore extends MediaStore implements ClipSource {
     return hash;
   }
 
+  /// True while an adult has this device working offline: nothing is sent
+  /// or fetched, and everything waits for sync to resume.
+  bool get _paused => _sync?.workingOffline ?? false;
+
   Future<UploadOutcome> _send(QueuedUpload upload) async {
+    // Kept in the queue without touching the network.
+    if (_paused) return UploadOutcome.retryLater;
     final bytes = await (await _opening).read(upload.hash);
     // The local file was removed: there is nothing left to send.
     if (bytes == null) return UploadOutcome.dropped;
@@ -239,6 +249,8 @@ class CachedMediaStore extends MediaStore implements ClipSource {
     _fetchTimer?.cancel();
     _fetchTimer = null;
     if (_fetching || _disposed || _wanted.isEmpty) return;
+    // Working offline: what is wanted is asked for when sync resumes.
+    if (_paused) return;
     _fetching = true;
     var arrived = false;
     try {
@@ -290,7 +302,7 @@ class CachedMediaStore extends MediaStore implements ClipSource {
   }
 
   void _onSync() {
-    final live = _sync?.state == SyncState.live;
+    final live = _sync?.state == SyncState.live && !_paused;
     if (live && !_wasLive) retryNow();
     _wasLive = live;
   }

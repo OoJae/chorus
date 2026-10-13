@@ -8,6 +8,7 @@ import '../contracts.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
 import '../contracts_suggest.dart';
+import '../widgets/board_tabs.dart';
 import '../widgets/sync_chip.dart';
 import 'add_word_sheet.dart';
 import 'model_mode_bar.dart';
@@ -18,10 +19,14 @@ import 'tray_panel.dart';
 const String readOnlyMessage =
     'You can view this board. Only the family and therapist can change it.';
 
+/// Tooltip of the action that makes a printable page of the board on show.
+const String printThisBoardLabel = 'Print a paper copy of this board';
+
 /// Popped by the edit sheet when the adult chose "Remove from board".
 const Object _removeRequested = Object();
 
-/// The home board in the same positions the child sees, with the ways to
+/// The board chosen with the tabs (the home board to begin with) in the same
+/// positions the child sees, with the ways to
 /// add, change and remove a word, and the "Needs a home" tray.
 ///
 /// There is deliberately no way to move a placed word to another cell: a
@@ -42,6 +47,7 @@ class EditorScreen extends StatefulWidget {
     this.speaker,
     this.live,
     this.suggester,
+    this.onPrint,
   });
 
   final BoardStore store;
@@ -62,6 +68,10 @@ class EditorScreen extends StatefulWidget {
   /// Suggests a word for a picked photo; null hides the offer.
   final WordSuggester? suggester;
 
+  /// Makes a paper copy of the given board: the one chosen with the tabs.
+  /// Null hides the action.
+  final ValueChanged<BoardFacts>? onPrint;
+
   @override
   State<EditorScreen> createState() => _EditorScreenState();
 }
@@ -72,10 +82,15 @@ class _EditorScreenState extends State<EditorScreen> {
   /// While on, a tap on a word points at it instead of opening it.
   bool _modelling = false;
 
-  /// The home board, or failing that the first board still in use.
+  /// The board chosen with the tabs; null means the home board.
+  String? _selectedBoardId;
+
+  /// The chosen board, else the home board, else the first still in use.
   BoardFacts? _currentBoard() {
     final live = _store.boards.where((board) => !board.archived);
-    return live.where((board) => board.isHome).firstOrNull ?? live.firstOrNull;
+    return live.where((board) => board.id == _selectedBoardId).firstOrNull ??
+        live.where((board) => board.isHome).firstOrNull ??
+        live.firstOrNull;
   }
 
   Future<void> _editTile(TileFacts tile) async {
@@ -102,14 +117,19 @@ class _EditorScreenState extends State<EditorScreen> {
         .where((t) => t.id == tile.id && !t.archived)
         .firstOrNull;
     if (current == null) {
-      messenger.showSnackBar(const SnackBar(
-        content: Text('That word was removed on another device.'),
-      ));
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('That word was removed on another device.'),
+        ),
+      );
       return;
     }
     if (identical(result, _removeRequested)) {
-      final confirmed = await confirmRemoveWord(context,
-          tile: current, childName: _store.childName);
+      final confirmed = await confirmRemoveWord(
+        context,
+        tile: current,
+        childName: _store.childName,
+      );
       if (!confirmed) return;
       try {
         await _store.archiveTile(current.id);
@@ -134,14 +154,34 @@ class _EditorScreenState extends State<EditorScreen> {
     final speech = draft.speech == (tile.speech ?? '') ? null : draft.speech;
     final colorKey = draft.colorKey == tile.colorKey ? null : draft.colorKey;
     if (label == null && speech == null && colorKey == null) return;
-    await _store.updateTile(tile.id,
-        label: label, speech: speech, colorKey: colorKey);
+    await _store.updateTile(
+      tile.id,
+      label: label,
+      speech: speech,
+      colorKey: colorKey,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final onPrint = widget.onPrint;
     return Scaffold(
-      appBar: AppBar(title: Text("${_store.childName}'s board")),
+      appBar: AppBar(
+        title: Text("${_store.childName}'s board"),
+        actions: [
+          if (onPrint != null)
+            IconButton(
+              icon: const Icon(Icons.print_outlined),
+              tooltip: printThisBoardLabel,
+              onPressed: () {
+                // The board on show now, not the one shown when this was
+                // built.
+                final board = _currentBoard();
+                if (board != null) onPrint(board);
+              },
+            ),
+        ],
+      ),
       body: SafeArea(
         child: ListenableBuilder(
           listenable: _store,
@@ -169,15 +209,15 @@ class _EditorScreenState extends State<EditorScreen> {
                   : (canEdit ? _editTile : null),
               onEmpty: canEdit && !modelling
                   ? (row, col) => showAddWordSheet(
-                        context,
-                        store: _store,
-                        boardId: board.id,
-                        row: row,
-                        col: col,
-                        media: widget.media,
-                        capture: widget.capture,
-                        suggester: widget.suggester,
-                      )
+                      context,
+                      store: _store,
+                      boardId: board.id,
+                      row: row,
+                      col: col,
+                      media: widget.media,
+                      capture: widget.capture,
+                      suggester: widget.suggester,
+                    )
                   : null,
             );
             final modelBar = live == null
@@ -193,7 +233,15 @@ class _EditorScreenState extends State<EditorScreen> {
                   );
             final tray = TrayPanel(store: _store, boardId: board.id);
             // Draws nothing for a store with no edit log or no overwrites.
-            final replaced = ReplacedChangesPanel(store: _store);
+            final replaced = ReplacedChangesPanel(
+              store: _store,
+              boardId: board.id,
+            );
+            final tabs = BoardTabs(
+              boards: _store.boards,
+              selectedId: board.id,
+              onSelect: (id) => setState(() => _selectedBoardId = id),
+            );
             return LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 900) {
@@ -206,6 +254,8 @@ class _EditorScreenState extends State<EditorScreen> {
                         modelBar,
                       ],
                       const SizedBox(height: 12),
+                      tabs,
+                      const SizedBox(height: 8),
                       grid,
                       const SizedBox(height: 24),
                       tray,
@@ -229,6 +279,8 @@ class _EditorScreenState extends State<EditorScreen> {
                               modelBar,
                             ],
                             const SizedBox(height: 12),
+                            tabs,
+                            const SizedBox(height: 8),
                             // Align loosens the constraints so the grid keeps
                             // its shape when the window is short.
                             Expanded(
@@ -307,8 +359,10 @@ class _Header extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.visibility_outlined,
-                      color: scheme.onSecondaryContainer),
+                  Icon(
+                    Icons.visibility_outlined,
+                    color: scheme.onSecondaryContainer,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

@@ -27,9 +27,9 @@ String replacedChangeText(Overwrite overwrite, {bool ask = true}) {
   };
   final happened = lost.actorId == kept.actorId
       ? '$loser changed $what to $wanted on another device. '
-          '${_sentenceStart(current)} was kept.'
+            '${_sentenceStart(current)} was kept.'
       : "$loser changed $what to $wanted without seeing $winner's change. "
-          "$winner's $current was kept.";
+            "$winner's $current was kept.";
   return ask ? '$happened Use $wanted instead?' : happened;
 }
 
@@ -57,9 +57,13 @@ String _valueText(Overwrite overwrite, String? value) {
 /// nothing while there is no replaced change. A read-only partner sees the
 /// list without the button.
 class ReplacedChangesPanel extends StatelessWidget {
-  const ReplacedChangesPanel({super.key, required this.store});
+  const ReplacedChangesPanel({super.key, required this.store, this.boardId});
 
   final BoardStore store;
+
+  /// Lists only the replaced changes to words of this board. Null lists
+  /// those of every board.
+  final String? boardId;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +73,13 @@ class ReplacedChangesPanel extends StatelessWidget {
     return ListenableBuilder(
       listenable: store,
       builder: (context, _) {
-        final overwrites = detectOverwrites(log.edits, store.tiles);
+        final boardId = this.boardId;
+        final overwrites = detectOverwrites(
+          log.edits,
+          boardId == null
+              ? store.tiles
+              : store.tiles.where((tile) => tile.boardId == boardId),
+        );
         if (overwrites.isEmpty) return const SizedBox.shrink();
         final theme = Theme.of(context);
         final canEdit = store.role.canEdit;
@@ -93,8 +103,9 @@ class ReplacedChangesPanel extends StatelessWidget {
               _ReplacedCard(
                 key: ValueKey(overwrite.lost.id),
                 overwrite: overwrite,
-                onRestore:
-                    canEdit ? () => _restore(context, log, overwrite) : null,
+                onRestore: canEdit
+                    ? () => _restore(context, log, overwrite)
+                    : null,
               ),
           ],
         );
@@ -103,7 +114,10 @@ class ReplacedChangesPanel extends StatelessWidget {
   }
 
   Future<void> _restore(
-      BuildContext context, EditLog log, Overwrite overwrite) async {
+    BuildContext context,
+    EditLog log,
+    Overwrite overwrite,
+  ) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     try {
       await log.restore(overwrite);
@@ -112,13 +126,15 @@ class ReplacedChangesPanel extends StatelessWidget {
       messenger?.showSnackBar(const SnackBar(content: Text(notSavedMessage)));
       return;
     }
-    messenger?.showSnackBar(SnackBar(
-      content: Text(
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
           '${_sentenceStart(_valueText(overwrite, overwrite.lost.newValue))} '
-          'is back.'),
-    ));
+          'is back.',
+        ),
+      ),
+    );
   }
-
 }
 
 class _ReplacedCard extends StatelessWidget {

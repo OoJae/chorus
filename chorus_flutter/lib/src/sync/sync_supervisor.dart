@@ -275,9 +275,31 @@ class SyncSupervisor extends SyncStatus {
   @override
   bool get hasUnsent => _hasUnsent;
 
-  /// Starts the loop. Does nothing if it is already running.
+  bool _workingOffline = false;
+
+  @override
+  bool get workingOffline => _workingOffline;
+
+  /// Pausing stops the loop and cancels the stream, exactly as losing the
+  /// connection would; resuming starts it again and the usual one-shot sync
+  /// sends whatever was written meanwhile.
+  @override
+  Future<void> setWorkingOffline(bool value) async {
+    if (_workingOffline == value || _disposed) return;
+    _workingOffline = value;
+    notifyListeners();
+    if (value) {
+      await stop();
+      _setState(SyncState.offline);
+    } else {
+      start();
+    }
+  }
+
+  /// Starts the loop. Does nothing if it is already running, or while an
+  /// adult has this device working offline.
   void start() {
-    if (_running || _disposed) return;
+    if (_running || _disposed || _workingOffline) return;
     _running = true;
     _stopSignal = Completer<void>();
     _kickSub = _kicks?.listen(kick, onError: (Object _) {});

@@ -18,9 +18,14 @@ void main() {
       store.tiles.singleWhere((tile) => tile.label == label);
 
   group('seeded', () {
-    test('is the full starter board with an empty tray', () {
+    test('is the full starter board and an empty "My words" board, with '
+        'an empty tray', () {
       final store = FakeBoardStore.seeded();
-      expect(store.boards, [starterBoard(FakeBoardStore.circleId)]);
+      expect(store.boards, [
+        starterBoard(FakeBoardStore.circleId),
+        wordsBoard(FakeBoardStore.circleId),
+      ]);
+      expect(gridOf(store.wordsBoardId, store.tiles, store.boards), isEmpty);
       expect(store.tiles, hasLength(36));
       expect(grid(store), hasLength(36));
       expect(tray(store), isEmpty);
@@ -32,8 +37,13 @@ void main() {
     test('leaveEmpty leaves exactly those cells free', () {
       final store = withGaps();
       expect(store.tiles, hasLength(34));
-      final board = store.boards.single;
+      final board = store.boards.singleWhere((board) => board.isHome);
       expect(emptyCells(board, store.tiles, store.boards), [(4, 5), (5, 5)]);
+    });
+
+    test('withWordsBoard false is a circle with the home board only', () {
+      final store = FakeBoardStore.seeded(withWordsBoard: false);
+      expect(store.boards, [starterBoard(FakeBoardStore.circleId)]);
     });
   });
 

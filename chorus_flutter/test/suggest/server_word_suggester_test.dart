@@ -80,6 +80,20 @@ void main() {
     expect(made.available.value, isFalse);
   });
 
+  test('is not offered while the adult works offline', () async {
+    final sync = FakeSyncStatus();
+    final made = suggester(sync: sync);
+    expect(made.available.value, isTrue);
+
+    await sync.setWorkingOffline(true);
+    expect(made.available.value, isFalse);
+    expect(await made.fromPhoto(photo), isNull);
+    expect(uploads, isEmpty);
+
+    await sync.setWorkingOffline(false);
+    expect(made.available.value, isTrue);
+  });
+
   test('every refusal is a quiet null', () async {
     final made = suggester();
     for (final failure in [

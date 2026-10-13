@@ -64,8 +64,12 @@ abstract class BoardStore extends ChangeNotifier {
   Future<bool> placeTile(String tileId, {required int row, required int col});
 
   /// Changes a tile's content. Never changes its cell.
-  Future<void> updateTile(String tileId,
-      {String? label, String? speech, String? colorKey});
+  Future<void> updateTile(
+    String tileId, {
+    String? label,
+    String? speech,
+    String? colorKey,
+  });
 
   /// Removes a word from the board: sets it archived and frees its cell.
   Future<void> archiveTile(String tileId);
@@ -112,4 +116,12 @@ abstract class SyncStatus extends ChangeNotifier {
 
   /// Manual retry, behind the "Sync now" button.
   Future<void> syncNow();
+
+  /// True while an adult has asked this device to work offline: sync is
+  /// paused and every change stays on the device until it is switched back.
+  bool get workingOffline => false;
+
+  /// Pauses or resumes sync on this device. Nothing is lost either way:
+  /// changes made while paused are sent when sync resumes.
+  Future<void> setWorkingOffline(bool value) async {}
 }

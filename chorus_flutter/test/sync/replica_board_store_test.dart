@@ -97,12 +97,23 @@ void main() {
 
   group('seeding', () {
     test('writes the home board and its 36 tiles, tray empty', () {
-      expect(store.boards, [starterBoard(idOf(harness.userId))]);
+      expect(
+        store.boards,
+        unorderedEquals([
+          starterBoard(idOf(harness.userId)),
+          wordsBoard(idOf(harness.userId)),
+        ]),
+        reason: 'the core board plus the empty My words board',
+      );
       expect(store.tiles, hasLength(36));
       expect(trayOf(store.tiles, store.boards), isEmpty);
       expect(gridOf(home, store.tiles, store.boards), hasLength(36));
       expect(
-        emptyCells(store.boards.single, store.tiles, store.boards),
+        emptyCells(
+          store.boards.firstWhere((board) => board.isHome),
+          store.tiles,
+          store.boards,
+        ),
         isEmpty,
       );
       expect(tileAt(0, 0).label, 'like');
@@ -115,7 +126,7 @@ void main() {
       final before = store.tiles;
       await session.ensureCircleReady(circle, seedIfEmpty: true);
       await store.refresh();
-      expect(store.boards, hasLength(1));
+      expect(store.boards, hasLength(2));
       expect(store.tiles, before);
     });
 
@@ -140,7 +151,7 @@ void main() {
           .ensureCircleReady(circle, seedIfEmpty: true)
           .timeout(const Duration(seconds: 10));
       await store.refresh();
-      expect(store.boards, hasLength(1));
+      expect(store.boards, hasLength(2));
       expect(store.tiles, hasLength(36));
     });
 
@@ -481,9 +492,16 @@ void main() {
       expect(after.archived, isTrue);
       expect(after.cellKey, trayKey(before.id));
       expect(gridOf(home, store.tiles, store.boards)[(5, 0)], isNull);
-      expect(emptyCells(store.boards.single, store.tiles, store.boards), [
-        (5, 0),
-      ]);
+      expect(
+        emptyCells(
+          store.boards.firstWhere((board) => board.isHome),
+          store.tiles,
+          store.boards,
+        ),
+        [
+          (5, 0),
+        ],
+      );
       expect(trayOf(store.tiles, store.boards), isEmpty);
 
       final edits = await editsOf(before.id);

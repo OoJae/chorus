@@ -1,9 +1,11 @@
 /// Home for one circle: the large actions an adult chooses from.
 library;
 
+import 'dart:async';
+
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_shared/chorus_shared.dart'
-    show boardToPrint, printSnapshotJson;
+    show BoardFacts, boardToPrint, printSnapshotJson;
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
 import 'package:chorus_ui/contracts_live.dart';
 import 'package:chorus_ui/contracts_media.dart';
@@ -28,6 +30,11 @@ const String printCopyLabel = 'Print a paper copy';
 const String printCopyFailedMessage =
     'The paper copy could not be made. It needs a connection: try again '
     'when this device is online.';
+
+/// Shown instead of making the page while the adult has sync paused.
+const String printCopyOfflineMessage =
+    'The paper copy needs a connection. Switch off "Work offline" and try '
+    'again.';
 
 /// Whether this device has finished getting a circle's board ready.
 enum CircleReadiness { preparing, ready, failed }
@@ -117,6 +124,10 @@ class HomeScreen extends StatelessWidget {
       capture: services?.capture,
       speaker: services?.speaker,
       suggester: services?.suggester,
+      // From the editor the page is of the board the adult is looking at.
+      onPrint: services?.publishBoard == null
+          ? null
+          : (board) => _printCopy(context, board: board),
     );
     _open(
       context,
@@ -130,11 +141,29 @@ class HomeScreen extends StatelessWidget {
   }
 
   /// Builds the snapshot from the board on this device and shows where its
-  /// printable page is.
-  void _printCopy(BuildContext context) {
+  /// printable page is. Prints [board] when given (the editor's selected
+  /// board), else the home board.
+  void _printCopy(BuildContext context, {BoardFacts? board}) {
     final publish = services?.publishBoard;
-    final board = boardToPrint(store.boards);
+    board ??= boardToPrint(store.boards);
     if (publish == null || board == null) return;
+    if (sync.workingOffline) {
+      // Paused on purpose: say so instead of reaching for the network.
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Paper copy'),
+          content: const Text(printCopyOfflineMessage),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     final boardJson = printSnapshotJson(
       childName: selected.childName,
       board: board,
@@ -225,6 +254,20 @@ class HomeScreen extends StatelessWidget {
                       onPressed: hasBoard ? () => _openEditor(context) : null,
                     ),
                     if (media != null) _WaitingUploads(media: media),
+                    ListenableBuilder(
+                      listenable: sync,
+                      builder: (context, _) => SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Work offline'),
+                        subtitle: const Text(
+                          'Pauses sync on this device. Changes are kept here '
+                          'and sent when you switch it back.',
+                        ),
+                        value: sync.workingOffline,
+                        onChanged: (value) =>
+                            unawaited(sync.setWorkingOffline(value)),
+                      ),
+                    ),
                     if (canInvite)
                       BigButton(
                         icon: Icons.person_add_alt,

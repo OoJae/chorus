@@ -87,6 +87,19 @@ Future<void> _until(bool Function() done) async {
   }
 }
 
+/// Live sync that an adult can pause: resuming notifies as going live.
+class _Pausable extends FakeSyncStatus {
+  bool _paused = false;
+
+  @override
+  bool get workingOffline => _paused;
+
+  set paused(bool value) {
+    _paused = value;
+    notifyListeners();
+  }
+}
+
 void main() {
   late FakeServer server;
 
@@ -167,6 +180,36 @@ void main() {
 
       expect(second, first);
       expect(store.pendingUploads, 1);
+    });
+  });
+
+  group('working offline', () {
+    test('nothing is sent or fetched until sync is switched back on',
+        () async {
+      // The server is reachable: only the adult's switch holds things back.
+      final sync = _Pausable()..paused = true;
+      final other = device(MemoryMediaFiles(), queue: 'other_circle');
+      final theirs = await other.addAudio(_clip);
+      await _until(() => other.pendingUploads == 0);
+      server.uploads.clear();
+
+      final store = device(MemoryMediaFiles(), sync: sync);
+      final image = await store.addImage(_photo());
+      expect(store.imageFor(image), isNotNull);
+      expect(store.hasAudio(theirs), isFalse);
+      store.imageFor(theirs);
+      // Several retry delays pass (30 ms doubling to 120 ms).
+      await _wait(const Duration(milliseconds: 500));
+      expect(store.pendingUploads, 1);
+      expect(server.uploads, isEmpty);
+      expect(server.urlRequests, isEmpty);
+      expect(server.fetches, isEmpty);
+
+      sync.paused = false;
+      await _until(() => store.pendingUploads == 0);
+      await _until(() => server.fetches.isNotEmpty);
+      expect(server.uploads, [image]);
+      expect(server.fetches, [theirs]);
     });
   });
 
