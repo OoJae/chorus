@@ -24,7 +24,8 @@ const String stopListeningLabel = 'Stop listening';
 /// Shown while listening.
 const String listeningMessage =
     'Listening. Talk as you usually do: words on this board glow as you say '
-    'them.';
+    'them. Your browser turns the speech into words, and some browsers send '
+    'the sound to their maker to do it. Chorus keeps none of it.';
 
 /// Opens the focus words.
 const String chooseFocusLabel = 'Focus words';
