@@ -25,15 +25,23 @@ class FakeTransport implements VisionTransport {
   /// One entry per expected call: a [VisionReply], or an error to throw.
   final List<Object> replies;
   final sent =
-      <({String apiKey, Map<String, Object?> body, List<String> betas})>[];
+      <
+        ({
+          String apiKey,
+          Map<String, Object?> body,
+          List<String> betas,
+          String baseUrl,
+        })
+      >[];
 
   @override
   Future<VisionReply> send({
     required String apiKey,
     required Map<String, Object?> body,
     List<String> betas = const [],
+    String baseUrl = anthropicBaseUrl,
   }) async {
-    sent.add((apiKey: apiKey, body: body, betas: betas));
+    sent.add((apiKey: apiKey, body: body, betas: betas, baseUrl: baseUrl));
     final next = replies.length >= sent.length
         ? replies[sent.length - 1]
         : null;
@@ -81,12 +89,14 @@ void main() {
       String? apiKey = 'test-key',
       int budget = defaultDailyBudget,
       String model = defaultSuggestModel,
+      String baseUrl = anthropicBaseUrl,
       DateTime Function()? now,
     }) {
       final transport = FakeTransport(replies);
       suggestSettingsOverride = SuggestSettings(
         apiKey: apiKey,
         model: model,
+        baseUrl: baseUrl,
         dailyBudget: budget,
         transport: transport,
         retryDelay: Duration.zero,
@@ -237,6 +247,48 @@ void main() {
       expect(source['media_type'], 'image/png');
       expect(base64Decode(source['data'] as String), pngBytes);
       expect((content[1] as Map)['text'], contains('en-GB'));
+    });
+
+    test('when another service that speaks the same protocol is set up '
+        'then it gets the plain request at once, at its own address', () async {
+      final transport = use(
+        [cup],
+        model: 'mimo-v2.6-pro',
+        baseUrl: 'https://token-plan-sgp.example.com/anthropic',
+      );
+      final (space, asMe) = await member(CircleRole.guardian);
+      await photo(space);
+
+      final word = await endpoints.suggest.fromPhoto(
+        asMe,
+        space,
+        hash,
+        'en-GB',
+      );
+
+      expect(word.label, 'cup');
+      final call = transport.sent.single;
+      expect(call.baseUrl, 'https://token-plan-sgp.example.com/anthropic');
+      expect(call.body['model'], 'mimo-v2.6-pro');
+      expect(call.body.containsKey('output_config'), isFalse);
+      expect(call.body.containsKey('fallbacks'), isFalse);
+      expect(call.betas, isEmpty);
+      final content =
+          ((call.body['messages'] as List).single as Map)['content'] as List;
+      expect((content[0] as Map)['type'], 'image');
+    });
+
+    test('Anthropic itself is told apart from a look-alike address', () {
+      expect(isAnthropicBaseUrl('https://api.anthropic.com'), isTrue);
+      expect(isAnthropicBaseUrl('https://api.anthropic.com/'), isTrue);
+      expect(
+        isAnthropicBaseUrl('https://token-plan-sgp.example.com/anthropic'),
+        isFalse,
+      );
+      expect(
+        isAnthropicBaseUrl('https://api.anthropic.com.evil.test'),
+        isFalse,
+      );
     });
 
     test('when the answer is wrapped in a code fence, names a proper name, '

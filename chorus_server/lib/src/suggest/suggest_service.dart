@@ -58,25 +58,33 @@ class SuggestSettings {
   const SuggestSettings({
     required this.apiKey,
     this.model = defaultSuggestModel,
+    this.baseUrl = anthropicBaseUrl,
     this.dailyBudget = defaultDailyBudget,
     this.transport = const HttpVisionTransport(),
     this.retryDelay = const Duration(seconds: 1),
     this.now,
   });
 
-  /// From the passwords `anthropicApiKey` and `suggestModel`. Set them in
-  /// `config/passwords.yaml` or as `SERVERPOD_PASSWORD_<name>`.
+  /// From the passwords `anthropicApiKey`, `suggestModel` and
+  /// `suggestBaseUrl`. Set them in `config/passwords.yaml` or as
+  /// `SERVERPOD_PASSWORD_<name>`.
   factory SuggestSettings.fromPasswords(Session session) {
     final model = session.serverpod.getPassword('suggestModel')?.trim();
+    final baseUrl = session.serverpod.getPassword('suggestBaseUrl')?.trim();
     return SuggestSettings(
       apiKey: session.serverpod.getPassword('anthropicApiKey'),
       model: model == null || model.isEmpty ? defaultSuggestModel : model,
+      baseUrl: baseUrl == null || baseUrl.isEmpty ? anthropicBaseUrl : baseUrl,
     );
   }
 
   /// Null or blank when the service is not set up.
   final String? apiKey;
   final String model;
+
+  /// Where the Messages API lives: Anthropic's own service, or another one
+  /// that speaks the same protocol.
+  final String baseUrl;
   final int dailyBudget;
   final VisionTransport transport;
 
@@ -308,6 +316,9 @@ Map<String, Object?> buildSuggestRequest({
 ///
 /// A 429 or a 5xx is tried once more. A 400 is tried once more in the plain
 /// shape, in case the configured model does not take the optional fields.
+/// A service other than Anthropic's own gets the plain shape from the start:
+/// the optional fields are Anthropic's, and a first refusal would only cost
+/// a round trip.
 Future<String> _ask(
   Session session,
   SuggestSettings s,
@@ -315,7 +326,7 @@ Future<String> _ask(
   _Image image,
   String locale,
 ) async {
-  var plain = false;
+  var plain = !isAnthropicBaseUrl(s.baseUrl);
   var retried = false;
   while (true) {
     final body = buildSuggestRequest(
@@ -331,6 +342,7 @@ Future<String> _ask(
         apiKey: apiKey,
         body: body,
         betas: body.containsKey('fallbacks') ? const [_fallbackBeta] : const [],
+        baseUrl: s.baseUrl,
       );
     } catch (e) {
       // The error's type only: its message could quote the request.
