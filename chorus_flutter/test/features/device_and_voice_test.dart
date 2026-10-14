@@ -6,6 +6,7 @@ import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_flutter/src/device/local_device_settings.dart';
 import 'package:chorus_flutter/src/speech/chosen_voice.dart';
 import 'package:chorus_flutter/src/voice/server_voice_choice.dart';
+import 'package:chorus_ui/contracts.dart' show SyncState;
 import 'package:chorus_ui/contracts_device.dart';
 import 'package:chorus_ui/contracts_voice.dart';
 import 'package:chorus_ui/fakes.dart';
@@ -105,6 +106,32 @@ void main() {
       await later.ready;
       expect(sent.single.rate, 0.7);
       expect(later.prefs.rate, 0.7);
+    });
+
+    test('coming back online reads the circle\'s latest choice', () async {
+      final sync = FakeSyncStatus(state: SyncState.offline);
+      var fetches = 0;
+      final voice = ServerVoiceChoice(
+        canChange: true,
+        fetch: () async {
+          fetches++;
+          return onServer;
+        },
+        send: (_) async => onServer,
+        speech: FakeSpeech(),
+        cacheName: 'voice.json',
+        sync: sync,
+        read: (_) async => null,
+        write: (_, _) async {},
+      );
+      addTearDown(voice.dispose);
+      await voice.ready;
+      expect(fetches, 1);
+      onServer = VoiceSetting(rate: 1.2, pitch: 1.0);
+      sync.state = SyncState.live;
+      await pumpEventQueue();
+      expect(fetches, 2);
+      expect(voice.prefs.rate, 1.2);
     });
 
     test('a read-only partner cannot change it', () async {

@@ -57,4 +57,10 @@ class FakeVoiceChoice extends VoiceChoice {
 
   @override
   Future<void> tryIt(String text) async => tried.add((text, _prefs));
+
+  /// How many times [refresh] was asked for.
+  int refreshes = 0;
+
+  @override
+  Future<void> refresh() async => refreshes++;
 }

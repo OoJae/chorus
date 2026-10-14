@@ -319,6 +319,13 @@ class _VoiceSectionState extends State<VoiceSection> {
   String? _problem;
 
   @override
+  void initState() {
+    super.initState();
+    // Another adult may have changed it since this device last looked.
+    unawaited(widget.voice.refresh());
+  }
+
+  @override
   void didUpdateWidget(VoiceSection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.voice != widget.voice) _names = widget.voice.voiceNames();

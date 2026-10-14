@@ -595,6 +595,7 @@ void main() {
       await tester.tap(find.text('Higher'));
       await tester.pump();
       expect(voice.prefs.pitch, 1.25);
+      expect(voice.refreshes, 1);
       await tester.tap(find.text(tryVoiceLabel));
       await tester.pump();
       expect(voice.tried.single.$1, tryVoiceSentence);

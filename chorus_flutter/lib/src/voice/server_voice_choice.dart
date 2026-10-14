@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:chorus_client/chorus_client.dart';
-import 'package:chorus_ui/contracts.dart' show SpeechService, SyncStatus;
+import 'package:chorus_ui/contracts.dart'
+    show SpeechService, SyncState, SyncStatus;
 import 'package:chorus_ui/contracts_voice.dart';
 
 import '../../screens/support/circle_cache_none.dart'
@@ -38,6 +39,17 @@ class ServerVoiceChoice extends VoiceChoice {
   }) : _read = read ?? platform.readText,
        _write = write ?? platform.writeText {
     _ready = _start();
+    _wasLive = _sync?.state == SyncState.live;
+    _sync?.addListener(_onSync);
+  }
+
+  /// Back online: send what waits and read the latest, once per return.
+  bool _wasLive = false;
+
+  void _onSync() {
+    final live = _sync?.state == SyncState.live;
+    if (live && !_wasLive) unawaited(refresh());
+    _wasLive = live;
   }
 
   /// The choice the app uses for [circleSpace]. Read-only partners hear it
@@ -128,6 +140,7 @@ class ServerVoiceChoice extends VoiceChoice {
 
   /// Sends a waiting choice, then reads the circle's. Never throws; with no
   /// network the kept voice stays.
+  @override
   Future<void> refresh() async {
     if (_sync?.workingOffline ?? false) return;
     try {
@@ -181,6 +194,7 @@ class ServerVoiceChoice extends VoiceChoice {
   @override
   void dispose() {
     _disposed = true;
+    _sync?.removeListener(_onSync);
     super.dispose();
   }
 }

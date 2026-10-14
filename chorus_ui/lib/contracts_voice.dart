@@ -94,4 +94,7 @@ abstract class VoiceChoice extends ChangeNotifier {
 
   /// Says [text] in the chosen voice.
   Future<void> tryIt(String text);
+
+  /// Reads the circle's latest choice, where it can. Never throws.
+  Future<void> refresh() async {}
 }
