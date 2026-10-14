@@ -11,6 +11,7 @@ import 'package:chorus_shared/chorus_shared.dart' show BoardFacts, TileFacts;
 import 'package:chorus_ui/contracts.dart' as ui;
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/fakes.dart';
+import 'package:chorus_ui/talker/recent_sentences.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -159,6 +160,28 @@ void main() {
       expect(find.byType(EditorScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  testWidgets('"Recent" is the open board\'s circle\'s, and a sign-out '
+      'forgets it', (tester) async {
+    RecentSentences.useCircle('another child');
+    RecentSentences.session.add('I feel sick');
+    final store = _CountingStore();
+    await pumpShell(tester, _StoreWorkspace(store));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(openBoardLabel('Maya')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TalkerScreen), findsOneWidget);
+    expect(RecentSentences.session.sentences, isEmpty);
+    RecentSentences.session.add('I want juice');
+
+    // Signed out from elsewhere: the sign-in screen takes the shell's place.
+    await pumpScreen(tester, const Text('signed out'));
+    expect(RecentSentences.session.sentences, isEmpty);
+    RecentSentences.useCircle('another child');
+    expect(RecentSentences.session.sentences, isEmpty);
+    RecentSentences.useCircle(mayaSpace.toString());
+    expect(RecentSentences.session.sentences, isEmpty);
   });
 
   testWidgets('a workspace that finishes opening after a sign-out is '

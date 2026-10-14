@@ -23,6 +23,7 @@ import 'package:chorus_ui/features/quick_phrases_screen.dart';
 import 'package:chorus_ui/home/home.dart';
 import 'package:chorus_ui/modelling/focus_nudge_note.dart';
 import 'package:chorus_ui/scenes/scenes_screen.dart';
+import 'package:chorus_ui/talker/recent_sentences.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/talker/word_tools/word_tools.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
@@ -128,6 +129,8 @@ class HomeScreen extends StatelessWidget {
 
   /// The child's board, flying in from the hero: see [BoardRoute].
   void _openTalker(BuildContext context) {
+    // "Recent" on this board lists only this child's sentences.
+    RecentSentences.useCircle(selected.spaceUuid.toString());
     final services = this.services;
     final makeLive = services?.live;
     final reduced = ChorusMotion.reduced(context);

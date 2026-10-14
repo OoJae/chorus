@@ -298,6 +298,20 @@ void main() {
     });
   });
 
+  testWidgets('on a tablet a slow press on the strip still speaks it', (
+    tester,
+  ) async {
+    final talker = await _pump(tester, size: _tablet);
+    await tester.tap(_tile('want'));
+    await tester.pump();
+    final gesture = await tester.startGesture(tester.getCenter(_strip));
+    await tester.pump(const Duration(milliseconds: 800));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byType(WordToolsChooser), findsNothing);
+    expect(talker.speech.spoken, ['want', 'want']);
+  });
+
   group('on a phone', () {
     for (final (name, size) in [
       ('upright', _portrait),

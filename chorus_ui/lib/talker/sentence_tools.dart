@@ -218,7 +218,9 @@ class RecentSentencesScreen extends StatelessWidget {
                     style: ChorusType.tileLabel(22).copyWith(color: colors.ink),
                   ),
                   onTap: () => unawaited(
-                    speech.speak(sentence).catchError((Object _) {}),
+                    speech
+                        .speak(recent.spokenOf(sentence))
+                        .catchError((Object _) {}),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -227,7 +229,9 @@ class RecentSentencesScreen extends StatelessWidget {
                         tooltip: sayAgainLabel,
                         icon: const Icon(Icons.volume_up_rounded),
                         onPressed: () => unawaited(
-                          speech.speak(sentence).catchError((Object _) {}),
+                          speech
+                              .speak(recent.spokenOf(sentence))
+                              .catchError((Object _) {}),
                         ),
                       ),
                       IconButton(

@@ -77,6 +77,42 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('after a word in the second language the chosen voice is back', (
+    tester,
+  ) async {
+    final engine = engineFor(tester)
+      ..voices = [
+        {'name': 'Samantha', 'locale': 'en-US'},
+        {'name': 'Daniel', 'locale': 'en-GB'},
+        {'name': 'Monica', 'locale': 'es-ES'},
+      ];
+    final speech = TtsSpeechService(web: true, onlineVoices: () => const {});
+    await speech.warmUp();
+    speech.useVoice(
+      const VoicePrefs(voiceName: 'Daniel', rate: 1.2, pitch: 0.8),
+    );
+    unawaited(speech.speak('go'));
+    await tester.pump(const Duration(milliseconds: 100));
+    engine.finish();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final spoken = speech.speakIn('es', 'agua');
+    await tester.pump(const Duration(milliseconds: 100));
+    engine.finish();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(await spoken, isTrue);
+
+    engine.calls.clear();
+    unawaited(speech.speak('want'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(engine.said, ['go', 'agua', 'want']);
+    expect(engine.saidWith, ['Daniel', 'Monica', 'Daniel']);
+    expect(engine.calls, contains('setSpeechRate 1.2'));
+    expect(engine.calls, contains('setPitch 0.8'));
+    engine.finish();
+    await tester.pump();
+  });
+
   testWidgets('the spoken preview is quieter, then the volume comes back', (
     tester,
   ) async {

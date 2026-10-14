@@ -18,6 +18,9 @@ import 'scan_order.dart';
 /// The ring round the highlighted row or word, for tests.
 const Key scanHighlightKey = ValueKey('SwitchScanner.highlight');
 
+/// The ring round the sentence strip while scanning is on it, for tests.
+const Key scanStripHighlightKey = ValueKey('SwitchScanner.stripHighlight');
+
 /// Lays a scanning highlight over [child], the board's grid, while this
 /// device has scanning on (see [DeviceSettings.scanMode]).
 ///
@@ -27,7 +30,9 @@ const Key scanHighlightKey = ValueKey('SwitchScanner.highlight');
 /// a row at a time, then a word at a time in the row chosen; space or enter
 /// selects. Two switches: space moves the highlight, enter selects. A chosen
 /// word goes to [onSelect], as a tap would. With the spoken preview on,
-/// each highlighted word is said quietly.
+/// each highlighted word is said quietly. While the strip holds words, the
+/// last stop after the rows is the strip itself (see [onStrip]), so a
+/// switch user can say the sentence and start a new one.
 ///
 /// The keys are taken from the whole keyboard while this board is the
 /// screen on top, so they work with nothing focused or a word focused; a
@@ -40,11 +45,38 @@ class SwitchScanner extends StatefulWidget {
     required this.onSelect,
     required this.gap,
     required this.child,
+    this.hides,
+    this.shown,
+    this.previewIn,
+    this.onStrip,
+    this.stripHighlight,
   });
 
   final BoardSnapshot snapshot;
   final SpeechService speech;
   final ValueChanged<TileFacts> onSelect;
+
+  /// Whether the cell of a tile is shown blank (a hidden word): scanning
+  /// never stops on it, says it or chooses it.
+  final bool Function(String tileId)? hides;
+
+  /// A tile as the grid shows it (in the second language, say): what is
+  /// previewed and chosen, as a tap would.
+  final TileFacts Function(TileFacts tile)? shown;
+
+  /// Says a word shown in another language with that language's voice;
+  /// false when there is none, and the word is previewed as the store has
+  /// it.
+  final Future<bool> Function(String text)? previewIn;
+
+  /// Says the sentence on the strip and clears it, when a switch chooses
+  /// the strip. Null while the strip is empty: scanning then never stops
+  /// there.
+  final VoidCallback? onStrip;
+
+  /// True while the highlight is on the strip; the strip draws its own
+  /// ring, so nothing moves.
+  final ValueNotifier<bool>? stripHighlight;
 
   /// Space round each cell, as the grid draws it.
   final double gap;
@@ -56,17 +88,62 @@ class SwitchScanner extends StatefulWidget {
 
 class _SwitchScannerState extends State<SwitchScanner> {
   DeviceSettings _settings = const DeviceSettings();
-  late ScanOrder _order = _orderOf(widget.snapshot);
+  late ScanOrder _order = _orderOf(
+    widget.snapshot,
+    widget.hides,
+    strip: widget.onStrip != null,
+  );
   ScanPosition? _at;
   Timer? _timer;
   bool _listening = false;
 
   ScanMode get _mode => switchAccessEnabled ? _settings.scanMode : ScanMode.off;
 
-  static ScanOrder _orderOf(BoardSnapshot snapshot) => ScanOrder([
-    for (final MapEntry(key: (row, col)) in snapshot.cells.entries)
-      if (row < snapshot.board.rows && col < snapshot.board.cols) (row, col),
+  /// The rows to scan; with [strip], the strip as one more row after the
+  /// grid's last (see [_stripRow]).
+  static ScanOrder _orderOf(
+    BoardSnapshot snapshot,
+    bool Function(String tileId)? hides, {
+    required bool strip,
+  }) => ScanOrder([
+    for (final MapEntry(key: (row, col), value: tile) in snapshot.cells.entries)
+      if (row < snapshot.board.rows &&
+          col < snapshot.board.cols &&
+          !(hides?.call(tile.id) ?? false))
+        (row, col),
+    if (strip) (snapshot.board.rows, 0),
   ]);
+
+  /// The row index that stands for the sentence strip: just past the grid.
+  int get _stripRow => widget.snapshot.board.rows;
+
+  bool get _onStrip =>
+      _mode != ScanMode.off &&
+      widget.onStrip != null &&
+      _at?.row == _stripRow &&
+      _at?.phase == ScanPhase.rows;
+
+  /// Tells the strip whether the highlight is on it. [later] while a frame
+  /// is being built: the strip is not this widget's child.
+  void _showOnStrip({bool later = false}) {
+    final highlight = widget.stripHighlight;
+    if (highlight == null || highlight.value == _onStrip) return;
+    if (later) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showOnStrip();
+      });
+      return;
+    }
+    highlight.value = _onStrip;
+  }
+
+  /// The word in the cell at ([row], [col]) as the grid shows it; null for
+  /// an empty or hidden cell.
+  TileFacts? _tileAt(int row, int col) {
+    final tile = widget.snapshot.cells[(row, col)];
+    if (tile == null || (widget.hides?.call(tile.id) ?? false)) return null;
+    return tile;
+  }
 
   @override
   void didChangeDependencies() {
@@ -82,10 +159,16 @@ class _SwitchScannerState extends State<SwitchScanner> {
   @override
   void didUpdateWidget(SwitchScanner oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.snapshot, widget.snapshot)) {
-      _order = _orderOf(widget.snapshot);
-      _at = _order.keep(_at);
-    }
+    // Every time: a word hidden or shown again, or "Show everything",
+    // changes what is scanned without a new snapshot. A board is a few
+    // dozen cells, so this is cheap.
+    _order = _orderOf(
+      widget.snapshot,
+      widget.hides,
+      strip: widget.onStrip != null,
+    );
+    _at = _order.keep(_at);
+    _showOnStrip(later: true);
   }
 
   @override
@@ -98,12 +181,14 @@ class _SwitchScannerState extends State<SwitchScanner> {
     _stop();
     if (_mode == ScanMode.off) {
       _at = null;
+      _showOnStrip(later: true);
       return;
     }
     _at = _order.start;
     HardwareKeyboard.instance.addHandler(_onKey);
     _listening = true;
     _schedule();
+    _showOnStrip(later: true);
   }
 
   void _stop() {
@@ -127,6 +212,7 @@ class _SwitchScannerState extends State<SwitchScanner> {
     if (!mounted) return;
     final at = _at;
     setState(() => _at = at == null ? _order.start : _order.next(at));
+    _showOnStrip();
     _preview();
   }
 
@@ -136,13 +222,22 @@ class _SwitchScannerState extends State<SwitchScanner> {
       setState(() => _at = _order.start);
       return;
     }
+    final onStrip = widget.onStrip;
+    if (onStrip != null && _onStrip) {
+      // The strip: the sentence is said, and a new one starts at the top.
+      setState(() => _at = _order.start);
+      _showOnStrip();
+      onStrip();
+      _schedule();
+      return;
+    }
     final selection = _order.select(at);
     if (selection == null) return;
     setState(() => _at = selection.next);
     final chosen = selection.chosen;
     if (chosen != null) {
-      final tile = widget.snapshot.cells[chosen];
-      if (tile != null) widget.onSelect(tile);
+      final tile = _tileAt(chosen.$1, chosen.$2);
+      if (tile != null) widget.onSelect(widget.shown?.call(tile) ?? tile);
     } else {
       _preview();
     }
@@ -156,15 +251,33 @@ class _SwitchScannerState extends State<SwitchScanner> {
     final at = _at;
     final col = at?.col;
     if (at == null || col == null) return;
-    final tile = widget.snapshot.cells[(at.row, col)];
+    final tile = _tileAt(at.row, col);
     if (tile == null) return;
-    final text = tile.spokenText;
-    final Future<void> said = switch (widget.speech) {
-      final QuietSpeech quiet => quiet.speakQuietly(text),
-      final speech => speech.speak(text),
-    };
-    unawaited(said.catchError((Object _) {}));
+    final shown = widget.shown?.call(tile) ?? tile;
+    final previewIn = widget.previewIn;
+    unawaited(
+      (identical(shown, tile) || previewIn == null
+              ? _quietly(tile.spokenText)
+              : _inLanguage(previewIn, shown, tile))
+          .catchError((Object _) {}),
+    );
   }
+
+  /// A word shown in another language, in its voice; with none, the word
+  /// as the store has it, as a tap would say it.
+  Future<void> _inLanguage(
+    Future<bool> Function(String text) previewIn,
+    TileFacts shown,
+    TileFacts tile,
+  ) async {
+    if (await previewIn(shown.spokenText)) return;
+    await _quietly(tile.spokenText);
+  }
+
+  Future<void> _quietly(String text) => switch (widget.speech) {
+    final QuietSpeech quiet => quiet.speakQuietly(text),
+    final speech => speech.speak(text),
+  };
 
   static final Set<LogicalKeyboardKey> _selectKeys = {
     LogicalKeyboardKey.enter,
@@ -248,7 +361,8 @@ class _ScanRing extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (rows <= 0 || cols <= 0) return;
+    // Past the grid (the strip): the strip draws its own ring.
+    if (rows <= 0 || cols <= 0 || at.row >= rows) return;
     final cellW = size.width / cols;
     final cellH = size.height / rows;
     final col = at.col;

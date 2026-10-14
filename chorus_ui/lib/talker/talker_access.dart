@@ -13,7 +13,7 @@ import 'recent_sentences.dart';
 import 'sentence_tools.dart';
 import 'talker_tabs.dart';
 
-export 'switch_scanner.dart' show SwitchScanner;
+export 'switch_scanner.dart' show SwitchScanner, scanStripHighlightKey;
 export 'touch_gate.dart' show TouchGate;
 
 /// Whether this device has keyguard mode on: the grid keeps one fixed size
@@ -29,7 +29,10 @@ void noteSentenceSpoken(
   RecentSentences? recent,
 }) {
   if (!shareSentenceEnabled || private || strip.isEmpty) return;
-  (recent ?? RecentSentences.session).add(sentenceOf(strip));
+  (recent ?? RecentSentences.session).add(
+    sentenceOf(strip),
+    spoken: strip.map((tile) => tile.spokenText).join(' '),
+  );
 }
 
 /// The words on [strip] as the sentence reads.
