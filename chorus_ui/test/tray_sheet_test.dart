@@ -235,11 +235,14 @@ void main() {
         EditorScreen(store: store, sync: FakeSyncStatus()),
         size: _wide,
       );
+      // The waiting word: a clash card shows the word in the spot first.
       final from = tester.getRect(
-        find.descendant(
-          of: find.byType(TrayPanel),
-          matching: find.byType(TileView),
-        ),
+        find
+            .descendant(
+              of: find.byType(TrayPanel),
+              matching: find.byType(TileView),
+            )
+            .last,
       );
       final to = tester
           .state<EditorGridState>(find.byType(EditorGrid))
@@ -330,7 +333,8 @@ void main() {
         EditorScreen(store: store, sync: FakeSyncStatus()),
         size: _wide,
       );
-      await tester.tap(find.text('Choose a spot'));
+      // A clash card offers "Choose a new spot".
+      await tester.tap(find.text('Choose a new spot'));
       await tester.pumpAndSettle();
       // Another adult fills the spot while the picker is open: it is no
       // longer offered, and nothing is placed.

@@ -137,17 +137,17 @@ class _ContestedTrayCardState extends State<ContestedTrayCard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                bothPutAWordText(waiting, holder),
-                style: ChorusType.body.copyWith(color: colors.ink),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               FilledButton(
                 onPressed: onPlaceNext == null
                     ? null
                     : () => onPlaceNext(_waitingRect()),
                 child: const Text(placeNextLabel),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                bothPutAWordText(waiting, holder),
+                style: ChorusType.body.copyWith(color: colors.ink),
               ),
               const SizedBox(height: ChorusSpace.targetGap),
               Wrap(
@@ -203,16 +203,12 @@ class _Side extends StatelessWidget {
           SizedBox(
             key: previewKey,
             width: 72,
-            height: 64,
+            height: 56,
             child: ExcludeSemantics(
               child: TileView(tile: tile, media: media),
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            tile.label,
-            style: ChorusType.headline.copyWith(color: colors.ink),
-          ),
           Text(
             byAndWhen(tile),
             style: ChorusType.body.copyWith(color: colors.inkMuted),
