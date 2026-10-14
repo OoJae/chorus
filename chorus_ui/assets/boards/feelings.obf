@@ -1,0 +1,198 @@
+{
+ "format": "open-board-0.1",
+ "id": "chorus-ready-feelings",
+ "locale": "en",
+ "name": "Feelings",
+ "description_html": "A ready-made feelings board from Chorus: 24 words for a young child.",
+ "buttons": [
+  {
+   "id": "feelings-1",
+   "label": "happy",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-2",
+   "label": "sad",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-3",
+   "label": "angry",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-4",
+   "label": "scared",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-5",
+   "label": "tired",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-6",
+   "label": "excited",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-7",
+   "label": "calm",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-8",
+   "label": "silly",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-9",
+   "label": "worried",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-10",
+   "label": "cross",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-11",
+   "label": "proud",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-12",
+   "label": "bored",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-13",
+   "label": "hurt",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-14",
+   "label": "sick",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-15",
+   "label": "hot",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-16",
+   "label": "cold",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-17",
+   "label": "okay",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-18",
+   "label": "quiet",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-19",
+   "label": "I",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-20",
+   "label": "feel",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-21",
+   "label": "not",
+   "background_color": "rgb(255, 210, 174)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-22",
+   "label": "help",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-23",
+   "label": "hug",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "feelings-24",
+   "label": "break",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  }
+ ],
+ "grid": {
+  "rows": 4,
+  "columns": 6,
+  "order": [
+   [
+    "feelings-1",
+    "feelings-2",
+    "feelings-3",
+    "feelings-4",
+    "feelings-5",
+    "feelings-6"
+   ],
+   [
+    "feelings-7",
+    "feelings-8",
+    "feelings-9",
+    "feelings-10",
+    "feelings-11",
+    "feelings-12"
+   ],
+   [
+    "feelings-13",
+    "feelings-14",
+    "feelings-15",
+    "feelings-16",
+    "feelings-17",
+    "feelings-18"
+   ],
+   [
+    "feelings-19",
+    "feelings-20",
+    "feelings-21",
+    "feelings-22",
+    "feelings-23",
+    "feelings-24"
+   ]
+  ]
+ },
+ "images": [],
+ "sounds": [],
+ "license": {
+  "type": "CC By-SA",
+  "copyright_notice_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "author_name": "The Chorus authors"
+ }
+}

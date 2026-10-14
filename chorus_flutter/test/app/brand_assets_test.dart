@@ -126,7 +126,7 @@ void main() {
 
   test('every pictured word finds its picture in the app, at each '
       'density', () async {
-    expect(symbolWords, hasLength(23));
+    expect(symbolWords, hasLength(128));
     for (final word in symbolWords) {
       for (final (ratio, dir, size) in [
         (1.0, '', 128),

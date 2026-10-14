@@ -1,0 +1,198 @@
+{
+ "format": "open-board-0.1",
+ "id": "chorus-ready-describing",
+ "locale": "en",
+ "name": "Describing words",
+ "description_html": "A ready-made describing words board from Chorus: 24 words for a young child.",
+ "buttons": [
+  {
+   "id": "describing-1",
+   "label": "big",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-2",
+   "label": "little",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-3",
+   "label": "hot",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-4",
+   "label": "cold",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-5",
+   "label": "wet",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-6",
+   "label": "dry",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-7",
+   "label": "fast",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-8",
+   "label": "slow",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-9",
+   "label": "loud",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-10",
+   "label": "quiet",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-11",
+   "label": "soft",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-12",
+   "label": "hard",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-13",
+   "label": "clean",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-14",
+   "label": "dirty",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-15",
+   "label": "full",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-16",
+   "label": "empty",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-17",
+   "label": "new",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-18",
+   "label": "old",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-19",
+   "label": "red",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-20",
+   "label": "blue",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-21",
+   "label": "green",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-22",
+   "label": "yellow",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-23",
+   "label": "funny",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "describing-24",
+   "label": "broken",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  }
+ ],
+ "grid": {
+  "rows": 4,
+  "columns": 6,
+  "order": [
+   [
+    "describing-1",
+    "describing-2",
+    "describing-3",
+    "describing-4",
+    "describing-5",
+    "describing-6"
+   ],
+   [
+    "describing-7",
+    "describing-8",
+    "describing-9",
+    "describing-10",
+    "describing-11",
+    "describing-12"
+   ],
+   [
+    "describing-13",
+    "describing-14",
+    "describing-15",
+    "describing-16",
+    "describing-17",
+    "describing-18"
+   ],
+   [
+    "describing-19",
+    "describing-20",
+    "describing-21",
+    "describing-22",
+    "describing-23",
+    "describing-24"
+   ]
+  ]
+ },
+ "images": [],
+ "sounds": [],
+ "license": {
+  "type": "CC By-SA",
+  "copyright_notice_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "author_name": "The Chorus authors"
+ }
+}

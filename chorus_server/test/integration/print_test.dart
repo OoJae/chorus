@@ -80,8 +80,9 @@ void main() {
       expect(
         html,
         contains(
-          'Pictures: Mulberry Symbols, Steve Lee, CC BY-SA 4.0. Words: '
-          'Universal Core, CLDS UNC-Chapel Hill, CC BY-SA 4.0.',
+          'Pictures: Mulberry Symbols, Steve Lee, and the Chorus authors, '
+          'CC BY-SA 4.0. Words: Universal Core, CLDS UNC-Chapel Hill, '
+          'CC BY-SA 4.0.',
         ),
       );
       expect(html, contains('13 October 2026'));
@@ -92,8 +93,8 @@ void main() {
       expect(html, isNot(contains('<script')));
     });
 
-    test('when a word has a Mulberry symbol then it is drawn inline above '
-        'the label, and a word without one is the label alone.', () {
+    test('when a word has a symbol then it is drawn inline above the label, '
+        'and a word without one is the label alone.', () {
       final html = page(starterSnapshot());
 
       expect(symbolSvgFor('want'), isNotNull);
@@ -104,16 +105,27 @@ void main() {
           '</span><span class="label">want</span>',
         ),
       );
-      expect(symbolSvgFor('like'), isNull);
-      expect(
-        html,
-        contains('<div class="cell"><span class="label">like</span></div>'),
-      );
-      // Every starter word with a symbol gets it, and nothing is fetched.
+      // Every starter word has a symbol and gets it, and nothing is fetched.
       final drawn = universalCore36.where((w) => symbolSvgFor(w.label) != null);
-      expect(drawn, hasLength(23));
-      expect('class="sym"'.allMatches(html), hasLength(23));
+      expect(drawn, hasLength(36));
+      expect('class="sym"'.allMatches(html), hasLength(36));
       expect(html, isNot(matches(RegExp(r'\b(src|href)\s*='))));
+
+      final own = page(
+        jsonEncode({
+          'name': 'Snacks',
+          'rows': 1,
+          'cols': 1,
+          'tiles': [
+            {'row': 0, 'col': 0, 'label': 'crackers', 'colorKey': null},
+          ],
+        }),
+      );
+      expect(symbolSvgFor('crackers'), isNull);
+      expect(
+        own,
+        contains('<div class="cell"><span class="label">crackers</span></div>'),
+      );
     });
 
     test('when the header is drawn then it carries the mark, four tiles of '

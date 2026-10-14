@@ -1,0 +1,198 @@
+{
+ "format": "open-board-0.1",
+ "id": "chorus-ready-actions",
+ "locale": "en",
+ "name": "Actions",
+ "description_html": "A ready-made actions board from Chorus: 24 words for a young child.",
+ "buttons": [
+  {
+   "id": "actions-1",
+   "label": "play",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-2",
+   "label": "eat",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-3",
+   "label": "drink",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-4",
+   "label": "sleep",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-5",
+   "label": "wash",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-6",
+   "label": "read",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-7",
+   "label": "run",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-8",
+   "label": "walk",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-9",
+   "label": "jump",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-10",
+   "label": "climb",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-11",
+   "label": "swim",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-12",
+   "label": "sit",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-13",
+   "label": "open",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-14",
+   "label": "close",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-15",
+   "label": "give",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-16",
+   "label": "take",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-17",
+   "label": "push",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-18",
+   "label": "pull",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-19",
+   "label": "watch",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-20",
+   "label": "listen",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-21",
+   "label": "sing",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-22",
+   "label": "dance",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-23",
+   "label": "draw",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "actions-24",
+   "label": "build",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  }
+ ],
+ "grid": {
+  "rows": 4,
+  "columns": 6,
+  "order": [
+   [
+    "actions-1",
+    "actions-2",
+    "actions-3",
+    "actions-4",
+    "actions-5",
+    "actions-6"
+   ],
+   [
+    "actions-7",
+    "actions-8",
+    "actions-9",
+    "actions-10",
+    "actions-11",
+    "actions-12"
+   ],
+   [
+    "actions-13",
+    "actions-14",
+    "actions-15",
+    "actions-16",
+    "actions-17",
+    "actions-18"
+   ],
+   [
+    "actions-19",
+    "actions-20",
+    "actions-21",
+    "actions-22",
+    "actions-23",
+    "actions-24"
+   ]
+  ]
+ },
+ "images": [],
+ "sounds": [],
+ "license": {
+  "type": "CC By-SA",
+  "copyright_notice_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "author_name": "The Chorus authors"
+ }
+}

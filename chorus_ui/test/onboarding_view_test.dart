@@ -158,8 +158,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test('the six words keep their starter-board colours and their Mulberry '
-      'symbols where they have one', () {
+  test('the six words keep their starter-board colours and their '
+      'symbols', () {
     final cells = {for (final cell in onboardingCells()) cell.label: cell};
     expect(cells.keys, onboardingWords);
     expect(
@@ -184,11 +184,9 @@ void main() {
         'stop': (1, 2),
       },
     );
-    for (final word in ['I', 'want', 'more', 'help', 'go']) {
+    for (final word in ['I', 'want', 'more', 'help', 'go', 'stop']) {
       expect(cells[word]!.image, isNotNull, reason: word);
     }
-    // Mulberry has no "stop" among the starter symbols.
-    expect(cells['stop']!.image, isNull);
   });
 
   testWidgets('each tile is drawn in its family colour', (tester) async {

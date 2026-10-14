@@ -53,8 +53,8 @@ String cssHex(int argb) =>
 
 /// The credit the symbols' and the starter vocabulary's licences ask for.
 const String boardCredit =
-    'Pictures: Mulberry Symbols, Steve Lee, CC BY-SA 4.0. Words: Universal '
-    'Core, CLDS UNC-Chapel Hill, CC BY-SA 4.0.';
+    'Pictures: Mulberry Symbols, Steve Lee, and the Chorus authors, '
+    'CC BY-SA 4.0. Words: Universal Core, CLDS UNC-Chapel Hill, CC BY-SA 4.0.';
 
 /// The Chorus mark: four laminated tiles in the colours of the key, two by
 /// two, the top-left one raised a little. Each tile is its darker edge drawn

@@ -587,6 +587,12 @@ void main() {
         store.tiles.firstWhere((t) => t.label == 'want').id,
         imageHash: media.arrive(tinyPng),
       );
+      // Every starter word has a symbol, so one is renamed to a word that
+      // has none.
+      await store.updateTile(
+        store.tiles.firstWhere((t) => t.label == 'like').id,
+        label: 'crackers',
+      );
       await _pump(
         tester,
         TalkerScreen(
@@ -601,8 +607,9 @@ void main() {
       expect(on('help', TileView.symbolKey), findsOneWidget);
       expect(on('want', TileView.photoKey), findsOneWidget);
       expect(on('want', TileView.symbolKey), findsNothing);
-      expect(on('like', TileView.symbolKey), findsNothing);
-      expect(on('like', TileView.photoKey), findsNothing);
+      expect(on('stop', TileView.symbolKey), findsOneWidget);
+      expect(on('crackers', TileView.symbolKey), findsNothing);
+      expect(on('crackers', TileView.photoKey), findsNothing);
       // The pictures are decoration: a screen reader hears the word.
       expect(find.bySemanticsLabel('help'), findsOneWidget);
     });

@@ -1,0 +1,198 @@
+{
+ "format": "open-board-0.1",
+ "id": "chorus-ready-people",
+ "locale": "en",
+ "name": "People",
+ "description_html": "A ready-made people board from Chorus: 24 words for a young child.",
+ "buttons": [
+  {
+   "id": "people-1",
+   "label": "mum",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-2",
+   "label": "dad",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-3",
+   "label": "baby",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-4",
+   "label": "brother",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-5",
+   "label": "sister",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-6",
+   "label": "family",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-7",
+   "label": "grandma",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-8",
+   "label": "grandpa",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-9",
+   "label": "aunt",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-10",
+   "label": "uncle",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-11",
+   "label": "cousin",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-12",
+   "label": "friend",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-13",
+   "label": "teacher",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-14",
+   "label": "helper",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-15",
+   "label": "doctor",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-16",
+   "label": "nurse",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-17",
+   "label": "dentist",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-18",
+   "label": "driver",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-19",
+   "label": "me",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-20",
+   "label": "my",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-21",
+   "label": "we",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-22",
+   "label": "they",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-23",
+   "label": "your",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "people-24",
+   "label": "mine",
+   "background_color": "rgb(255, 239, 160)",
+   "border_color": "rgb(169, 168, 163)"
+  }
+ ],
+ "grid": {
+  "rows": 4,
+  "columns": 6,
+  "order": [
+   [
+    "people-1",
+    "people-2",
+    "people-3",
+    "people-4",
+    "people-5",
+    "people-6"
+   ],
+   [
+    "people-7",
+    "people-8",
+    "people-9",
+    "people-10",
+    "people-11",
+    "people-12"
+   ],
+   [
+    "people-13",
+    "people-14",
+    "people-15",
+    "people-16",
+    "people-17",
+    "people-18"
+   ],
+   [
+    "people-19",
+    "people-20",
+    "people-21",
+    "people-22",
+    "people-23",
+    "people-24"
+   ]
+  ]
+ },
+ "images": [],
+ "sounds": [],
+ "license": {
+  "type": "CC By-SA",
+  "copyright_notice_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "author_name": "The Chorus authors"
+ }
+}

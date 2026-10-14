@@ -78,15 +78,16 @@ void main() {
       );
     });
 
-    test('a word with a symbol shows it; a word without one shows its '
-        'label alone', () {
+    test('a word with a symbol shows it, and every starter word has '
+        'one', () {
       final store = FakeBoardStore.seeded();
       final cells = heroCellsOf(heroBoardOf(store)!, store);
       final want = cells.firstWhere((cell) => cell.label == 'want');
       expect(want.image, isA<AssetImage>());
       expect((want.image! as AssetImage).assetName, 'assets/symbols/want.png');
       final stop = cells.firstWhere((cell) => cell.label == 'stop');
-      expect(stop.image, isNull);
+      expect((stop.image! as AssetImage).assetName, 'assets/symbols/stop.png');
+      expect(cells.where((cell) => cell.image == null), isEmpty);
     });
 
     test('a word\'s own photo wins over its symbol once it is on this '
