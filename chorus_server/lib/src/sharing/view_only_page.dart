@@ -40,11 +40,14 @@ const Map<String, (String, String)> darkTileColours = {
 ///
 /// With [reportTaps] (the circle's word log is on), each tap is also sent
 /// back to `<page>/tap` as the tapped cell, for the circle's "What
-/// changed".
+/// changed". [rate] and [pitch] are the circle's chosen voice (see
+/// `CircleVoice`): numbers only, written into the script as such.
 String renderViewOnlyPage(
   PrintBoard board, {
   required DateTime expiresAt,
   bool reportTaps = false,
+  double rate = 0.9,
+  double pitch = 1.0,
 }) {
   final child = board.childName;
   final heading = child == null ? board.name : "$child's board";
@@ -102,6 +105,7 @@ String renderViewOnlyPage(
     ..write('Chorus. It stops working on ${printDate(expiresAt)}.</p>\n')
     ..write('<p>${escapeHtml(boardCredit)}</p>\n')
     ..write('</footer>\n<script>\n')
+    ..write(viewOnlyVoiceScript(rate: rate, pitch: pitch))
     ..write(_script)
     ..write(reportTaps ? _reportScript : '')
     ..write('</script>\n</body>\n</html>\n');
@@ -259,7 +263,8 @@ const String _script = r'''
       var u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US';
       if (voice) u.voice = voice;
-      u.rate = 0.9;
+      u.rate = window.chorusVoice ? window.chorusVoice.rate : 0.9;
+      if (window.chorusVoice) u.pitch = window.chorusVoice.pitch;
       u.onstart = function () { engineSpeaking = true; };
       u.onend = u.onerror = function () { engineSpeaking = false; };
       synth.speak(u);
@@ -325,3 +330,11 @@ const String _reportScript = r'''
   }
 })();
 ''';
+/// The line the script reads its speed and pitch from: the circle's chosen
+/// voice. Both are numbers, kept between 0.5 and 2 (1 where one is not a
+/// number), so nothing else can reach the script.
+String viewOnlyVoiceScript({required double rate, required double pitch}) {
+  double kept(double value) =>
+      value.isFinite ? value.clamp(0.5, 2.0).toDouble() : 1.0;
+  return 'window.chorusVoice = {rate: ${kept(rate)}, pitch: ${kept(pitch)}};\n';
+}

@@ -1,0 +1,22 @@
+### The voice the child speaks with, chosen by an adult for the whole
+### circle: every device and the view-only page use it. Server-only. A
+### circle with no row speaks with each device's default voice.
+class: CircleVoice
+table: circle_voice
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  ### The name the device lists the voice under; null is the device's own
+  ### everyday voice. A device without a voice of this name uses its own.
+  voiceName: String?
+  ### Speed as a share of normal speech: 1.0 is normal, 0.9 a little slower.
+  rate: double
+  ### 1.0 is the voice's own pitch.
+  pitch: double
+  ### The adult who last changed it, and when.
+  changedBy: UuidValue
+  changedAt: DateTime
+indexes:
+  circle_voice_circle_idx:
+    fields: circleSpace
+    unique: true

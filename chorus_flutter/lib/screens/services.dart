@@ -15,6 +15,7 @@ import 'package:chorus_ui/contracts_modelling.dart';
 import 'package:chorus_ui/contracts_scenes.dart' show SceneBook;
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
+import 'package:chorus_ui/contracts_voice.dart';
 import 'package:chorus_ui/contracts_wordlog.dart';
 
 import '../src/live/chorus_live_session.dart';
@@ -92,6 +93,7 @@ class CircleServices {
     this.hiddenWords,
     this.languages,
     this.languageVoice,
+    this.voice,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -161,6 +163,9 @@ class CircleServices {
 
   /// The device's voices for the second language.
   final LanguageVoice? languageVoice;
+  /// The circle's voice, speed and pitch, kept on this device. Null leaves
+  /// "Voice" out of "This device".
+  final VoiceChoice? voice;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

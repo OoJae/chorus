@@ -23,6 +23,7 @@ import '../scenes/talker_scenes.dart';
 import '../widgets/label_fit.dart';
 import '../widgets/sync_chip.dart';
 import '../widgets/tile_view.dart';
+import 'talker_access.dart';
 import 'talker_controller.dart';
 import 'talker_extras.dart';
 import 'talker_tabs.dart';
@@ -253,6 +254,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
   /// Speaks the sentence; felt only when there is one to speak.
   void _speak() {
     if (_controller.strip.isNotEmpty) ChorusHaptics.sentenceSpoken();
+    noteSentenceSpoken(_controller.strip, private: _controller.private);
     unawaited(_controller.speakStrip());
   }
 
@@ -334,15 +336,24 @@ class _TalkerScreenState extends State<TalkerScreen> {
     final controller = _controller;
     final snapshot = controller.snapshot;
     final colors = ChorusColors.of(context);
+    // Keyguard mode: nothing above the grid comes or goes (see
+    // KeyguardGeometry).
+    final keyguard = keyguardOn(context);
     Widget grid = snapshot == null
         ? const _NoBoard()
-        : _BoardGrid(
+        : SwitchScanner(
             snapshot: snapshot,
-            media: widget.media,
-            pulsing: controller.pulsing,
-            onTap: controller.tapTile,
+            speech: widget.speech,
+            onSelect: controller.tapTile,
             gap: layout == TalkerLayout.short ? 3 : 4,
-            extras: _extras,
+            child: _BoardGrid(
+              snapshot: snapshot,
+              media: widget.media,
+              pulsing: controller.pulsing,
+              onTap: controller.tapTile,
+              gap: layout == TalkerLayout.short ? 3 : 4,
+              extras: _extras,
+            ),
           );
     final heroTag = widget.heroTag;
     if (heroTag != null && !ChorusMotion.reduced(context)) {
@@ -373,6 +384,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
         textScale: MediaQuery.textScalerOf(context).scale(1),
       ),
       extras: _extras,
+      keyguard: keyguard,
     );
     final hasTabs = controller.showsTabs;
     Widget tabs(Axis axis) => TalkerBoardTabs(
@@ -382,7 +394,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
       attentionIds: controller.pulsingBoardIds,
       axis: axis,
     );
-    final sharing = controller.sharingOn
+    final sharing = controller.sharingOn && !keyguard
         ? [
             _SharingBar(
               paused: controller.private,
@@ -414,9 +426,9 @@ class _TalkerScreenState extends State<TalkerScreen> {
             ),
             const SizedBox(height: _rowGap),
             status,
-            if (hasTabs) ...[
+            if (hasTabs || keyguard) ...[
               const SizedBox(height: _rowGap),
-              tabs(Axis.horizontal),
+              hasTabs ? tabs(Axis.horizontal) : const KeptTabsRow(),
             ],
             const SizedBox(height: _rowGap),
             ...sharing,
@@ -439,9 +451,9 @@ class _TalkerScreenState extends State<TalkerScreen> {
             ),
             const SizedBox(height: _rowGap),
             status,
-            if (hasTabs) ...[
+            if (hasTabs || keyguard) ...[
               const SizedBox(height: _rowGap),
-              tabs(Axis.horizontal),
+              hasTabs ? tabs(Axis.horizontal) : const KeptTabsRow(),
             ],
             const SizedBox(height: _rowGap),
             ...sharing,
@@ -489,8 +501,11 @@ class _TalkerScreenState extends State<TalkerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Beside the grid, where a row of tabs would cost height.
-                  if (hasTabs) ...[
-                    SizedBox(width: 92, child: tabs(Axis.vertical)),
+                  if (hasTabs || keyguard) ...[
+                    SizedBox(
+                      width: 92,
+                      child: hasTabs ? tabs(Axis.vertical) : null,
+                    ),
                     const SizedBox(width: 4),
                   ],
                   Expanded(child: grid),
@@ -774,15 +789,19 @@ class _BoardGridState extends State<_BoardGrid> {
       radius: radius,
       child: _Arrival(
         fade: _arriving.contains(tile.id),
-        child: TileView(
-          tile: shown,
-          symbolLabel: identical(shown, tile) ? null : tile.label,
-          media: widget.media,
-          highlighted: glowing,
-          labelSize: labelSize,
-          pictures: pictures,
-          haptic: ChorusHaptic.wordTapped,
-          onTap: () => widget.onTap(shown),
+        child: TouchGate(
+          onActivate: () => widget.onTap(shown),
+          builder: (onTap, haptic) => TileView(
+            tile: shown,
+            symbolLabel: identical(shown, tile) ? null : tile.label,
+            media: widget.media,
+            highlighted: glowing,
+            labelSize: labelSize,
+            pictures: pictures,
+            haptic: haptic,
+            onTap: onTap,
+            semanticLabel: tileSemanticLabel(shown),
+          ),
         ),
       ),
     );
@@ -1198,6 +1217,7 @@ class _StatusRow extends StatelessWidget {
     required this.layout,
     this.scenes,
     this.extras,
+    this.keyguard = false,
   });
 
   final TalkerController controller;
@@ -1211,6 +1231,9 @@ class _StatusRow extends StatelessWidget {
   final Widget? scenes;
   /// Adds "Show everything" and the language switch; null adds nothing.
   final TalkerExtras? extras;
+  /// Keyguard mode: sharing shows as a pill here, never as a bar over the
+  /// grid.
+  final bool keyguard;
 
   @override
   Widget build(BuildContext context) {
@@ -1227,6 +1250,14 @@ class _StatusRow extends StatelessWidget {
         : null;
     final trailing = <Widget>[
       ?scenes,
+      if (keyguard && layout != TalkerLayout.short && controller.sharingOn) ...[
+        _SharingPill(
+          paused: controller.private,
+          onStop: controller.stopSharingSaid,
+        ),
+        gap,
+      ],
+      ...sentenceToolsFor(sentenceOf(controller.strip), speech),
       if (compact)
         SyncChip(sync: sync, compact: true)
       else

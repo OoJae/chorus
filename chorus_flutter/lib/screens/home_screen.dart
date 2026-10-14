@@ -14,6 +14,7 @@ import 'package:chorus_ui/contracts_live.dart';
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/credits/credits_screen.dart';
+import 'package:chorus_ui/device/device_settings_entry.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/features/features.dart';
 import 'package:chorus_ui/features/flags/w8.dart' show pictureScenesEnabled;
@@ -492,6 +493,11 @@ class HomeScreen extends StatelessWidget {
           ),
       ],
       [
+        ?deviceSettingsEntry(
+          context,
+          voice: services?.voice,
+          board: heroBoardOf(store),
+        ),
         HomeEntry(
           icon: Icons.info_outline_rounded,
           label: 'Credits',

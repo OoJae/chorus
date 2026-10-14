@@ -21,11 +21,14 @@ import 'brand/mark.dart';
 import 'brand/tokens.dart';
 import 'contracts.dart';
 import 'credits/credits_screen.dart';
+import 'device/device_settings_entry.dart';
+import 'device/device_settings_scope.dart';
 import 'editor/add_word_sheet.dart';
 import 'editor/editor_screen.dart';
 import 'fakes.dart';
 import 'fakes_clash.dart';
 import 'fakes_features.dart';
+import 'fakes_device.dart';
 import 'fakes_media.dart';
 import 'features/features.dart';
 import 'home/home.dart';
@@ -314,11 +317,14 @@ class _ChorusGalleryState extends State<ChorusGallery> {
             ),
             // The fake voice is silent, so say on screen what it would
             // speak.
-            child: Stack(
-              children: [
-                ?child,
-                _WouldSay(speech: _fakes.speech),
-              ],
+            child: DeviceSettingsScope(
+              store: _galleryDeviceSettings,
+              child: Stack(
+                children: [
+                  ?child,
+                  _WouldSay(speech: _fakes.speech),
+                ],
+              ),
             ),
           );
         },
@@ -557,6 +563,11 @@ class _HomeStandIn extends StatelessWidget {
               label: 'Word log and this week',
               onTap: () => _push(context, GalleryPage.wordLog.route),
             ),
+            ?deviceSettingsEntry(
+              context,
+              voice: _galleryVoice,
+              board: heroBoardOf(store),
+            ),
             HomeEntry(
               icon: Icons.info_outline_rounded,
               label: 'Credits',
@@ -647,3 +658,7 @@ class _WouldSay extends StatelessWidget {
     );
   }
 }
+
+/// "This device" in the gallery: kept in memory, with a fake circle voice.
+final InMemoryDeviceSettings _galleryDeviceSettings = InMemoryDeviceSettings();
+final FakeVoiceChoice _galleryVoice = FakeVoiceChoice();

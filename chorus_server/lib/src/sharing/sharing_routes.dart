@@ -9,6 +9,7 @@ import '../printing/print_routes.dart';
 import '../printing/snapshots.dart';
 import '../sitter/sitter_taps.dart';
 import '../wordlog/word_log_endpoint.dart' show isWordLogOn;
+import '../voice/circle_voices.dart';
 import 'view_only_page.dart';
 
 /// Status for a token that never existed.
@@ -57,12 +58,18 @@ Future<Response> viewOnlyResponse(Session session, String token) async {
   }
   final reportTaps =
       sitterTapsEnabled && await isWordLogOn(session, snapshot.circleSpace);
+  // The circle's chosen speed and pitch, as on every device of it.
+  final voice = voiceSettingOf(
+    await findCircleVoice(session, snapshot.circleSpace),
+  );
   return Response.ok(
     body: Body.fromString(
       renderViewOnlyPage(
         board,
         expiresAt: snapshot.expiresAt,
         reportTaps: reportTaps,
+        rate: voice.rate,
+        pitch: voice.pitch,
       ),
       mimeType: MimeType.html,
     ),

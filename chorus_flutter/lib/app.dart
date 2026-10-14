@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
+import 'package:chorus_ui/device/device_settings_scope.dart';
 import 'package:chorus_ui/onboarding/launch_reveal.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +19,7 @@ import 'screens/services.dart';
 import 'screens/signed_in_shell.dart';
 import 'screens/support/circle_cache.dart';
 import 'src/activity/w2_parts.dart';
+import 'src/device/local_device_settings.dart';
 import 'src/features/feature_wiring.dart';
 import 'src/live/chorus_live_session.dart';
 import 'src/live/live_settings.dart';
@@ -36,6 +38,7 @@ import 'src/tabs/one_tab_gate.dart';
 import 'src/tabs/tab_workspaces.dart';
 import 'src/trust/trust_services.dart';
 import 'src/wordsettings/word_settings_wiring.dart';
+import 'src/voice/server_voice_choice.dart';
 
 class ChorusApp extends StatefulWidget {
   const ChorusApp({super.key});
@@ -83,6 +86,9 @@ class _ChorusAppState extends State<ChorusApp> {
   /// screen has been shown.
   final LocalFlags _flags = LocalFlags();
 
+  /// How the child's board works on this device: touch, switches, keyguard.
+  final LocalDeviceSettings _deviceSettings = LocalDeviceSettings();
+
   @override
   void initState() {
     super.initState();
@@ -116,8 +122,10 @@ class _ChorusAppState extends State<ChorusApp> {
       themeMode: ThemeMode.system,
       // After the system splash, the chorus reveal, once per cold start,
       // over whatever opens underneath: the board is not kept waiting.
-      builder: (context, child) =>
-          LaunchReveal(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => DeviceSettingsScope(
+        store: _deviceSettings,
+        child: LaunchReveal(child: child ?? const SizedBox.shrink()),
+      ),
       home: ValueListenableBuilder(
         valueListenable: client.auth.authInfoListenable,
         builder: (context, authInfo, _) {
@@ -303,7 +311,14 @@ class SessionWorkspace implements Workspace {
       sync: sync,
       replica: _session.replica,
     );
-    return parts.services[circle.myRole] ??= _servicesFor(circle, parts);
+    final services = parts.services[circle.myRole] ??= _servicesFor(
+      circle,
+      parts,
+    );
+    // The circle on show speaks with its own chosen voice.
+    final voice = services.voice;
+    if (voice is ServerVoiceChoice) voice.apply();
+    return services;
   }
 
   CircleServices _servicesFor(CircleInfo circle, _CircleParts parts) {
@@ -319,6 +334,7 @@ class SessionWorkspace implements Workspace {
         userId: me,
         sync: sync,
         openStore: () => _session.boardStore(circle),
+        speech: _speech,
       ),
     );
     final modelling = openModelling(
@@ -363,6 +379,7 @@ class SessionWorkspace implements Workspace {
       hiddenWords: features?.wordSettings?.hiddenWords,
       languages: features?.wordSettings?.languages,
       languageVoice: languageVoiceFor(_speech),
+      voice: features?.voice,
     );
   }
 

@@ -2,16 +2,19 @@
 library;
 
 import 'package:chorus_ui/contracts.dart';
+import 'package:chorus_ui/contracts_device.dart' show QuietSpeech;
+import 'package:chorus_ui/contracts_voice.dart' show VoicePrefs;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import 'chosen_voice.dart';
 import 'online_voices.dart';
 
 /// Speaks with the device's own voice.
 ///
 /// Nothing here throws: where there is no engine (some browsers, widget
 /// tests) every call is quiet and [offlineVoiceReady] stays false.
-class TtsSpeechService implements SpeechService {
+class TtsSpeechService implements SpeechService, QuietSpeech {
   TtsSpeechService({
     this.language = 'en-US',
     bool? web,
@@ -152,6 +155,17 @@ class TtsSpeechService implements SpeechService {
         await _chooseVoice(tts);
         if (mine != _utterance) return;
       }
+      // The circle's chosen voice, once it is known or has changed.
+      if (await _voice.applyIfChanged(tts, web: _web, online: _onlineVoices)) {
+        // Back to the device's own voice, chosen as at first.
+        if (_web) {
+          _voiceChosen = false;
+          await _chooseVoice(tts);
+        } else {
+          await tts.setLanguage(language);
+        }
+      }
+      if (mine != _utterance) return;
       // Completes when the utterance ends, because of awaitSpeakCompletion.
       await tts.speak(text);
     } catch (_) {
@@ -255,6 +269,46 @@ class TtsSpeechService implements SpeechService {
       }
     }
     return null;
+  }
+
+  /// The circle's chosen voice, speed and pitch (see [VoicePrefs]), used
+  /// from the next word on.
+  final ChosenVoice _voice = ChosenVoice();
+
+  /// Speaks with [prefs] from the next word on.
+  void useVoice(VoicePrefs prefs) => _voice.use(prefs);
+
+  /// The voices on this device for [language] that need no network.
+  Future<List<String>> deviceVoiceNames() async {
+    await warmUp();
+    final tts = _tts;
+    if (tts == null) return const [];
+    Future<List<String>> read() => _voice.deviceVoiceNames(
+      tts,
+      language: language,
+      web: _web,
+      online: _onlineVoices,
+    );
+    final names = await read();
+    if (names.isNotEmpty || !_web) return names;
+    // A browser lists its voices a moment after the page first asks.
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return read();
+  }
+
+  /// Says [text] at a lower volume: the spoken preview while scanning.
+  @override
+  Future<void> speakQuietly(String text) async {
+    await warmUp();
+    final tts = _tts;
+    try {
+      await tts?.setVolume(ChosenVoice.quietVolume);
+      await speak(text);
+    } finally {
+      try {
+        await tts?.setVolume(1.0);
+      } catch (_) {}
+    }
   }
 
   @override

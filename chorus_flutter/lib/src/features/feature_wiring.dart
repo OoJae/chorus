@@ -5,6 +5,8 @@ library;
 import 'package:chorus_client/chorus_client.dart' hide CircleRole;
 import 'package:chorus_ui/contracts.dart' show CircleRole, CircleRoleX;
 import 'package:chorus_ui/contracts.dart' as ui show SyncStatus;
+import 'package:chorus_ui/contracts.dart' show SpeechService;
+import 'package:chorus_ui/features/flags/w3.dart' show voiceChoiceEnabled;
 import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_copies.dart' show BoardCopies;
 import 'package:chorus_ui/contracts_scenes.dart' show SceneBook;
@@ -17,6 +19,7 @@ import '../scenes/server_scene_book.dart';
 import '../sharing/server_board_sharing.dart';
 import '../sync/adapters.dart';
 import '../sync/replica_board_store.dart';
+import '../voice/server_voice_choice.dart';
 import '../wordlog/server_week_summary.dart';
 import '../wordlog/server_word_log.dart';
 import '../wordsettings/word_settings_wiring.dart';
@@ -35,7 +38,12 @@ class CircleFeatures {
     this.scenes,
     this.copies,
     this.wordSettings,
+    this.voice,
   });
+
+  /// The circle's voice on this device. Null without a speech service or
+  /// with the feature off.
+  final ServerVoiceChoice? voice;
 
   /// The circle's word log on this device. Every role has one, to see
   /// whether it is on; only a guardian may change it, and a partner's
@@ -74,6 +82,7 @@ class CircleFeatures {
     _manager?.dispose();
     scenes?.dispose();
     wordSettings?.dispose();
+    voice?.dispose();
   }
 }
 
@@ -96,6 +105,7 @@ CircleFeatures openCircleFeatures(
   required String userId,
   required ui.SyncStatus sync,
   required ReplicaBoardStore Function() openStore,
+  SpeechService? speech,
 }) {
   final role = roleOf(circle.myRole);
   final space = circle.spaceUuid;
@@ -148,6 +158,15 @@ CircleFeatures openCircleFeatures(
       role: role,
       sync: sync,
     ),
+    voice: voiceChoiceEnabled && speech != null
+        ? ServerVoiceChoice.forClient(
+            client,
+            circleSpace: space,
+            canChange: role.canEdit,
+            speech: speech,
+            sync: sync,
+          )
+        : null,
   );
 }
 

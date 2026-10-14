@@ -59,12 +59,16 @@ class TileView extends StatelessWidget {
     this.haptic,
     this.pictures,
     this.symbolLabel,
+    this.semanticLabel,
   });
 
   /// The word whose symbol is drawn when [tile]'s label is not it, e.g.
   /// while the word shows in the circle's second language. Null draws the
   /// symbol for [tile]'s label.
   final String? symbolLabel;
+
+  /// What a screen reader says for the tile. Null is its label.
+  final String? semanticLabel;
 
   /// Font size of the label. Null sizes this tile by itself.
   final double? labelSize;
@@ -166,7 +170,7 @@ class TileView extends StatelessWidget {
           if (onTap != null) {
             face = PressableSurface(
               onTap: onTap,
-              semanticLabel: tile.label,
+              semanticLabel: semanticLabel ?? tile.label,
               color: colors.fill,
               edgeColor: colors.edge,
               foregroundColor: tileLabelInk,
