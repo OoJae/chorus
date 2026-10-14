@@ -1,0 +1,198 @@
+{
+ "format": "open-board-0.1",
+ "id": "chorus-ready-places",
+ "locale": "en",
+ "name": "Places",
+ "description_html": "A ready-made places board from Chorus: 24 words for a young child.",
+ "buttons": [
+  {
+   "id": "places-1",
+   "label": "go",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-2",
+   "label": "come",
+   "background_color": "rgb(199, 239, 178)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-3",
+   "label": "where",
+   "background_color": "rgb(221, 203, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-4",
+   "label": "home",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-5",
+   "label": "school",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-6",
+   "label": "outside",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-7",
+   "label": "park",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-8",
+   "label": "playground",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-9",
+   "label": "shop",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-10",
+   "label": "library",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-11",
+   "label": "swimming pool",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-12",
+   "label": "beach",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-13",
+   "label": "garden",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-14",
+   "label": "zoo",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-15",
+   "label": "farm",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-16",
+   "label": "cafe",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-17",
+   "label": "car",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-18",
+   "label": "bus",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-19",
+   "label": "bedroom",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-20",
+   "label": "bathroom",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-21",
+   "label": "kitchen",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-22",
+   "label": "toilet",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-23",
+   "label": "bed",
+   "background_color": "rgb(255, 255, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  },
+  {
+   "id": "places-24",
+   "label": "upstairs",
+   "background_color": "rgb(192, 219, 255)",
+   "border_color": "rgb(169, 168, 163)"
+  }
+ ],
+ "grid": {
+  "rows": 4,
+  "columns": 6,
+  "order": [
+   [
+    "places-1",
+    "places-2",
+    "places-3",
+    "places-4",
+    "places-5",
+    "places-6"
+   ],
+   [
+    "places-7",
+    "places-8",
+    "places-9",
+    "places-10",
+    "places-11",
+    "places-12"
+   ],
+   [
+    "places-13",
+    "places-14",
+    "places-15",
+    "places-16",
+    "places-17",
+    "places-18"
+   ],
+   [
+    "places-19",
+    "places-20",
+    "places-21",
+    "places-22",
+    "places-23",
+    "places-24"
+   ]
+  ]
+ },
+ "images": [],
+ "sounds": [],
+ "license": {
+  "type": "CC By-SA",
+  "copyright_notice_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "author_name": "The Chorus authors"
+ }
+}

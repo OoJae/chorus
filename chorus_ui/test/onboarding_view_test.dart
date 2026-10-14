@@ -12,6 +12,7 @@ import 'package:chorus_ui/brand/test_fonts.dart';
 import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/fakes.dart';
+import 'package:chorus_ui/features/flags/w7.dart';
 import 'package:chorus_ui/onboarding/launch_reveal.dart';
 import 'package:chorus_ui/onboarding/onboarding_view.dart';
 import 'package:chorus_ui/theme.dart';
@@ -158,8 +159,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test('the six words keep their starter-board colours and their Mulberry '
-      'symbols where they have one', () {
+  test('the six words keep their starter-board colours and their '
+      'symbols', () {
     final cells = {for (final cell in onboardingCells()) cell.label: cell};
     expect(cells.keys, onboardingWords);
     expect(
@@ -187,8 +188,8 @@ void main() {
     for (final word in ['I', 'want', 'more', 'help', 'go']) {
       expect(cells[word]!.image, isNotNull, reason: word);
     }
-    // Mulberry has no "stop" among the starter symbols.
-    expect(cells['stop']!.image, isNull);
+    // "stop" gained its picture with every starter word's.
+    expect(cells['stop']!.image, coreSymbolsEnabled ? isNotNull : isNull);
   });
 
   testWidgets('each tile is drawn in its family colour', (tester) async {

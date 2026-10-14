@@ -3,15 +3,24 @@ import 'dart:io';
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:chorus_ui/brand/symbols.dart';
 import 'package:chorus_ui/credits/credits_screen.dart';
+import 'package:chorus_ui/features/flags/w7.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // These tests describe every picture on show; with a feature flag off,
+  // some are hidden on purpose.
+  const allOn = coreSymbolsEnabled && readyMadeBoardsEnabled;
+  const skipReason = 'a symbol feature flag is off';
 
   test('every listed word resolves to its picture in this package', () {
-    expect(symbolWords, hasLength(23));
+    if (!allOn) return markTestSkipped(skipReason);
+    expect(starterSymbolWords, hasLength(36));
+    expect(readyBoardSymbolWords, hasLength(92));
+    expect(symbolWords, hasLength(128));
+    expect(symbolWords.toSet(), hasLength(128), reason: 'no word twice');
     for (final word in symbolWords) {
       expect(symbolAssetFor(word), 'assets/symbols/$word.png');
       final image = symbolImageFor(word)!;
@@ -24,6 +33,7 @@ void main() {
   test(
     'every picture loads through the asset bundle, at each density',
     () async {
+      if (!allOn) return markTestSkipped(skipReason);
       // This package's own tests run it as the app, so the bundle lists the
       // files under their own paths: the picture must be found that way too,
       // or every board in these tests and in main_fake loses its pictures.
@@ -44,7 +54,14 @@ void main() {
   );
 
   test('a word without a picture resolves to nothing', () {
-    for (final label in ['banana', 'like', 'stop', 'wants', 'want more', '']) {
+    for (final label in [
+      'crackers',
+      'likes',
+      'stops',
+      'wants',
+      'want more',
+      '',
+    ]) {
       expect(symbolAssetFor(label), isNull, reason: label);
       expect(symbolImageFor(label), isNull, reason: label);
     }
@@ -58,11 +75,28 @@ void main() {
     expect(symbolImageFor(' I ')!.assetName, 'assets/symbols/i.png');
   });
 
-  test('the pictured words are starter words, the same ones the paper copy '
-      'pictures', () {
+  test('the pictured words are the starter words, the same ones the paper '
+      'copy pictures', () {
     final starter = {for (final w in universalCore36) w.label.toLowerCase()};
-    expect(starter, containsAll(symbolWords));
+    expect(starterSymbolWords.toSet(), starter);
     expect(symbolWords.toSet(), symbolSvgs.keys.toSet());
+  });
+
+  test('every starter word shows a picture, the 13 added ones included', () {
+    if (!coreSymbolsEnabled) return markTestSkipped(skipReason);
+    expect(addedCoreSymbols, hasLength(13));
+    expect(chorusDrawnSymbols, hasLength(8));
+    expect(symbolWords, containsAll(addedCoreSymbols));
+    for (final word in universalCore36) {
+      expect(symbolImageFor(word.label), isNotNull, reason: word.label);
+    }
+    for (final word in ['like', 'not', 'He', 'She', 'all', 'stop', 'it']) {
+      expect(
+        symbolAssetFor(word),
+        'assets/symbols/${word.toLowerCase()}.png',
+        reason: word,
+      );
+    }
   });
 
   test('every picture is on disk at all three densities, at its size', () {
@@ -82,6 +116,25 @@ void main() {
     expect(licence, contains('Mulberry Symbols'));
     expect(licence, contains('Steve Lee'));
     expect(licence, contains('creativecommons.org/licenses/by-sa/4.0'));
+    expect(licence, contains('the Chorus authors'));
+    for (final word in chorusDrawnSymbols) {
+      expect(licence, contains(word), reason: word);
+    }
+  });
+
+  test('the symbol sources travel with the pictures', () {
+    final sources = File(
+      'symbols_src/mulberry/SOURCES.txt',
+    ).readAsLinesSync().where((line) => line.isNotEmpty);
+    expect({
+      for (final line in sources) line.split('|').first,
+    }, readyBoardSymbolWords.toSet());
+    for (final word in [...addedCoreSymbols, ...readyBoardSymbolWords]) {
+      final folder = chorusDrawnSymbols.contains(word) ? 'chorus' : 'mulberry';
+      final file = File('symbols_src/$folder/$word.svg');
+      expect(file.existsSync(), isTrue, reason: file.path);
+      expect(file.readAsStringSync(), contains('<svg'), reason: file.path);
+    }
   });
 
   testWidgets('the credits screen gives the pictures and typefaces their '
@@ -92,6 +145,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('licensed CC BY-SA 4.0'), findsOneWidget);
+    expect(find.text(mulberrySymbolsCredit), findsOneWidget);
+    expect(
+      find.text(chorusSymbolsCredit),
+      coreSymbolsEnabled ? findsOneWidget : findsNothing,
+    );
+    expect(chorusSymbolsCredit, contains('the Chorus authors'));
+    for (final word in chorusDrawnSymbols) {
+      expect(chorusSymbolsCredit, contains(word), reason: word);
+    }
     expect(find.textContaining('without the original symbols'), findsNothing);
     // Each paragraph is selectable text with a scrollable of its own, so name
     // the list's.

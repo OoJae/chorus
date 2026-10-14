@@ -29,6 +29,7 @@ import 'add_word_sheet.dart';
 import 'board_actions.dart';
 import 'model_mode_bar.dart';
 import 'obf_picker.dart';
+import 'ready_boards.dart';
 import 'replaced_changes_panel.dart';
 import 'tray_panel.dart';
 
@@ -367,6 +368,15 @@ class _EditorScreenState extends State<EditorScreen>
     guide.close().whenComplete(guide.dispose);
   }
 
+  Future<void> _addReadyBoard(BoardManager manager) async {
+    final id = await addReadyBoardFrom(
+      context,
+      store: _store,
+      manager: manager,
+    );
+    if (id != null && mounted) _select(id);
+  }
+
   // ---- Words -------------------------------------------------------------
 
   Future<void> _editTile(TileFacts tile) async {
@@ -547,6 +557,8 @@ class _EditorScreenState extends State<EditorScreen>
                 if (manager != null && picker != null) {
                   _importBoard(manager, picker);
                 }
+              case readyBoardsMenuValue when manager != null:
+                _addReadyBoard(manager);
               case 'export' when current != null:
                 onExport?.call(current);
               case 'rename' when current != null && manager != null:
@@ -579,12 +591,20 @@ class _EditorScreenState extends State<EditorScreen>
                 child: const Text(archiveBoardLabel),
               ),
             ],
-            if (manager != null && (picker != null || onExport != null))
+            if (manager != null &&
+                (picker != null ||
+                    onExport != null ||
+                    offerReadyBoards(canAddBoards: true)))
               const PopupMenuDivider(),
             if (picker != null)
               const PopupMenuItem(
                 value: 'import',
                 child: Text(importBoardLabel),
+              ),
+            if (offerReadyBoards(canAddBoards: manager != null))
+              const PopupMenuItem(
+                value: readyBoardsMenuValue,
+                child: Text(readyBoardsLabel),
               ),
             if (onExport != null)
               const PopupMenuItem(

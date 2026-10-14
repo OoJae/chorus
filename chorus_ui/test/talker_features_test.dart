@@ -12,6 +12,7 @@ import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/fakes_features.dart';
 import 'package:chorus_ui/fakes_live.dart';
 import 'package:chorus_ui/fakes_media.dart';
+import 'package:chorus_ui/features/flags/w7.dart';
 import 'package:chorus_ui/talker/talker_controller.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/talker/talker_tabs.dart';
@@ -587,6 +588,12 @@ void main() {
         store.tiles.firstWhere((t) => t.label == 'want').id,
         imageHash: media.arrive(tinyPng),
       );
+      // Every starter word has a symbol, so one is renamed to a word that
+      // has none.
+      await store.updateTile(
+        store.tiles.firstWhere((t) => t.label == 'like').id,
+        label: 'crackers',
+      );
       await _pump(
         tester,
         TalkerScreen(
@@ -601,8 +608,12 @@ void main() {
       expect(on('help', TileView.symbolKey), findsOneWidget);
       expect(on('want', TileView.photoKey), findsOneWidget);
       expect(on('want', TileView.symbolKey), findsNothing);
-      expect(on('like', TileView.symbolKey), findsNothing);
-      expect(on('like', TileView.photoKey), findsNothing);
+      expect(
+        on('stop', TileView.symbolKey),
+        coreSymbolsEnabled ? findsOneWidget : findsNothing,
+      );
+      expect(on('crackers', TileView.symbolKey), findsNothing);
+      expect(on('crackers', TileView.photoKey), findsNothing);
       // The pictures are decoration: a screen reader hears the word.
       expect(find.bySemanticsLabel('help'), findsOneWidget);
     });

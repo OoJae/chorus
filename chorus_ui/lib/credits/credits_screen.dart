@@ -5,6 +5,22 @@ import 'package:flutter/material.dart';
 
 import '../brand/mark.dart';
 import '../brand/tokens.dart';
+import '../features/flags/w7.dart';
+
+/// The credit for the Mulberry Symbols pictures.
+const String mulberrySymbolsCredit =
+    'Pictures for ${coreSymbolsEnabled ? 28 : 23} of the starter words'
+    '${readyMadeBoardsEnabled ? ', and for the ready-made boards,' : ''} are '
+    'from Mulberry Symbols by Steve Lee (mulberrysymbols.org), licensed '
+    'CC BY-SA 4.0 (creativecommons.org/licenses/by-sa/4.0).'
+    '${coreSymbolsEnabled ? '' : ' The other words are shown as text.'}';
+
+/// The credit for the pictures drawn for Chorus, where Mulberry Symbols has
+/// none a child would read as the word.
+const String chorusSymbolsCredit =
+    'Pictures for the other 8 words (can, different, do, here, it, stop, '
+    'that, you) were drawn for Chorus in the same style by the Chorus '
+    'authors. They are shared under the same licence, CC BY-SA 4.0.';
 
 /// Credits for the starter board, its pictures and the typefaces, and the
 /// limits of what Chorus claims.
@@ -61,11 +77,8 @@ class CreditsScreen extends StatelessWidget {
                   _Section(
                     title: 'Symbols',
                     paragraphs: [
-                      'Pictures for 23 of the starter words are from Mulberry '
-                          'Symbols by Steve Lee (mulberrysymbols.org), licensed '
-                          'CC BY-SA 4.0 '
-                          '(creativecommons.org/licenses/by-sa/4.0). The other '
-                          'words are shown as text.',
+                      mulberrySymbolsCredit,
+                      if (coreSymbolsEnabled) chorusSymbolsCredit,
                     ],
                   ),
                   _Section(

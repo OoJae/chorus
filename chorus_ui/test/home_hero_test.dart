@@ -10,6 +10,7 @@ import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/fakes_media.dart';
+import 'package:chorus_ui/features/flags/w7.dart';
 import 'package:chorus_ui/home/home.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/material.dart';
@@ -78,15 +79,23 @@ void main() {
       );
     });
 
-    test('a word with a symbol shows it; a word without one shows its '
-        'label alone', () {
+    test('a word with a symbol shows it, and every starter word has '
+        'one', () {
       final store = FakeBoardStore.seeded();
       final cells = heroCellsOf(heroBoardOf(store)!, store);
       final want = cells.firstWhere((cell) => cell.label == 'want');
       expect(want.image, isA<AssetImage>());
       expect((want.image! as AssetImage).assetName, 'assets/symbols/want.png');
       final stop = cells.firstWhere((cell) => cell.label == 'stop');
-      expect(stop.image, isNull);
+      if (coreSymbolsEnabled) {
+        expect(
+          (stop.image! as AssetImage).assetName,
+          'assets/symbols/stop.png',
+        );
+        expect(cells.where((cell) => cell.image == null), isEmpty);
+      } else {
+        expect(stop.image, isNull);
+      }
     });
 
     test('a word\'s own photo wins over its symbol once it is on this '
