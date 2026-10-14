@@ -15,7 +15,6 @@ TODO(owner) marks what only you can supply:
 - Demo password: say how judges get it, in the submission text only. Never
   write it in this file or anywhere in the repository. Sign in once as
   demo.parent before submitting, or the demo board does not exist.
-- Cloud plan name: in the Serverpod Cloud bullet.
 - AI disclosure: your own wording. Keep its facts: the code was written with
   Claude Code under your direction; the optional photo suggestion uses
   Xiaomi MiMo (mimo-v2.6-pro) through its Anthropic-compatible API (the
@@ -45,7 +44,7 @@ Chorus is an offline-first talking picture board for a non-speaking child, built
 - `spaces.grant` and `transactionForUser` let the practice partner write from the server.
 - Emailed-code auth, streaming, file storage, future calls, web routes and passwords.
 - Synced tables frozen since the first deploy; 21 server-only tables added.
-- Serverpod Cloud (TODO(owner): plan name): server, Postgres, web, email.
+- Serverpod Cloud (Starter plan): server, Postgres, web, email.
 
 **Limits.** The sync module is experimental. If two adults rename one word offline, the later change wins. Removing a member is switched off for now.
 

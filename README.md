@@ -28,7 +28,7 @@ To see the child's side, go back home and click "Open Maya's board". Tap words t
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
 - Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`; debug-signed, Android 7.0 or later).
-- Video (1:50, with a voice-over): TODO(owner): link. The narration is in [docs/voiceover.md](docs/voiceover.md).
+- Video (1:35, with a voice-over): TODO(owner): link. The narration is in [docs/voiceover.md](docs/voiceover.md).
 - Code: https://github.com/OoJae/chorus
 - A longer walkthrough, with two adults in two windows: [docs/TRY-IT.md](docs/TRY-IT.md)
 - What was checked on real devices: [docs/device-log.md](docs/device-log.md)
@@ -118,7 +118,7 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 | Future calls | [`scheduled_jobs.dart`](chorus_server/lib/src/jobs/scheduled_jobs.dart) | The weekly summary (Mondays 02:00 UTC), the Thursday focus-word note (09:00 UTC) and a daily clean-up of expired links (03:30 UTC). They need a Cloud plan that runs future calls. None had come due by 14 October; the first, the clean-up, is due at 03:30 UTC on 15 October. Without the jobs, a week's summary is worked out when it is asked for and the Thursday note is written when home first asks after 09:00. The clean-up has no such fallback, but an expired link is refused either way. |
 | Web server routes | [`app_route.dart`](chorus_server/lib/src/web/app_route.dart), [`app_config_route.dart`](chorus_server/lib/src/web/routes/app_config_route.dart), [`print_routes.dart`](chorus_server/lib/src/printing/print_routes.dart), [`sharing_routes.dart`](chorus_server/lib/src/sharing/sharing_routes.dart), [`progress_routes.dart`](chorus_server/lib/src/progress/progress_routes.dart) | The landing page at `/`, the Flutter app at `/app/`, and four token pages: `/print/<token>`, `/b/<token>` (view-only), `/export/<token>` (.obf) and `/report/<token>`. |
 | Passwords | [`suggest_service.dart`](chorus_server/lib/src/suggest/suggest_service.dart), [`demo_seed.dart`](chorus_server/lib/src/demo/demo_seed.dart) | `anthropicApiKey`, `suggestModel` and `suggestBaseUrl` for photo ideas. `demoPassword` creates the demo sign-ins. |
-| Serverpod Cloud | [`scloud.yaml`](chorus_server/scloud.yaml) | Hosts the server, Postgres, the web pages and email. TODO(owner): plan name. |
+| Serverpod Cloud | [`scloud.yaml`](chorus_server/scloud.yaml) | Hosts the server, Postgres, the web pages and email, on the Starter plan (Europe; 256 MB compute, 1 GB database). |
 
 Every table added after the first deploy is server-only: 21 of them, 18 on 14 October. The gaps we worked around are logged in [docs/feedback-log.md](docs/feedback-log.md).
 
@@ -255,7 +255,7 @@ These counts are from 14 October 2026, on the merged tree, and every suite passe
 - A spot goes to the earlier write, even when that write syncs last. A word already on the child's screen can then be replaced, once an adult accepts the update or the child's screen is reopened.
 - When two adults edit the same field offline, the last writer wins. "Replaced changes" covers label, spoken text and colour, but not photos or recordings.
 - "Everyone's up to date" means this device is connected and has nothing waiting to send. It is not a receipt for each edit. Other devices appear in "Who is up to date" only once they run this build.
-- The Thursday note first runs on 15 October at 09:00 UTC if the Cloud plan runs future calls (TODO(owner): plan name); otherwise it is written when home first asks for it after 09:00.
+- The Cloud project is on the Starter plan, which does not run future calls. The weekly summary and the Thursday note are therefore written when an adult's app first asks for them (the same code the scheduled jobs call); on a plan with future calls they also run on schedule.
 - Speech in a second language depends on the device having a voice for it. Nobody has heard Yoruba speech on any device yet.
 - "Listen" works only in a browser with speech recognition. On a phone, the word tools are behind a long press on the sentence strip.
 - The live session (pointing, presence and shared sentences) works on one server instance only.
