@@ -12,6 +12,8 @@ import '../brand/motion.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_boards.dart';
+import '../contracts_copies.dart';
+import '../copies/copies_screens.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
 import '../contracts_suggest.dart';
@@ -74,6 +76,7 @@ class EditorScreen extends StatefulWidget {
     this.onPrint,
     this.pickObfFile,
     this.onExport,
+    this.copies,
   });
 
   final BoardStore store;
@@ -106,6 +109,10 @@ class EditorScreen extends StatefulWidget {
   /// Exports the given board (the one chosen with the tabs) as an Open
   /// Board Format file. Null hides the action.
   final ValueChanged<BoardFacts>? onExport;
+
+  /// The circle's named board copies: "Save a copy" and "Copies" in the
+  /// board menu. Null hides both.
+  final BoardCopies? copies;
 
   /// The column beside the board on a wide screen, for tests.
   @visibleForTesting
@@ -449,6 +456,7 @@ class _EditorScreenState extends State<EditorScreen>
     final manager = _store.role.canEdit ? _manager : null;
     final picker = manager == null ? null : _picker;
     final board = _currentBoard();
+    final copies = offersCopies(widget.copies) ? widget.copies : null;
     return [
       if (onPrint != null)
         IconButton(
@@ -461,7 +469,8 @@ class _EditorScreenState extends State<EditorScreen>
             if (board != null) onPrint(board);
           },
         ),
-      if ((manager != null || onExport != null) && board != null)
+      if ((manager != null || onExport != null || copies != null) &&
+          board != null)
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),
           tooltip: boardMenuLabel,
@@ -489,6 +498,15 @@ class _EditorScreenState extends State<EditorScreen>
                   manager: manager,
                   board: current,
                 );
+              case 'save-copy' when current != null && copies != null:
+                saveCopyFrom(context, copies: copies, board: current);
+              case 'copies' when copies != null:
+                openCopies(
+                  context,
+                  copies: copies,
+                  store: _store,
+                  media: widget.media,
+                );
             }
           },
           itemBuilder: (context) => [
@@ -515,6 +533,15 @@ class _EditorScreenState extends State<EditorScreen>
                 value: 'export',
                 child: Text(exportBoardLabel),
               ),
+            if (copies != null) ...[
+              const PopupMenuDivider(),
+              if (copies.canEdit)
+                const PopupMenuItem(
+                  value: 'save-copy',
+                  child: Text(saveCopyLabel),
+                ),
+              const PopupMenuItem(value: 'copies', child: Text(copiesLabel)),
+            ],
           ],
         ),
     ];
