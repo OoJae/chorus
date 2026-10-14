@@ -326,6 +326,27 @@ class TalkerController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Adds [words] that are not tiles of the board (a quick phrase, typed
+  /// words) to the end of the strip and speaks them as one. They are not
+  /// offered to the word log, which keeps the board's tiles only.
+  void addWords(List<TileFacts> words) {
+    noteTouch();
+    if (words.isEmpty) return;
+    _strip.addAll(words);
+    notifyListeners();
+    unawaited(_say(words.map((t) => t.spokenText).join(' ')));
+  }
+
+  /// Swaps the last word of the strip for [word], the same word with a new
+  /// ending, and speaks it. Does nothing when the strip is empty.
+  void replaceLastWord(TileFacts word) {
+    noteTouch();
+    if (_strip.isEmpty) return;
+    _strip[_strip.length - 1] = word;
+    notifyListeners();
+    unawaited(_say(word.spokenText));
+  }
+
   /// Records that a finger touched the board just now.
   void noteTouch() => _sinceTouch.reset();
 

@@ -18,10 +18,13 @@ import 'package:chorus_ui/device/device_settings_entry.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/features/features.dart';
 import 'package:chorus_ui/features/flags/w8.dart' show pictureScenesEnabled;
+import 'package:chorus_ui/features/flags/w4.dart';
+import 'package:chorus_ui/features/quick_phrases_screen.dart';
 import 'package:chorus_ui/home/home.dart';
 import 'package:chorus_ui/modelling/focus_nudge_note.dart';
 import 'package:chorus_ui/scenes/scenes_screen.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
+import 'package:chorus_ui/talker/word_tools/word_tools.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -133,21 +136,25 @@ class HomeScreen extends StatelessWidget {
     // home has no hero, so nothing flies.
     final heroTag = board == null || reduced ? null : boardHeroTag(board.id);
     // The talker blocks system back; its held leave control calls onExit.
-    Widget talker(LiveSession? live) => Builder(
-      builder: (talkerContext) => TalkerScreen(
-        store: store,
-        speech: speech,
-        sync: sync,
-        live: live,
-        media: services?.media,
-        speaker: services?.speaker,
-        wordLog: services?.wordLog,
-        heroTag: heroTag,
-        onExit: () => Navigator.of(talkerContext).pop(),
-        scenes: services?.scenes,
-        hiddenWords: services?.hiddenWords,
-        languages: services?.languages,
-        languageVoice: services?.languageVoice,
+    Widget talker(LiveSession? live) => WordToolsScope(
+      phrases: services?.quickPhrases,
+      counts: services?.wordCounts,
+      child: Builder(
+        builder: (talkerContext) => TalkerScreen(
+          store: store,
+          speech: speech,
+          sync: sync,
+          live: live,
+          media: services?.media,
+          speaker: services?.speaker,
+          wordLog: services?.wordLog,
+          heroTag: heroTag,
+          onExit: () => Navigator.of(talkerContext).pop(),
+          scenes: services?.scenes,
+          hiddenWords: services?.hiddenWords,
+          languages: services?.languages,
+          languageVoice: services?.languageVoice,
+        ),
       ),
     );
     Navigator.of(context).push(
@@ -483,6 +490,15 @@ class HomeScreen extends StatelessWidget {
           userId: services?.userId,
           open: (screen) => _open(context, screen),
         ),
+        if (w4QuickPhrases && services?.quickPhrases != null)
+          HomeEntry(
+            icon: Icons.campaign_rounded,
+            label: quickPhrasesTitle,
+            onTap: () => _open(
+              context,
+              QuickPhrasesScreen(book: services!.quickPhrases!),
+            ),
+          ),
         // Sharing is a guardian's choice, made here and never on the
         // child's board, which can only turn it off.
         if (canInvite && services?.live != null)

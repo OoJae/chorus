@@ -48,6 +48,7 @@ import 'practice/practice_failure.dart' as _iv6qijxa;
 import 'practice/practice_word.dart' as _iu9klhki;
 import 'printing/shared_snapshot.dart' as _if9s8td9;
 import 'printing/snapshot_kind.dart' as _iergzj3e;
+import 'quickphrases/quick_phrase.dart' as _i8q0qx3y;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/ai_usage.dart' as _inv1atzh;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
@@ -87,6 +88,7 @@ export 'practice/practice_failure.dart';
 export 'practice/practice_word.dart';
 export 'printing/shared_snapshot.dart';
 export 'printing/snapshot_kind.dart';
+export 'quickphrases/quick_phrase.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/ai_usage.dart';
 export 'suggest/suggest_exception.dart';
@@ -622,6 +624,60 @@ class Protocol extends _is.DatabaseSerializationManager {
           ],
           type: 'btree',
           isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'quick_phrase',
+      dartName: 'QuickPhrase',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'position',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'text',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'quick_phrase_space_position_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'position',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
           isPrimary: false,
         ),
       ],
@@ -1271,6 +1327,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iergzj3e.SnapshotKind) {
       return _iergzj3e.SnapshotKind.fromJson(data) as T;
     }
+    if (t == _i8q0qx3y.QuickPhrase) {
+      return _i8q0qx3y.QuickPhrase.fromJson(data) as T;
+    }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
     }
@@ -1392,6 +1451,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_iergzj3e.SnapshotKind?>()) {
       return (data != null ? _iergzj3e.SnapshotKind.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i8q0qx3y.QuickPhrase?>()) {
+      return (data != null ? _i8q0qx3y.QuickPhrase.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
@@ -1532,6 +1594,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iu9klhki.PracticeWord => 'PracticeWord',
       _if9s8td9.SharedSnapshot => 'SharedSnapshot',
       _iergzj3e.SnapshotKind => 'SnapshotKind',
+      _i8q0qx3y.QuickPhrase => 'QuickPhrase',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _inv1atzh.AiUsage => 'AiUsage',
       _iw5bueja.SuggestException => 'SuggestException',
@@ -1608,6 +1671,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'SharedSnapshot';
       case _iergzj3e.SnapshotKind():
         return 'SnapshotKind';
+      case _i8q0qx3y.QuickPhrase():
+        return 'QuickPhrase';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
       case _inv1atzh.AiUsage():
@@ -1741,6 +1806,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'SnapshotKind') {
       return deserialize<_iergzj3e.SnapshotKind>(data['data']);
     }
+    if (dataClassName == 'QuickPhrase') {
+      return deserialize<_i8q0qx3y.QuickPhrase>(data['data']);
+    }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
     }
@@ -1857,6 +1925,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _i87lco0i.MediaObject.t;
       case _if9s8td9.SharedSnapshot:
         return _if9s8td9.SharedSnapshot.t;
+      case _i8q0qx3y.QuickPhrase:
+        return _i8q0qx3y.QuickPhrase.t;
       case _inv1atzh.AiUsage:
         return _inv1atzh.AiUsage.t;
       case _ikaxfpae.WeeklySummary:

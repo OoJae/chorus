@@ -27,6 +27,7 @@ import 'talker_access.dart';
 import 'talker_controller.dart';
 import 'talker_extras.dart';
 import 'talker_tabs.dart';
+import 'word_tools/word_tools.dart';
 
 /// Shown to adults when speech would need a network.
 const String noOfflineVoiceMessage = 'No offline voice on this device';
@@ -403,10 +404,14 @@ class _TalkerScreenState extends State<TalkerScreen> {
             const SizedBox(height: _rowGap),
           ]
         : const <Widget>[];
-    Widget strip({double fontSize = 32}) => _SentenceBox(
+    Widget strip({double fontSize = 32}) => wordToolsHold(
       controller: controller,
-      onSpeak: _speak,
-      fontSize: fontSize,
+      speech: widget.speech,
+      child: _SentenceBox(
+        controller: controller,
+        onSpeak: _speak,
+        fontSize: fontSize,
+      ),
     );
 
     switch (layout) {
@@ -420,6 +425,11 @@ class _TalkerScreenState extends State<TalkerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(child: strip()),
+                  ...wordToolKeys(
+                    controller: controller,
+                    speech: widget.speech,
+                    width: 56,
+                  ),
                   ..._stripButtons(controller, _speak, width: 64),
                 ],
               ),
@@ -440,7 +450,15 @@ class _TalkerScreenState extends State<TalkerScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // The whole width for the sentence.
-            SizedBox(height: 64, child: strip()),
+            SizedBox(
+              height: 64,
+              child: stripWithWordTools(
+                strip: strip(),
+                controller: controller,
+                speech: widget.speech,
+                width: 52,
+              ),
+            ),
             const SizedBox(height: _rowGap),
             SizedBox(
               height: 52,
@@ -477,6 +495,12 @@ class _TalkerScreenState extends State<TalkerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(child: strip(fontSize: 26)),
+                  ...wordToolKeys(
+                    controller: controller,
+                    speech: widget.speech,
+                    width: 48,
+                    phone: true,
+                  ),
                   ..._stripButtons(controller, _speak, width: 52),
                   const SizedBox(width: _rowGap),
                   SizedBox(
