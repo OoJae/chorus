@@ -1,23 +1,25 @@
 # Chorus
 
-**A talking picture board for a non-speaking child that works offline, which every adult in the child's circle can edit from their own device. When two adults fill the same empty spot offline, both words survive, and no button the child knows ever moves.**
+**A talking picture board for a non-speaking child that works offline, which the adults in the child's circle edit from their own devices. When two adults fill the same empty spot offline, both words survive, and no button the child knows ever moves.**
 
 Built on Serverpod 4.0.4 and its experimental offline sync module, hosted on Serverpod Cloud. Maya, the child in the demo, and every adult in it are personas. No child, parent or clinician has used Chorus, and it makes no clinical claims.
 
-## Try it in 60 seconds
+Chorus is an AAC (augmentative and alternative communication) board. Mature AAC apps exist, such as CoughDrop, AsTeRICS Grid, Proloquo2Go and TD Snap. We have not found one that shows what happens when two adults change the same board offline, or that lets one device try it.
 
-1. Open https://chorus.serverpod.space/ with the sound on and click "Open Chorus".
-2. Click "Sign up". Type your email address, then the code you are emailed, then a password. Click "Try a demo board". (Or sign in with one of the [demo sign-ins](#demo-sign-ins).)
-3. On home, click "Edit words".
+## Try it in a few minutes
+
+1. Open https://chorus.serverpod.space/ with the sound on and click "Open Chorus". The first visit can take a while to load. We have tried it only in Microsoft Edge on macOS.
+2. Click "Make a board for my child" (if you see "Sign In with email" instead, click "Sign up"). Type your email address, without "+" in it (that is not accepted), and click "Continue". Type the code you are emailed and click "Verify"; if it has not come after a minute, look in your spam folder. Choose a password and click "Sign up". On "Who is the board for?", click "Try a demo board". (Or click "I already have one" and use a [demo sign-in](#demo-sign-ins). Every judge shares that board.)
+3. On home, wait until "Edit words" can be clicked, then click it.
 4. Open the board menu (the ⋮ button, "More for this board") and choose "Try a clash".
 5. Follow the card above the board:
    1. The device switches itself to "Work offline", like a phone with no signal.
-   2. The practice partner puts a word in an empty spot, and the spot glows. The practice partner is a member of your circle that lives on the server. Click the glowing spot, type a word of your own and click "Add to board".
+   2. The practice partner puts a word in an empty spot, and the spot glows. The practice partner is a stand-in for a second adult that lives on the server: it has a role in your circle's sync space, but no account, and it is not one of the circle's members. Click the glowing spot, type a word of your own and click "Add to board".
    3. Click "Turn Work offline off".
 
-**What you will see.** A few seconds later (12 seconds when we checked on 14 October) the card says "Both words are safe." The word that reached the spot first keeps it. The other waits under "Needs a home", on every adult's device. Its card shows both words, both names and both times, with "Choose a new spot" and "Put it away". Nothing else on the board moves.
+**What you will see.** A few seconds later (12 seconds when we checked on 14 October) the card says "Both words are safe." The word put in the spot first keeps it (first by the write's clock, not by which reached the server first). The other waits under "Needs a home", on every adult's device. Its card shows both words, both names and both times, with "Choose a new spot" and "Put it away". Nothing else on the board moves.
 
-If the card says "Every spot is taken", add a board with "+" and try again. On the shared demo circle the partner may say "The practice partner needs a rest. Try again in an hour." If it does, sign up with your own email address and you get a circle of your own.
+If the card says "Every spot is taken", add a board with "+" and try again. On the shared demo circle the partner may say "The practice partner needs a rest. Try again in an hour." If it does, sign up with your own email address and you get a circle of your own. If you see "Chorus is open in another tab", click "Use Chorus in this tab".
 
 To see the child's side, go back home and click "Open Maya's board". Tap words to hear them. To leave, press and hold "Hold to leave" for two seconds.
 
@@ -42,24 +44,24 @@ To see the child's side, go back home and click "Open Maya's board". Tap words t
 The password is in the submission text, never in this repository. TODO(owner): put the demo password in the submission text.
 
 - All three share one circle, so other judges' words may already be on it. Use any empty spot.
-- The demo board is made the first time the demo parent signs in.
+- The demo board is made by the demo parent's first sign-in, which we do before submitting. If the therapist or partner sign-in shows "There is no board here yet", sign in once as `demo.parent@chorus.example` (in another window, or after signing out), then click "Retry".
 - The demo sign-ins have automated tests, but nobody had signed in with them on Cloud when this was written. If one fails, sign up with your own email address instead.
 
 ## What it demonstrates
 
-1. **The board lives on the device.** The child's screen reads a local SQLite replica and uses the device's own speech engine. On 14 October, with airplane mode on and Wi-Fi off, the phone spoke every word, and the board came back after the app was closed and reopened.
-2. **Changes land between sentences.** A word from another adult waits as "1 word waiting" ("1 waiting" on a phone). It lands only when the sentence strip is empty, nothing is speaking and the board has been left alone for two seconds. Checked on the phone on 14 October: "juice" waited until the strip was cleared, then appeared within 3.5 seconds. A property test checks that a cell with a word in it never changes meaning.
+1. **The board lives on the device.** The child's screen reads a local SQLite replica and uses the device's own speech engine. On 14 October, with airplane mode on and Wi-Fi off, the phone spoke each word that was tapped, and the board came back after the app was closed and reopened.
+2. **Changes land between sentences.** A word from another adult waits as "1 word waiting" ("1 waiting" on a phone). It lands only when the sentence strip is empty, nothing is speaking and the board has been left alone for two seconds. Checked on the phone on 14 October: "juice" waited until the strip was cleared, then appeared within 3.5 seconds. A property test checks that automatic changes never put a different word in a cell that already holds one. That waits for an adult to confirm "Update the board?".
 3. **A same-spot clash keeps both words.** One word keeps the spot. The other waits under "Needs a home" until an adult places it. Checked between the phone and a browser on 13 and 14 October, with one account signed in on both. Automated sync tests on real replicas cover three orderings.
 4. **One device is enough to see it.** "Try a clash" adds a practice partner on the server, which fills the spot while your device works offline. Checked in a browser on Cloud on 14 October.
 
 ## What the circle gets
 
-Each item says how far it was checked. "Checked" means it was seen working on a real device against the Cloud deployment, as recorded in the [device log](docs/device-log.md). "Built and tested" means automated tests cover it but nobody has checked it by hand on a device yet. Most of these features were checked in a browser only, because the phone did not yet have the new build.
+Each item says how far it was checked. "Checked" means it was seen working on a real device against the Cloud deployment, as recorded in the [device log](docs/device-log.md). "Built and tested" means automated tests cover it but nobody has checked it on a device yet. Most of these features were checked in a browser only, because the phone did not yet have the new build.
 
 **Trust and repair, for the adults**
 
-- **"What changed" with one-tap "Undo".** Every change is listed with the adult's name and the local time. An undo is saved as a new change, so nothing is wiped. Home counts what came in while you were away ("Since you last looked: 26 changes"). Checked.
-- **"Needs a home" in plain words.** A parked word shows both words, both adults and both times. The word "conflict" never appears. Checked.
+- **"What changed" with one-tap "Undo".** Every change to a word is listed with the adult's name and the local time. An undo is saved as a new change, so nothing is wiped. Home counts what came in while you were away ("Since you last looked: 26 changes"). Checked.
+- **"Needs a home" in plain words.** A parked word shows both words, both adults and both times. The tray never uses the word "conflict"; only "Under the hood" shows the engine's raw key. Checked.
 - **Sync status in words.** The chip reads "Everyone's up to date", or "Working offline, 1 change waiting to send". Checked. "Who is up to date" lists the circle's devices and when each last synced. It was checked for the browser only, because the phone ran an older build. A line naming who else is looking at the board is built and tested.
 - **"Under the hood".** It shows the rows in this device's replica for each table, the changes waiting, the last sync, the circle's space id and the module's version. Checked.
 - **Named copies.** "Save a copy" keeps a board under a name, such as "Before the school trip". "Copies" lists the saved copies. Saving and listing were checked. "Put back" sends a word from a copy back through "Needs a home". It is built and tested.
@@ -68,10 +70,10 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 **On the child's board**
 
 - **A picture on every core word.** All 36 words of the Home board have one: 28 from Mulberry Symbols, and 8 drawn for Chorus in the same style. Checked.
-- **Word endings, quick phrases and a keyboard.** "Word endings" changes the last word: "dog" offered dogs, dogging, dogged and dog's. It knows the common irregular verbs. "Quick phrases" opens six whole phrases ("Stop", "Help", "I'm hurt", "Toilet", "All done", "I need a break"), and adults can change them for everyone. "Keyboard" spells with prediction: "ju" offered "jump" and "juice". All three were checked in a browser. On a phone, a long press on the sentence strip offers them instead of keys. That is built and tested.
+- **Word endings, quick phrases and a keyboard.** "Word endings" changes the last word: "dog" offered "dogs" and "dog's", among others. It knows the common irregular verbs. "Quick phrases" opens six whole phrases ("Stop", "Help", "I'm hurt", "Toilet", "All done", "I need a break"), and adults can change them for everyone. Changing the phrases is built and tested. "Keyboard" spells with prediction: "ju" offered "jump" and "juice". All three were checked in a browser. On a phone, a long press on the sentence strip offers them instead of keys. That is built and tested.
 - **"Hide for now" and "Show everything".** An adult can hide a word in place: its cell goes blank and every other word stays where it is. "Show everything" brings the hidden words back until the adult leaves the board. Checked.
 - **A second language on the same cells.** "Second language" on a word adds its label in the family's other language. A switch on the child's board then shows that label in the same cell, with the same picture. Checked with Yoruba labels. Speech in Yoruba was not checked.
-- **Picture scenes.** "Make a scene from a photo" turns a family photo into a scene with spots that speak. Checked.
+- **Picture scenes.** "Make a scene from a photo" turns a family photo into a scene with spots that speak. Checked, with the photo given to the page's file input by script rather than through the file dialog.
 - **Ready-made boards.** "Add a ready-made board" offers Food, People, Places, Feelings, Actions and Describing words, with 24 words each. Checked with Feelings.
 
 **Touch, switches and voice ("This device")**
@@ -96,7 +98,7 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 - **Photo ideas.** "Suggest a word from the photo" sends the photo to the suggestion service, which offers 3 to 6 words coloured by word type. For a photo of a ball: "Ideas for this photo. Tap one to use it: ball, red, roll, bounce, round, throw". A tap fills in the adult's form, and "Add all to Needs a home" puts the words in the tray. Nothing goes on the board until an adult places it, and the AI never speaks for the child. Checked with Xiaomi MiMo's `mimo-v2.6-pro`, through its Anthropic-compatible API. The server can call Anthropic's API instead.
 - **Photos on words.** A photo is uploaded straight to Cloud storage. Checked. Recorded voices are built and tested.
 - **A view-only board for a sitter.** "Share a view-only board" makes a link that opens with no sign-in, speaks when tapped and lasts 7 days. Checked. While the word log is on, a sitter's taps show up in "What changed". That part is built and tested.
-- **Paper copy and Open Board Format.** "Print a paper copy" gives a printable page at `/print/<token>`. It was checked on Cloud. The fix for a fault seen then (empty rows printed as thin lines) is in this build, but has not been checked again. "Export this board (.obf)" and "Import a board (.obf)" move a board to and from other tools. Both were checked on Cloud.
+- **Paper copy and Open Board Format.** "Print a paper copy" gives a printable page at `/print/<token>`. It was checked on Cloud. The fix for a fault seen then (empty rows printed as thin lines) is in this build, but has not been checked again. "Export this board (.obf)" and "Import a board (.obf)" move a board to and from other tools. Both were checked on Cloud with Chorus's own files; no file from another tool has been tried.
 - **Word log and "This week".** The word log is off until a guardian chooses "Keep a word log". "This week" then shows taps, words, the most used words and first-time words. Checked.
 - **Removing someone from the circle.** "Remove from circle" is built, but it is switched off for the deadline because a code review found a problem in it.
 
@@ -107,18 +109,18 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 | Offline sync module 0.0.10 (`databaseSync`, `database: sync`) | [`generator.yaml`](chorus_server/config/generator.yaml), [`boards/`](chorus_server/lib/src/boards/) | A SQLite replica of the circle's board on every device. Three synced tables, `board`, `tile` and `tile_edit`, unchanged since the first deploy. |
 | Unique index per space, field-level merge, parked conflicts | [`tile.spy.yaml`](chorus_server/lib/src/boards/tile.spy.yaml), [`tray.dart`](chorus_shared/lib/src/tray.dart) | `cellKey` is unique per space, so a clash keeps both rows. Every update names its columns. The parked row is shown as "Needs a home". |
 | Shared spaces and roles | [`circle_endpoint.dart`](chorus_server/lib/src/circles/circle_endpoint.dart), [`membership_guard.dart`](chorus_server/lib/src/circles/membership_guard.dart) | One space per child. Guardian, therapist and teacher can write; a partner can only read. Our endpoints check the role on every call. |
-| `spaces.grant` and `transactionForUser` on the server | [`practice_endpoint.dart`](chorus_server/lib/src/practice/practice_endpoint.dart) | The practice partner of "Try a clash": a server-side member that writes into the circle the way an adult's device would. |
+| `spaces.grant` and `transactionForUser` on the server | [`practice_endpoint.dart`](chorus_server/lib/src/practice/practice_endpoint.dart) | The practice partner of "Try a clash": a server-side stand-in with a role in the circle's sync space, which writes into it the way an adult's device would. |
 | Sync client | [`replica_service.dart`](chorus_flutter/lib/src/sync/replica_service.dart), [`sync_supervisor.dart`](chorus_flutter/lib/src/sync/sync_supervisor.dart) | One `transactionForUser` write queue. Around it, Chorus adds reconnect with backoff, a clock check before sync (the module refuses drift over one minute; Chorus warns at 45 seconds) and the status chip. |
 | Auth with emailed codes | [`server.dart`](chorus_server/lib/server.dart) | Sign-up with a code sent through Serverpod Cloud's email. |
 | Endpoints | [`lib/src/`](chorus_server/lib/src/) | Circles and invitations, members, the word log, suggestions, practice, devices ([`device_seen_endpoint.dart`](chorus_server/lib/src/trust/device_seen_endpoint.dart)), scenes, copies, voices, quick phrases, languages and word settings, focus words and reports. |
-| Streaming method | [`live_endpoint.dart`](chorus_server/lib/src/live/live_endpoint.dart) | Live pointing, presence and shared sentences. They are relayed between members and never stored. |
+| Streaming method | [`live_endpoint.dart`](chorus_server/lib/src/live/live_endpoint.dart) | Live pointing, presence and shared sentences, relayed between members and never stored. Built and tested; none has been checked between two devices on Cloud yet. |
 | File storage | [`media_endpoint.dart`](chorus_server/lib/src/media/media_endpoint.dart) | Photos and recorded voices, held in private storage. Each file is named by its SHA-256 and checked on the server. |
-| Future calls | [`scheduled_jobs.dart`](chorus_server/lib/src/jobs/scheduled_jobs.dart) | The weekly summary (Mondays 02:00 UTC), the Thursday focus-word note (09:00 UTC) and a daily clean-up of expired links (03:30 UTC). |
+| Future calls | [`scheduled_jobs.dart`](chorus_server/lib/src/jobs/scheduled_jobs.dart) | The weekly summary (Mondays 02:00 UTC), the Thursday focus-word note (09:00 UTC) and a daily clean-up of expired links (03:30 UTC). They need a Cloud plan that runs future calls. None had come due by 14 October; the first, the clean-up, is due at 03:30 UTC on 15 October. Without the jobs, a week's summary is worked out when it is asked for and the Thursday note is written when home first asks after 09:00. The clean-up has no such fallback, but an expired link is refused either way. |
 | Web server routes | [`app_route.dart`](chorus_server/lib/src/web/app_route.dart), [`app_config_route.dart`](chorus_server/lib/src/web/routes/app_config_route.dart), [`print_routes.dart`](chorus_server/lib/src/printing/print_routes.dart), [`sharing_routes.dart`](chorus_server/lib/src/sharing/sharing_routes.dart), [`progress_routes.dart`](chorus_server/lib/src/progress/progress_routes.dart) | The landing page at `/`, the Flutter app at `/app/`, and four token pages: `/print/<token>`, `/b/<token>` (view-only), `/export/<token>` (.obf) and `/report/<token>`. |
 | Passwords | [`suggest_service.dart`](chorus_server/lib/src/suggest/suggest_service.dart), [`demo_seed.dart`](chorus_server/lib/src/demo/demo_seed.dart) | `anthropicApiKey`, `suggestModel` and `suggestBaseUrl` for photo ideas. `demoPassword` creates the demo sign-ins. |
 | Serverpod Cloud | [`scloud.yaml`](chorus_server/scloud.yaml) | Hosts the server, Postgres, the web pages and email. TODO(owner): plan name. |
 
-Every table added after the first deploy is server-only: 15 of them were added on 14 October. The gaps we worked around are logged in [docs/feedback-log.md](docs/feedback-log.md).
+Every table added after the first deploy is server-only: 21 of them, 18 on 14 October. The gaps we worked around are logged in [docs/feedback-log.md](docs/feedback-log.md).
 
 ## The conflict design
 
@@ -144,12 +146,12 @@ Chorus is built on version 0.0.10 of an experimental module. These are the lesso
 
 - **Design the schema for the engine before writing the app.** The tile's position, `cellKey`, is unique per space (`unique(per=spaceId)`). The engine resolves clashes on that index, so we put there the one thing that must never be lost: what each cell on the child's board means. The relation from tile to board is `deferred`, so a tile and its board can arrive in either order.
 - **Once deployed, the synced schema is frozen.** Clients compare a schema hash when they connect, so any change to a synced model would lock every installed app out of sync. Everything added after the first deploy went into ordinary server-only tables: the word log, voices, focus words, scenes and the rest. Only `board`, `tile` and `tile_edit` are synced.
-- **Parked conflicts became a feature.** The engine keeps both rows of a unique clash and marks the later claim with a `__conflict__` suffix. We parse that suffix ([`tray.dart`](chorus_shared/lib/src/tray.dart)) into the "Needs a home" tray. A parent never sees the word "conflict": they see two words, two names and two times, and nothing lost.
+- **Parked conflicts became a feature.** The engine keeps both rows of a unique clash and marks the later claim with a `__conflict__` suffix. We parse that suffix ([`tray.dart`](chorus_shared/lib/src/tray.dart)) into the "Needs a home" tray. The tray never uses the word "conflict"; only "Under the hood" shows the engine's raw key. A parent sees two words, two names and two times, and nothing lost.
 - **"Earlier" means the hybrid logical clock, not arrival.** A later word can sync first and briefly hold the cell. Our snapshot rules ([`reconcile_snapshot.dart`](chorus_shared/lib/src/reconcile_snapshot.dart)) treat that swap as a replacement, which the child's screen never applies by itself.
 - **The module has two roles; people have more.** It knows `readWrite` and `readOnly`. Guardian, therapist, teacher and partner are mapped onto those in our own endpoints ([`circle_endpoint.dart`](chorus_server/lib/src/circles/circle_endpoint.dart)), which check the role on every call.
 - **Every shared write needs `transactionForUser(..., spaceId:)`.** A write without it lands in the user's personal space and silently disappears from everyone else's view, even its author's (draft issue 5). Every query also filters on our own `circleId` column, because reads span all of a user's spaces.
 - **Name the columns in every update.** `updateRow(columns: ...)` keeps the merge field-level, so two adults changing different properties of one word both win. We also log every change in `tile_edit`, which is what makes "Replaced changes", "What changed" and "Undo" possible.
-- **The server can be a member too.** `spaces.grant` gives any id a role in a space, and `transactionForUser` then writes as that member. The practice partner of "Try a clash" is a UUID derived from the circle's space id. It has a sync role and nothing else: no account and no circle membership. On Cloud its word was written in about 4 seconds.
+- **The server can be a member of a space too.** `spaces.grant` gives any id a role in a space, and `transactionForUser` then writes as that member. The practice partner of "Try a clash" is a UUID derived from the circle's space id. It has a sync role and nothing else: no account and no circle membership. On Cloud its word was written in about 4 seconds.
 - **What we had to build around the module:**
   - a supervisor with reconnect, backoff and a clock check (the module refuses more than a minute of drift);
   - a status chip, and "Under the hood" to show the replica itself;
@@ -166,7 +168,7 @@ Every check below was made against the Serverpod Cloud deployment. The devices w
 |---|---|---|---|
 | 13 Oct, afternoon | first Cloud build | Edge, phone | Sign-up with an emailed code. "Try a demo board", heard speaking in the browser. A board made in the browser reached the phone through sync. The talker and "Hold to leave" on the phone. Adding a word online and with "Work offline" on. |
 | 13 Oct, 20:15–21:00 | `46f3f13` | phone and Edge | A word added offline reached the other device after "Work offline" went off. A word from Edge reached the open phone in 9.2 s. The same-spot clash on the phone: one word in the spot, the other under "Needs a home". A photo uploaded through Cloud storage. After a server restart, the chip recovered by itself. |
-| 14 Oct, 08:15–08:45 | `46f3f13` | phone and Edge (one tab) | "Work offline" held. The clash showed on both devices with no reload (4.8 s). With airplane mode on and Wi-Fi off, the phone spoke every word and reopened its board, and the chip came back by itself once Wi-Fi was on. |
+| 14 Oct, 08:15–08:45 | `46f3f13` | phone and Edge (one tab) | "Work offline" held. The clash showed on both devices with no reload (4.8 s). With airplane mode on and Wi-Fi off, the phone spoke each tapped word and reopened its board, and the chip came back by itself once Wi-Fi was on. |
 | 14 Oct, 12:50–13:20 | `2b38bd7` | phone and Edge | The redesign with Mulberry pictures. The photo suggestion through MiMo. The word log and "This week". The view-only board, opened in a browser with no account. Export and import of .obf files (the import reached the phone). Adding, renaming and archiving a board. The paper copy. A new word held back on the phone ("1 waiting") until the strip was cleared. The clash between the phone and Edge again. |
 | 14 Oct, 15:25–16:20 | `b41ac5c` | Edge only | The landing page at `/` and the app at `/app/`. A picture on every core word. "Try a clash". "What changed" and "Undo". The chip's words, "Who is up to date" for this device, and "Under the hood". The word finder. "Hide for now" and "Show everything". Quick phrases, word endings and the keyboard. The ready-made Feelings board. Named copies. Yoruba labels. Two-switch scanning. Modelled and said, and focus words. The progress report, picture scenes and photo ideas. |
 
@@ -176,11 +178,13 @@ Not yet checked on any device (built and tested only):
 - Two different accounts on two devices. Every check used one account. Joining with an invitation code is covered by endpoint tests and sync test T8 only.
 - The demo sign-ins on Cloud.
 - An offline word uploading after a real loss of network. That was checked only with "Work offline".
-- Live pointing and the word finder's glow reaching another device, the presence line, recorded voices, and "Replaced changes" with restore.
+- Live pointing and the word finder's glow reaching another device, the presence line, other devices in "Who is up to date", recorded voices, and "Replaced changes" with restore.
 - The Thursday note, the circle's voice on another device, the touch settings in use, keyguard mode and its template, "Share the sentence" and "Recent", a sitter's taps in "What changed", "Listen", "Put back" from a copy, and speech in Yoruba.
+- One-switch scanning (two switches were checked), changing the quick phrases, the five ready-made boards other than Feelings, the word tools behind a long press on a phone, and a read-only partner's "Suggest a word".
+- Placing a waiting word from the tray on Cloud. It was checked only on a local server.
 - A touch long press on a board tab. Right-click was used in the browser.
 
-A code review after the last checks found six faults. They are listed at the end of the device log.
+A code review after the last checks found six faults, listed at the end of the device log. The final build fixes five of them, with automated tests, and switches "Remove from circle" off. None of these fixes has been checked on a device.
 
 ## Build and run
 
@@ -227,7 +231,7 @@ So the hosted app needs no build define. Locally the web server is on port 8082.
 flutter build apk --release --dart-define=SERVER_URL=https://chorus.api.serverpod.space/
 ```
 
-Deploy with `scloud deploy`. [`scloud.yaml`](chorus_server/scloud.yaml) runs `serverpod generate` and `serverpod run flutter_build` first. More in [docs/BUILD.md](docs/BUILD.md).
+Deploy with `serverpod cloud deploy` from `chorus_server`. [`scloud.yaml`](chorus_server/scloud.yaml) runs `serverpod generate` and `serverpod run flutter_build` first. More in [docs/BUILD.md](docs/BUILD.md).
 
 ## Tests
 
@@ -250,7 +254,7 @@ These counts are from 14 October 2026, on the merged tree, and every suite passe
 - A spot goes to the earlier write, even when that write syncs last. A word already on the child's screen can then be replaced, once an adult accepts the update or the child's screen is reopened.
 - When two adults edit the same field offline, the last writer wins. "Replaced changes" covers label, spoken text and colour, but not photos or recordings.
 - "Everyone's up to date" means this device is connected and has nothing waiting to send. It is not a receipt for each edit. Other devices appear in "Who is up to date" only once they run this build.
-- The Thursday note first runs on 15 October at 09:00 UTC.
+- The Thursday note first runs on 15 October at 09:00 UTC if the Cloud plan runs future calls (TODO(owner): plan name); otherwise it is written when home first asks for it after 09:00.
 - Speech in a second language depends on the device having a voice for it. Nobody has heard Yoruba speech on any device yet.
 - "Listen" works only in a browser with speech recognition. On a phone, the word tools are behind a long press on the sentence strip.
 - The live session (pointing, presence and shared sentences) works on one server instance only.
@@ -262,12 +266,12 @@ These counts are from 14 October 2026, on the merged tree, and every suite passe
 
 - The child's sentences are not stored. The word log is off until a guardian turns it on. It keeps only which word was spoken and when, never a label or a sentence, and it shows counts, not transcripts. "Delete the word log" removes it, with the weeks worked out from it.
 - "Private" on the child's board pauses the word log and sharing on that device.
-- Sentences leave the device only while a guardian has "Share what is said" on for it. They are relayed to the members who are connected and are never stored. "Recent" sentences stay in memory until the app closes.
+- Sentences leave the device only while a guardian has "Share what is said" on for it, or when an adult presses "Share the sentence", which hands the sentence to the share sheet or copies it. Shared with "Share what is said", they are relayed to the members who are connected and are never stored. "Recent" sentences stay in memory until the app closes.
 - Photos are shrunk on the device (512 pixels for a word, 1280 for a scene) and saved again as JPEG. EXIF data, including any location, is removed. They sit in private storage behind links that last five minutes.
 - A photo goes to the suggestion service only when an adult presses "Suggest a word from the photo". On the live site that service is Xiaomi MiMo's `mimo-v2.6-pro`.
 - A sitter's taps on the view-only page are kept only while the circle's word log is on, and only as the word and the time.
 - Links shown outside the circle give the child's name and words to anyone who has them. The view-only board lasts 7 days and can be withdrawn with "Stop sharing". The paper copy lasts 30 days. The progress report lasts 30 days and holds counts only.
-- The server holds each adult's email address and display name, the child's name as typed, and the board. Every member, including a read-only partner, can read the whole board.
+- The server holds each adult's email address and display name, the child's name as typed, and the board, and, where used: photos and recorded voices, scenes, board copies, the word log and weekly summaries, focus words, quick phrases, translations, word suggestions, device names and sync times, a sitter's taps, and the copies of the board and of the report behind shared links. Every member, including a read-only partner, can read the whole board.
 - The landing page and the view-only page load nothing from any other site. There is no analytics or advertising code.
 
 ## Credits and licences

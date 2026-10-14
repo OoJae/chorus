@@ -6,9 +6,13 @@ platform.
 
 Status of every statement: 14 Oct 2026, 16:20 UTC. Facts come from
 docs/device-log.md, docs/spike-results.md and the tests in chorus_server/test/.
-A behaviour is called "checked by hand" only where the device log has a row
-for it. Every check so far used one account on both devices; two different
-accounts on two devices are not yet in the log.
+A behaviour is called "checked" only where the device log has a row for it.
+The log records the phone checks of 13 October as driven over adb and the
+Edge checks of that evening as driven through the browser's automation
+extension; only the no-network check of 14 October is recorded as done by
+hand. So the text says "on real devices", never "by hand". Every check so far
+used one account on both devices; two different accounts on two devices are
+not yet in the log.
 
 These sentences go stale if the log changes:
 - Long version, "Two claims on one cell": "Every run so far used one account
@@ -16,7 +20,8 @@ These sentences go stale if the log changes:
   accounts.
 - Short version: "(one account on both)". Delete it at the same time.
 
-In the text, TODO(owner) appears twice, both at the end of the long version.
+In the text, TODO(owner) appears once, for the video link at the end of the
+long version.
 
 The code excerpts are copied unchanged, indentation included, from
 chorus_server/lib/src/boards/tile.spy.yaml (lines 12 to 18),
@@ -59,7 +64,7 @@ When they sync, the engine keeps both rows. The earlier write keeps the cell, wh
           expect(keys[c.later.id!.uuid], contested, reason: where);
 ```
 
-I have also run it by hand on Serverpod Cloud, with an Android phone and a desktop browser, both with the app's "Work offline" switch on. One word kept the cell and the other showed under "Needs a home" on both. Every run so far used one account on both devices. `docs/device-log.md` lists what I have checked on hardware.
+I have also run it on real devices on Serverpod Cloud, an Android phone and a desktop browser, both with the app's "Work offline" switch on. One word kept the cell and the other showed under "Needs a home" on both. Every run so far used one account on both devices. `docs/device-log.md` lists what I have checked on hardware.
 
 ### From a suffix to a tray
 
@@ -79,7 +84,7 @@ bool isSafePoint(
     activity.sinceLastTouch >= quiet;
 ```
 
-On the phone I watched it happen: with two words in the sentence strip, a word added in the browser showed as "1 waiting" and did not land. When the strip was cleared, it appeared in its cell within a few seconds, and nothing else moved.
+On the phone it did just that: with two words in the sentence strip, a word added in the browser showed as "1 waiting" and did not land. When the strip was cleared, it appeared in its cell within a few seconds, and nothing else moved.
 
 One merge I had not planned for: when the word holding a contested cell is removed, the engine gives the freed cell to the waiting word by itself. To the child that is a cell changing meaning, so the snapshot holds it for an adult.
 
@@ -105,7 +110,7 @@ The first two, and four more gaps, are written up as draft issues for the Server
 - Source, MIT: https://github.com/OoJae/chorus
 - Demo video: TODO(owner): link
 
-The starter board is adapted from the 36-word Universal Core vocabulary, Center for Literacy and Disability Studies, UNC-Chapel Hill, CC BY-SA 4.0. I built Chorus with Claude Code. TODO(owner): say in one sentence what you did by hand.
+The starter board is adapted from the 36-word Universal Core vocabulary, Center for Literacy and Disability Studies, UNC-Chapel Hill, CC BY-SA 4.0. The code was written with Claude Code under my direction.
 
 ## Short version (LinkedIn)
 
@@ -113,7 +118,7 @@ Two offline adults, one cell.
 
 For "Build Something Real: The Serverpod Hackathon" I built Chorus, an offline-first talking picture board for a non-speaking child, in Flutter. On a board like this a word is found by where it is, so one tile per cell is a real rule. In Serverpod it is one string column, unique per sync space.
 
-Two adults, both offline, fill the same empty cell. The offline sync module keeps both rows. The earlier write keeps the cell. The later row's key gets a `__conflict__` suffix, and the app lists that word under "Needs a home" instead of showing an error. The child's screen holds a snapshot and swaps only at a safe moment, so nothing moves under a finger. My tests run against real Postgres and SQLite replicas, and I have checked both behaviours by hand on a phone and a browser on Serverpod Cloud (one account on both). "Try a clash" lets you see it on one device.
+Two adults, both offline, fill the same empty cell. The offline sync module keeps both rows. The earlier write keeps the cell. The later row's key gets a `__conflict__` suffix, and the app lists that word under "Needs a home" instead of showing an error. The child's screen holds a snapshot and swaps only at a safe moment, so nothing moves under a finger. My tests run against real Postgres and SQLite replicas, and I have checked both behaviours on a real phone and a browser on Serverpod Cloud (one account on both). "Try a clash" lets you see it on one device.
 
 Plainly: the child is a persona, no family or clinician has used it, and mature tools exist in this space. Built with Claude Code.
 
@@ -122,6 +127,6 @@ Try it: https://chorus.serverpod.space
 
 #Serverpod #Flutter #Dart
 
-## X version (273 characters with the link counted as 23)
+## X version (270 characters with the link counted as 23)
 
-For "Build Something Real: The Serverpod Hackathon" I built Chorus, a talking picture board for a non-speaking child. When two adults fill the same empty cell offline, both words survive. Checked by hand on a phone and a browser. https://github.com/OoJae/chorus #Serverpod #Flutter
+For "Build Something Real: The Serverpod Hackathon" I built Chorus, a talking picture board for a non-speaking child. When two adults fill the same empty cell offline, both words survive. Checked on a real phone and a browser. https://github.com/OoJae/chorus #Serverpod #Flutter

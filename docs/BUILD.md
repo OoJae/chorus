@@ -151,9 +151,9 @@ serverpod cloud deploy
 `chorus_server/scloud.yaml` names the project (`chorus`) and runs
 `serverpod generate` and `serverpod run flutter_build` before each deploy, so
 the web app at `/app/` is always built from the code being deployed.
-`chorus_server/.scloudignore` keeps `config/passwords.yaml` and the local
-config files out of the upload and opts `web/**` back in, so the landing page
-and the built app go up with the server.
+`.scloudignore` at the repository root keeps `config/passwords.yaml` and the
+local config files out of the upload and opts `web/**` back in, so the landing
+page and the built app go up with the server.
 
 Serverpod Cloud supplies the database and its own platform passwords. Chorus
 reads four more, set with `serverpod cloud password set <name> <value>` from

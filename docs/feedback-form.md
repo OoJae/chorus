@@ -14,7 +14,7 @@ Chorus is an offline-first talking picture board for a non-speaking child: the c
 - Emailed sign-up codes worked on Cloud with no configuration.
 - Tests need no Docker: `database.dataPath` gives an embedded Postgres.
 - The module ran on a physical Android phone (arm64, release build) and in a browser, where the SQLite replica persists in IndexedDB. A board created in the browser reached the phone through sync.
-- Unique conflicts resolve identically on the server and every replica (T1 below), in automated tests against real Postgres and SQLite. By hand on Cloud, a phone and a browser that filled the same cell offline both ended with one word in the cell and the other parked (four runs, one account on both devices; see finding 11 for why the browser needed a reload in the first two).
+- Unique conflicts resolve identically on the server and every replica (T1 below), in automated tests against real Postgres and SQLite. On real devices on Cloud, a phone and a browser that filled the same cell offline both ended with one word in the cell and the other parked (four runs, one account on both devices; see finding 11 for why the browser needed a reload in the first two).
 - `spaces.grant` plus `transactionForUser` let the server act as a member. Chorus's "Try a clash" has a server-side practice partner fill a cell while the user's device works offline; on Cloud its word was on the server in about four seconds, and the clash resolved as above.
 - One server serves a static landing page at `/`, the Flutter web app at `/app/` and token pages beside them, each with its own headers. Checked on Cloud.
 - Direct uploads from the browser to Cloud storage worked on Cloud (`requestUpload`, `PUT` to storage, `confirmUpload`, all 200).
@@ -48,7 +48,7 @@ Tests are in `chorus_server/test/sync/` unless a path is given.
 **4. No reconnect, no status, and `syncOnce` cannot be cancelled**
 - Expected: continuous sync resumes after a drop and reports its state.
 - Got (read in `client_sync.dart` and `engine.dart`, no test): `syncContinuously` runs until its stream ends and does not retry. `syncOnce` returns a bare `Future` and, unlike continuous mode, reads inbound with no timeout.
-- Workaround: a 700-line supervisor, `chorus_flutter/lib/src/sync/sync_supervisor.dart`. On the phone, with Wi-Fi and airplane mode both off again after a time with no network, sync resumed by itself.
+- Workaround: a 700-line supervisor, `chorus_flutter/lib/src/sync/sync_supervisor.dart`. On the phone, when Wi-Fi was switched back on after a time with no network, sync resumed by itself.
 - Suggest: built-in reconnect with backoff, a status stream, a cancellable `syncOnce`.
 
 **5. A unique conflict raises no event**
@@ -91,7 +91,7 @@ Tests are in `chorus_server/test/sync/` unless a path is given.
 
 **11. Two tabs of one browser profile sign each other out**
 - Expected: both tabs stay signed in.
-- Got: one tab was signed out; the server logged `RefreshTokenNotFoundException`. Seen once, in Edge. A refresh with a stale rotating secret deletes the token row (`serverpod_auth_core_server`, `jwt_admin.dart`), and each tab appears to cache its own copy.
+- Got: one tab was signed out; the server logged `RefreshTokenNotFoundException`. Seen twice in Edge: on 13 October, and on 14 October when the extra tabs were closed. A refresh with a stale rotating secret deletes the token row (`serverpod_auth_core_server`, `jwt_admin.dart`), and each tab appears to cache its own copy.
 - Repro: two tabs, one profile, one user.
 - Workaround: a normal window and a private window. Two tabs of one profile also share one SQLite file, so a tab with sync paused still had its writes sent by the other tab (seen in Edge on 13 October, gone with one tab on 14 October). Chorus now lets only one tab per browser profile run it; that rule has automated tests and has not yet been seen in a browser.
 - Suggest: re-read the stored token before refreshing, or document the limit.

@@ -10,7 +10,7 @@ This file replaces the earlier plan for three uncut takes with no voice-over. Th
 2. **Cuts are allowed; a shortened wait is labelled.** A shot may be trimmed or cut to the next one. A wait that is shortened inside a shot says so on screen, for example "sped up ×4". A wait is never hidden to make the app look faster.
 3. **Only what the device log shows.** A shot goes in only if [`device-log.md`](device-log.md) has a row for that behaviour on the deployed build. A narration line over a shot that cannot be captured is cut, or the scene is re-recorded without it.
 4. **Names.** The narration and the captions name only Chorus and Serverpod. Device frames carry no maker's or store's mark.
-5. **Sound.** No music. The only sounds are the voice-over, the phone's own speech, and short tap sounds.
+5. **Sound.** No music. The only sounds are the voice-over, the phone's own speech, and soft tap sounds.
 6. **People.** Maya is a persona, and so are the adults. No real child appears. The film makes no clinical claim.
 7. **Labels.** A caption that quotes the app quotes its label exactly, as in the code.
 8. **Upload text.** It does not say "uncut". It may say that the film is made from real captures of the live app, with shortened waits labelled.

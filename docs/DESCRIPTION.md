@@ -1,6 +1,6 @@
 <!--
 Submission description: the text pasted into the hackathon form.
-Target 380 to 450 words, counted without this comment. It is about 435 now,
+Target 380 to 450 words, counted without this comment. It is about 440 now,
 with the TODOs in place, so your AI disclosure wording has little room:
 adding a sentence means removing one.
 
@@ -46,7 +46,7 @@ Chorus is an offline-first talking picture board for a non-speaking child, built
 - Offline sync 0.0.10: a SQLite replica per device, a space per child, field-level merge; a unique index per space turns a clash into "Needs a home".
 - `spaces.grant` and `transactionForUser` let the practice partner write from the server.
 - Emailed-code auth, streaming, file storage, future calls, web routes and passwords.
-- Synced tables frozen since the first deploy; 15 server-only tables added.
+- Synced tables frozen since the first deploy; 21 server-only tables added.
 - Serverpod Cloud (TODO(owner): plan name): server, Postgres, web, email.
 
 **Limits.** The sync module is experimental. If two adults rename one word offline, the later change wins. Removing a member is switched off for now.
@@ -54,7 +54,7 @@ Chorus is an offline-first talking picture board for a non-speaking child, built
 **Try it.**
 
 - Landing page: https://chorus.serverpod.space/
-- App: https://chorus.serverpod.space/app/ ("Sign up", then "Try a demo board")
+- App: https://chorus.serverpod.space/app/ ("Make a board for my child", then "Try a demo board")
 - Android APK: TODO(owner): not published yet; https://github.com/OoJae/chorus/releases/latest
 - Code: https://github.com/OoJae/chorus
 - Walkthrough: https://github.com/OoJae/chorus/blob/main/docs/TRY-IT.md
