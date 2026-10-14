@@ -112,7 +112,7 @@ The first two, and four more gaps, are written up as draft issues for the Server
 - Chorus on Serverpod Cloud: https://chorus.serverpod.space (the web app is at https://chorus.serverpod.space/app/)
 - Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`; debug-signed, Android 7.0 or later)
 - Source, MIT: https://github.com/OoJae/chorus
-- Demo film (1:35): https://youtu.be/JDv5pPvsrA8
+- Demo film (1:39): https://youtu.be/NV1OloM1HX4
 
 The starter board is adapted from the 36-word Universal Core vocabulary, Center for Literacy and Disability Studies, UNC-Chapel Hill, CC BY-SA 4.0.
 
@@ -128,7 +128,7 @@ Plainly: the child is a persona, no family or clinician has used it, and mature 
 
 Code: https://github.com/OoJae/chorus
 Try it: https://chorus.serverpod.space
-Film (1:35): https://youtu.be/JDv5pPvsrA8
+Film (1:39): https://youtu.be/NV1OloM1HX4
 
 #Serverpod #Flutter #Dart
 

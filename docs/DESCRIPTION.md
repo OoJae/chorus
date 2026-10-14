@@ -37,5 +37,5 @@ Chorus is an offline-first talking picture board for a non-speaking child, built
 - Android APK: https://github.com/OoJae/chorus/releases/latest
 - Code: https://github.com/OoJae/chorus
 - Walkthrough: https://github.com/OoJae/chorus/blob/main/docs/TRY-IT.md
-- Video (1:35): https://youtu.be/JDv5pPvsrA8
+- Video (1:39): https://youtu.be/NV1OloM1HX4
 - Demo sign-ins: demo.parent@chorus.example (guardian), demo.therapist@chorus.example (therapist), demo.partner@chorus.example (read-only). Password: <demo password>. Judges share this circle, so others' words may show.

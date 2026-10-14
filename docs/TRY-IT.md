@@ -19,7 +19,7 @@ Maya, the child in the demo, is a persona. No child, parent or clinician has use
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
 - Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`).
-- Film (1:35): https://youtu.be/JDv5pPvsrA8
+- Film (1:39): https://youtu.be/NV1OloM1HX4
 - Demo sign-ins: `demo.parent@chorus.example` (guardian), `demo.therapist@chorus.example` (therapist, can edit), `demo.partner@chorus.example` (read-only partner: views the board and can suggest a word). The password is in our submission text.
 - What was checked on real hardware, and what was not: [`device-log.md`](device-log.md)
 
