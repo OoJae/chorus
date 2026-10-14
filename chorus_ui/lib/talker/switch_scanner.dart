@@ -30,7 +30,8 @@ const Key scanHighlightKey = ValueKey('SwitchScanner.highlight');
 /// each highlighted word is said quietly.
 ///
 /// The keys are taken from the whole keyboard while this board is the
-/// screen on top, so they work whatever has focus.
+/// screen on top, so they work with nothing focused or a word focused; a
+/// control outside the grid that the keyboard is on keeps its own keys.
 class SwitchScanner extends StatefulWidget {
   const SwitchScanner({
     super.key,
@@ -175,6 +176,15 @@ class _SwitchScannerState extends State<SwitchScanner> {
     // Only the board on top scans: a sheet or screen over it keeps its keys.
     final route = ModalRoute.of(context);
     if (route != null && !route.isCurrent) return false;
+    // A control outside the grid that the keyboard is on (an adult who
+    // tabbed to "Hold to leave") keeps its keys, so its hold still works.
+    final focus = FocusManager.instance.primaryFocus;
+    final focused = focus?.context;
+    if (focus is! FocusScopeNode &&
+        focused != null &&
+        focused.findAncestorStateOfType<_SwitchScannerState>() != this) {
+      return false;
+    }
     final key = event.logicalKey;
     final isSpace = key == LogicalKeyboardKey.space;
     final isSelect = _selectKeys.contains(key);

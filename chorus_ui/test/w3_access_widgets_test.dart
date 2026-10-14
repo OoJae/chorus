@@ -274,6 +274,42 @@ void main() {
       await _close(tester);
     });
 
+    testWidgets('a focused "Hold to leave" still takes a held enter', (
+      tester,
+    ) async {
+      var left = 0;
+      tester.view.physicalSize = _tablet;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final speech = FakeSpeech();
+      await tester.pumpWidget(
+        DeviceSettingsScope(
+          store: InMemoryDeviceSettings(
+            const DeviceSettings(scanMode: ScanMode.twoSwitches),
+          ),
+          child: MaterialApp(
+            theme: chorusTheme(),
+            home: TalkerScreen(
+              store: FakeBoardStore.seeded(withWordsBoard: false),
+              speech: speech,
+              sync: FakeSyncStatus(),
+              onExit: () => left++,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      Focus.of(tester.element(find.text(leaveLabel))).requestFocus();
+      await tester.pump();
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
+      await tester.pump(const Duration(milliseconds: 2100));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(left, 1);
+      expect(speech.spoken, isEmpty);
+      await _close(tester);
+    });
+
     testWidgets('scanning off leaves space and enter alone', (tester) async {
       final speech = await _pumpTalker(tester);
       expect(find.byKey(scanHighlightKey), findsNothing);
