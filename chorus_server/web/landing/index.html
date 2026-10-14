@@ -75,7 +75,7 @@
       </div>
       <div class="board-shadow" aria-hidden="true"></div>
     </div>
-    <p class="meta board-note">Speaks with your device's own voice. Nothing is sent anywhere.</p>
+    <p class="board-note">Speaks with your device's own voice. Nothing is sent anywhere.</p>
   </div>
   <p class="sr-only" id="announce" aria-live="polite"></p>
 </section>
@@ -94,8 +94,8 @@
 
     <div class="devices" aria-hidden="true">
       <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <line class="link link-a" x1="14" y1="58" x2="50" y2="50" pathLength="1"/>
-        <line class="link link-b" x1="86" y1="58" x2="50" y2="50" pathLength="1"/>
+        <path class="link link-a" d="M0 0"/>
+        <path class="link link-b" d="M0 0"/>
       </svg>
       <span class="pulse pulse-a"></span>
       <span class="pulse pulse-b"></span>
@@ -113,7 +113,7 @@
       <div class="device tablet" id="dev-tablet">
         <div class="device-screen">
           <div class="dev-bar">
-            <p class="meta net"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>No signal</p>
+            <p class="meta net"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="net-off">No signal</span><span class="net-on">Back in step</span></p>
             <p class="meta waiting">1 waiting</p>
           </div>
           <p class="mini-strip"><span>I</span> <span>want</span> <span>more</span></p>
@@ -229,7 +229,7 @@
       <g class="dg-node dg-sat"><rect x="8" y="650" width="164" height="90" rx="14"/><text x="22" y="686" class="dg-t">Files</text><text x="22" y="712" class="dg-m">PICTURES</text></g>
       <g class="dg-node dg-sat"><rect x="188" y="650" width="164" height="110" rx="14"/><text x="202" y="686" class="dg-t">Web routes</text><text x="202" y="712" class="dg-m">THIS PAGE,</text><text x="202" y="734" class="dg-m">PAPER, SITTER</text></g>
     </svg>
-    <figcaption class="meta">Everything runs on Serverpod 4. The sync module is experimental, so its version is pinned.</figcaption>
+    <figcaption>Everything runs on Serverpod 4. The sync module is experimental, so its version is pinned.</figcaption>
   </figure>
 </section>
 

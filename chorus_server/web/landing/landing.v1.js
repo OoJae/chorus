@@ -257,19 +257,33 @@
     stage.style.setProperty('--ay2', (p.y - sc.y) + 'px');
     stage.style.setProperty('--bx2', (l.x - sc.x) + 'px');
     stage.style.setProperty('--by2', (l.y - sc.y) + 'px');
+    // Sync lines arc from the phone and the laptop to the tablet, and the
+    // pulses ride them.
     var dr = devices.getBoundingClientRect();
-    // Pulses run from the phone and the laptop to the tablet.
-    var pa = $('.pulse-a', devices), pb = $('.pulse-b', devices);
-    pa.style.left = (p.x - dr.left) + 'px'; pa.style.top = (p.y - dr.top) + 'px';
-    pb.style.left = (l.x - dr.left) + 'px'; pb.style.top = (l.y - dr.top) + 'px';
-    pa.style.setProperty('--ax', (t.x - p.x) + 'px'); pa.style.setProperty('--ay', (t.y - p.y) + 'px');
-    pb.style.setProperty('--bx', (t.x - l.x) + 'px'); pb.style.setProperty('--by', (t.y - l.y) + 'px');
-    var la = $('.link-a', devices), lb = $('.link-b', devices);
-    function pct(v, lo, size) { return ((v - lo) / size * 100).toFixed(2); }
-    la.setAttribute('x1', pct(p.x, dr.left, dr.width)); la.setAttribute('y1', pct(p.y, dr.top, dr.height));
-    la.setAttribute('x2', pct(t.x, dr.left, dr.width)); la.setAttribute('y2', pct(t.y, dr.top, dr.height));
-    lb.setAttribute('x1', pct(l.x, dr.left, dr.width)); lb.setAttribute('y1', pct(l.y, dr.top, dr.height));
-    lb.setAttribute('x2', pct(t.x, dr.left, dr.width)); lb.setAttribute('y2', pct(t.y, dr.top, dr.height));
+    devices.style.setProperty('--split', '1');
+    var pr = phone.getBoundingClientRect(), lr = laptop.getBoundingClientRect(), tr = tablet.getBoundingClientRect();
+    devices.style.setProperty('--split', saved || '0');
+    function arc(from, toX, toY) {
+      var x1 = from.left + from.width / 2 - dr.left, y1 = from.top - dr.top;
+      var x2 = toX - dr.left, y2 = toY - dr.top;
+      var cx = (x1 + x2) / 2;
+      var cy = Math.min(y1, y2) - Math.max(50, Math.abs(x2 - x1) * 0.35);
+      // Below the tablet (phones): rise, then bend into its bottom edge.
+      if (from.top > tr.bottom - 20) { cx = x1; cy = y2; }
+      return 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1);
+    }
+    var below = pr.top > tr.bottom - 20;
+    // Where the phone sits low against the tablet's side, an arc would
+    // cross the board, so the lines stay out.
+    devices.classList.toggle('no-links', !below && pr.top > tr.top + tr.height / 2);
+    var da = below ? arc(pr, tr.left + tr.width * 0.3, tr.bottom) : arc(pr, tr.left + tr.width * 0.25, tr.top);
+    var db = below ? arc(lr, tr.left + tr.width * 0.7, tr.bottom) : arc(lr, tr.left + tr.width * 0.75, tr.top);
+    var svg = $('.links', devices);
+    svg.setAttribute('viewBox', '0 0 ' + dr.width.toFixed(0) + ' ' + dr.height.toFixed(0));
+    $('.link-a', devices).setAttribute('d', da);
+    $('.link-b', devices).setAttribute('d', db);
+    $('.pulse-a', devices).style.setProperty('offset-path', "path('" + da + "')");
+    $('.pulse-b', devices).style.setProperty('offset-path', "path('" + db + "')");
   }
 
   var shownStep = -1, shownPhase = '';
