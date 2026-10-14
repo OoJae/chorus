@@ -1,0 +1,5 @@
+### A word a sitter tapped, as the circle's feed shows it.
+class: SitterTapInfo
+fields:
+  label: String
+  tappedAt: DateTime

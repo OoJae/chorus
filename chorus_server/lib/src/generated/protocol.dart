@@ -15,6 +15,8 @@ import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
 import 'package:chorus_server/src/generated/circles/member_info.dart'
     as _isrvpywl;
+import 'package:chorus_server/src/generated/sitter/sitter_tap_info.dart'
+    as _iie3inqt;
 import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
     as _iknl7ub9;
 import 'package:chorus_server/src/generated/word_suggestions/suggested_word_info.dart'
@@ -50,6 +52,8 @@ import 'media/upload_ticket.dart' as _illp1jkh;
 import 'printing/shared_snapshot.dart' as _if9s8td9;
 import 'printing/snapshot_kind.dart' as _iergzj3e;
 import 'sharing/view_only_link.dart' as _iveyennw;
+import 'sitter/sitter_tap.dart' as _i5yxvfrk;
+import 'sitter/sitter_tap_info.dart' as _igr2wwcr;
 import 'suggest/ai_usage.dart' as _inv1atzh;
 import 'suggest/photo_idea_cache.dart' as _ix1g4tqw;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
@@ -87,6 +91,8 @@ export 'media/upload_ticket.dart';
 export 'printing/shared_snapshot.dart';
 export 'printing/snapshot_kind.dart';
 export 'sharing/view_only_link.dart';
+export 'sitter/sitter_tap.dart';
+export 'sitter/sitter_tap_info.dart';
 export 'suggest/ai_usage.dart';
 export 'suggest/photo_idea_cache.dart';
 export 'suggest/suggest_exception.dart';
@@ -685,6 +691,60 @@ class Protocol extends _is.DatabaseSerializationManager {
           ],
           type: 'btree',
           isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'sitter_tap',
+      dartName: 'SitterTap',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'label',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tappedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'sitter_tap_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'tappedAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
           isPrimary: false,
         ),
       ],
@@ -1355,6 +1415,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
     }
+    if (t == _i5yxvfrk.SitterTap) {
+      return _i5yxvfrk.SitterTap.fromJson(data) as T;
+    }
+    if (t == _igr2wwcr.SitterTapInfo) {
+      return _igr2wwcr.SitterTapInfo.fromJson(data) as T;
+    }
     if (t == _inv1atzh.AiUsage) {
       return _inv1atzh.AiUsage.fromJson(data) as T;
     }
@@ -1469,6 +1535,13 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_i5yxvfrk.SitterTap?>()) {
+      return (data != null ? _i5yxvfrk.SitterTap.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_igr2wwcr.SitterTapInfo?>()) {
+      return (data != null ? _igr2wwcr.SitterTapInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_inv1atzh.AiUsage?>()) {
       return (data != null ? _inv1atzh.AiUsage.fromJson(data) : null) as T;
     }
@@ -1565,6 +1638,12 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_iie3inqt.SitterTapInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iie3inqt.SitterTapInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_iknl7ub9.WordSuggestion>) {
       return (data as List)
               .map((e) => deserialize<_iknl7ub9.WordSuggestion>(e))
@@ -1621,6 +1700,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _if9s8td9.SharedSnapshot => 'SharedSnapshot',
       _iergzj3e.SnapshotKind => 'SnapshotKind',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
+      _i5yxvfrk.SitterTap => 'SitterTap',
+      _igr2wwcr.SitterTapInfo => 'SitterTapInfo',
       _inv1atzh.AiUsage => 'AiUsage',
       _ix1g4tqw.PhotoIdeaCache => 'PhotoIdeaCache',
       _iw5bueja.SuggestException => 'SuggestException',
@@ -1693,6 +1774,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'SnapshotKind';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
+      case _i5yxvfrk.SitterTap():
+        return 'SitterTap';
+      case _igr2wwcr.SitterTapInfo():
+        return 'SitterTapInfo';
       case _inv1atzh.AiUsage():
         return 'AiUsage';
       case _ix1g4tqw.PhotoIdeaCache():
@@ -1820,6 +1905,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
     }
+    if (dataClassName == 'SitterTap') {
+      return deserialize<_i5yxvfrk.SitterTap>(data['data']);
+    }
+    if (dataClassName == 'SitterTapInfo') {
+      return deserialize<_igr2wwcr.SitterTapInfo>(data['data']);
+    }
     if (dataClassName == 'AiUsage') {
       return deserialize<_inv1atzh.AiUsage>(data['data']);
     }
@@ -1936,6 +2027,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _i87lco0i.MediaObject.t;
       case _if9s8td9.SharedSnapshot:
         return _if9s8td9.SharedSnapshot.t;
+      case _i5yxvfrk.SitterTap:
+        return _i5yxvfrk.SitterTap.t;
       case _inv1atzh.AiUsage:
         return _inv1atzh.AiUsage.t;
       case _ix1g4tqw.PhotoIdeaCache:

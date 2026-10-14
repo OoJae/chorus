@@ -15,7 +15,11 @@ import '../../screens/support/circle_cache_none.dart'
     as platform;
 
 /// The parts of one circle that need the server.
-typedef W2Remote = ({WordSuggestions? suggestions, CircleMembers? members});
+typedef W2Remote = ({
+  WordSuggestions? suggestions,
+  CircleMembers? members,
+  Future<List<SitterTap>> Function()? sitterTaps,
+});
 
 /// Makes the server parts of [circle] for the signed-in adult [userId]. Set
 /// by the app; null leaves them out.
@@ -23,7 +27,7 @@ W2Remote Function(CircleInfo circle, String userId)? w2RemoteFor;
 
 /// Everything one circle offers for these features.
 class W2Parts {
-  W2Parts._(this.seen, this.suggestions, this.members);
+  W2Parts._(this.seen, this.suggestions, this.members, this.sitterTaps);
 
   /// When "What changed" was last opened on this device.
   final ActivitySeen seen;
@@ -31,6 +35,10 @@ class W2Parts {
   /// Null when the app has no server to ask.
   final WordSuggestions? suggestions;
   final CircleMembers? members;
+
+  /// Words sitters tapped on the view-only page; null where the adult may
+  /// not see them (guardians and therapists may).
+  final Future<List<SitterTap>> Function()? sitterTaps;
 }
 
 final Map<String, W2Parts> _parts = {};
@@ -45,6 +53,7 @@ W2Parts w2PartsFor(CircleInfo circle, String userId) {
       DeviceActivitySeen(userId: userId, circleId: circle.spaceUuid.uuid),
       remote?.suggestions,
       remote?.members,
+      remote?.sitterTaps,
     );
   }();
 }
@@ -171,4 +180,12 @@ W2Remote serverW2Remote(Client client, CircleInfo circle, String userId) => (
     myUserId: userId,
     canRemove: circle.myRole == CircleRole.guardian,
   ),
+  sitterTaps:
+      circle.myRole == CircleRole.guardian ||
+          circle.myRole == CircleRole.therapist
+      ? () async => [
+          for (final tap in await client.sitter.recentTaps(circle.spaceUuid))
+            SitterTap(label: tap.label, at: tap.tappedAt),
+        ]
+      : null,
 );

@@ -29,9 +29,17 @@ Widget? w2ActivityBanner({
     key: ValueKey('w2-banner-${selected.spaceUuid.uuid}'),
     store: store,
     seen: parts.seen,
-    onOpen: () => open(ActivityScreen(store: store, seen: parts.seen)),
+    onOpen: () => open(_feed(store, parts)),
   );
 }
+
+/// "What changed" for [store], with a sitter's words where they may be
+/// seen.
+Widget _feed(BoardStore store, W2Parts parts) => ActivityScreen(
+  store: store,
+  seen: parts.seen,
+  sitterTaps: w2.sitterTapsInFeedEnabled ? parts.sitterTaps : null,
+);
 
 /// The entries home lists for these features.
 List<Widget> w2HomeEntries({
@@ -52,7 +60,7 @@ List<Widget> w2HomeEntries({
         icon: Icons.history_rounded,
         label: activityTitle,
         detail: activityEntryDetail,
-        onTap: () => open(ActivityScreen(store: store, seen: parts.seen)),
+        onTap: () => open(_feed(store, parts)),
       ),
     if (w2.suggestWordEnabled && partner && suggestions != null)
       HomeEntry(

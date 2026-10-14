@@ -22,3 +22,8 @@ const bool circleMembersEnabled = true;
 /// speech, with "Add all to Needs a home". Off, the sheet asks for one word
 /// as before.
 const bool photoIdeasEnabled = true;
+
+/// Words a sitter tapped on the view-only page, as lines in "What changed".
+/// The server's own switch is `sitterTapsEnabled` in
+/// `chorus_server/lib/src/sitter/sitter_taps.dart`.
+const bool sitterTapsInFeedEnabled = true;

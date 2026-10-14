@@ -15,6 +15,8 @@ import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
 import 'package:chorus_client/src/protocol/circles/member_info.dart'
     as _iw7jhh88;
+import 'package:chorus_client/src/protocol/sitter/sitter_tap_info.dart'
+    as _ixcw47ye;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
 import 'package:chorus_client/src/protocol/word_suggestions/suggested_word_info.dart'
@@ -44,6 +46,7 @@ import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/upload_ticket.dart' as _illp1jkh;
 import 'sharing/view_only_link.dart' as _iveyennw;
+import 'sitter/sitter_tap_info.dart' as _igr2wwcr;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
@@ -69,6 +72,7 @@ export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/upload_ticket.dart';
 export 'sharing/view_only_link.dart';
+export 'sitter/sitter_tap_info.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
@@ -554,6 +558,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
     }
+    if (t == _igr2wwcr.SitterTapInfo) {
+      return _igr2wwcr.SitterTapInfo.fromJson(data) as T;
+    }
     if (t == _iw5bueja.SuggestException) {
       return _iw5bueja.SuggestException.fromJson(data) as T;
     }
@@ -631,6 +638,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_igr2wwcr.SitterTapInfo?>()) {
+      return (data != null ? _igr2wwcr.SitterTapInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_iw5bueja.SuggestException?>()) {
       return (data != null ? _iw5bueja.SuggestException.fromJson(data) : null)
           as T;
@@ -704,6 +715,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_ixcw47ye.SitterTapInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ixcw47ye.SitterTapInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_igbppnkp.WordSuggestion>) {
       return (data as List)
               .map((e) => deserialize<_igbppnkp.WordSuggestion>(e))
@@ -751,6 +768,7 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _i8mjpd0r.MediaKind => 'MediaKind',
       _illp1jkh.UploadTicket => 'UploadTicket',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
+      _igr2wwcr.SitterTapInfo => 'SitterTapInfo',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
@@ -805,6 +823,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'UploadTicket';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
+      case _igr2wwcr.SitterTapInfo():
+        return 'SitterTapInfo';
       case _iw5bueja.SuggestException():
         return 'SuggestException';
       case _iv4peolp.SuggestFailure():
@@ -897,6 +917,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
+    }
+    if (dataClassName == 'SitterTapInfo') {
+      return deserialize<_igr2wwcr.SitterTapInfo>(data['data']);
     }
     if (dataClassName == 'SuggestException') {
       return deserialize<_iw5bueja.SuggestException>(data['data']);

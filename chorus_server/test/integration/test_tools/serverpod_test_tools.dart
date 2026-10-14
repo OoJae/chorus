@@ -30,6 +30,8 @@ import 'package:chorus_server/src/generated/media/upload_ticket.dart'
     as _i1laibyz;
 import 'package:chorus_server/src/generated/sharing/view_only_link.dart'
     as _ienfv6p6;
+import 'package:chorus_server/src/generated/sitter/sitter_tap_info.dart'
+    as _iie3inqt;
 import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
     as _iknl7ub9;
 import 'package:chorus_server/src/generated/summary/week_report.dart'
@@ -199,6 +201,8 @@ class TestEndpoints {
 
   late final _SharingEndpoint sharing;
 
+  late final _SitterEndpoint sitter;
+
   late final _SuggestEndpoint suggest;
 
   late final _SummaryEndpoint summary;
@@ -252,6 +256,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     sharing = _SharingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    sitter = _SitterEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1249,6 +1257,48 @@ class _SharingEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _SitterEndpoint {
+  _SitterEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_iie3inqt.SitterTapInfo>> recentTaps(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'sitter',
+            method: 'recentTaps',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'sitter',
+          methodName: 'recentTaps',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iie3inqt.SitterTapInfo>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

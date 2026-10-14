@@ -34,6 +34,8 @@ sharing:
   - publishViewOnly:
   - withdraw:
   - exportUrl:
+sitter:
+  - recentTaps:
 suggest:
   - fromPhoto:
   - ideasFromPhoto:

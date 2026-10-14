@@ -34,6 +34,7 @@ import '../media/media_endpoint.dart' as _i9ppd1x8;
 import '../members/members_endpoint.dart' as _ioz9zj50;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
+import '../sitter/sitter_taps.dart' as _ir137qtt;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
 import '../word_suggestions/word_suggestion_endpoint.dart' as _ig9c0beb;
@@ -102,6 +103,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'sharing',
+          null,
+        ),
+      'sitter': _ir137qtt.SitterEndpoint()
+        ..initialize(
+          server,
+          'sitter',
           null,
         ),
       'suggest': _idurguj6.SuggestEndpoint()
@@ -765,6 +772,31 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['sharing'] as _ifnilofz.SharingEndpoint).exportUrl(
                     session,
                     params['token'],
+                  ),
+        ),
+      },
+    );
+    connectors['sitter'] = _is.EndpointConnector(
+      name: 'sitter',
+      endpoint: endpoints['sitter']!,
+      methodConnectors: {
+        'recentTaps': _is.MethodConnector(
+          name: 'recentTaps',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['sitter'] as _ir137qtt.SitterEndpoint).recentTaps(
+                    session,
+                    params['circleSpace'],
                   ),
         ),
       },

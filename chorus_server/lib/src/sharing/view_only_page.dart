@@ -37,7 +37,15 @@ const Map<String, (String, String)> darkTileColours = {
 /// travels in a `data-say` attribute, never inside the script. Colours are
 /// chosen by class and pictures by label, so nothing from the snapshot
 /// reaches the stylesheet or the script. The page loads nothing.
-String renderViewOnlyPage(PrintBoard board, {required DateTime expiresAt}) {
+///
+/// With [reportTaps] (the circle's word log is on), each tap is also sent
+/// back to `<page>/tap` as the tapped cell, for the circle's "What
+/// changed".
+String renderViewOnlyPage(
+  PrintBoard board, {
+  required DateTime expiresAt,
+  bool reportTaps = false,
+}) {
   final child = board.childName;
   final heading = child == null ? board.name : "$child's board";
   final whose = child == null ? 'this board' : "$child's board";
@@ -52,7 +60,8 @@ String renderViewOnlyPage(PrintBoard board, {required DateTime expiresAt}) {
     ..write('<title>${escapeHtml(heading)}</title>\n')
     ..write('<style>\n')
     ..write(_stylesheet(board))
-    ..write('</style>\n</head>\n<body>\n')
+    ..write('</style>\n</head>\n')
+    ..write(reportTaps ? '<body data-report="1">\n' : '<body>\n')
     ..write('<header><span class="brand">${brandMarkSvg()}')
     ..write('<span>chorus</span></span>\n')
     ..write('<h1>${escapeHtml(heading)}</h1>\n');
@@ -80,6 +89,7 @@ String renderViewOnlyPage(PrintBoard board, {required DateTime expiresAt}) {
           : '';
       out
         ..write('<button type="button" class="tile$family" ')
+        ..write(reportTaps ? 'data-cell="$row:$col" ' : '')
         ..write('data-say="${escapeHtml(tile.spokenText)}">')
         ..write(tileFace(tile))
         ..write('</button>');
@@ -266,12 +276,30 @@ const String _script = r'''
     synth.addEventListener('voiceschanged', chooseVoice);
   }
 
+  // Only the tapped cell goes back, and only when the circle keeps a word
+  // log; the answer is never read.
+  var reporting = document.body.getAttribute('data-report') === '1';
+  var tapUrl = location.pathname.replace(/\/+$/, '') + '/tap';
+  function report(cell) {
+    if (!reporting || !cell || !window.fetch) return;
+    try {
+      fetch(tapUrl, {
+        method: 'POST',
+        body: cell,
+        credentials: 'omit',
+        keepalive: true,
+        headers: { 'Content-Type': 'text/plain' }
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   var tiles = document.querySelectorAll('.tile');
   for (var t = 0; t < tiles.length; t++) {
     tiles[t].addEventListener('click', function () {
       var text = this.getAttribute('data-say');
       addWord(text);
       speak(text);
+      report(this.getAttribute('data-cell'));
     });
   }
 

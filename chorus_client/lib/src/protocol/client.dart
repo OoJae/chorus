@@ -27,6 +27,8 @@ import 'package:chorus_client/src/protocol/media/upload_ticket.dart'
     as _i4yoz54l;
 import 'package:chorus_client/src/protocol/sharing/view_only_link.dart'
     as _i15qvapk;
+import 'package:chorus_client/src/protocol/sitter/sitter_tap_info.dart'
+    as _ixcw47ye;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
 import 'package:chorus_client/src/protocol/summary/week_report.dart'
@@ -631,6 +633,26 @@ class EndpointSharing extends _isc.EndpointRef {
       );
 }
 
+/// What sitters tapped, for the circle's "What changed".
+/// {@category Endpoint}
+class EndpointSitter extends _isc.EndpointRef {
+  EndpointSitter(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'sitter';
+
+  /// The words sitters tapped on [circleSpace]'s view-only pages in the
+  /// last week, newest first. Guardians and therapists only, as for the
+  /// word log's "This week".
+  _ida.Future<List<_ixcw47ye.SitterTapInfo>> recentTaps(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_ixcw47ye.SitterTapInfo>>(
+    'sitter',
+    'recentTaps',
+    {'circleSpace': circleSpace},
+  );
+}
+
 /// Optional help for adults: a word suggested for a photo.
 ///
 /// The suggestion is only returned to the adult who asked. Nothing reaches a
@@ -898,6 +920,7 @@ class Client extends _isc.ServerpodClientShared {
     members = EndpointMembers(this);
     printing = EndpointPrinting(this);
     sharing = EndpointSharing(this);
+    sitter = EndpointSitter(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
     wordSuggestion = EndpointWordSuggestion(this);
@@ -925,6 +948,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointSharing sharing;
 
+  late final EndpointSitter sitter;
+
   late final EndpointSuggest suggest;
 
   late final EndpointSummary summary;
@@ -947,6 +972,7 @@ class Client extends _isc.ServerpodClientShared {
     'members': members,
     'printing': printing,
     'sharing': sharing,
+    'sitter': sitter,
     'suggest': suggest,
     'summary': summary,
     'wordSuggestion': wordSuggestion,
