@@ -171,6 +171,41 @@ void main() {
     });
   });
 
+  testWidgets('a photo takes its own shape, also when it is already in '
+      'memory', (tester) async {
+    final media = FakeMediaStore();
+    final hash = await media.addImage(tinyPng);
+    final scene = Scene(id: 's', name: 'One', imageHash: hash);
+    Widget photo() => SizedBox(
+      width: 300,
+      height: 300,
+      child: ScenePhoto(
+        scene: scene,
+        media: media,
+        overlay: (_, _) => const SizedBox.shrink(),
+      ),
+    );
+    await pumpApp(tester, Center(child: photo()));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pump();
+    await tester.pump();
+    final size = tester.getSize(find.byKey(ScenePhoto.frameKey));
+    expect(size.width / size.height, closeTo(1, 0.01));
+    // Again, with the picture decoded: no error while it is built.
+    await pumpApp(
+      tester,
+      Center(
+        child: KeyedSubtree(key: UniqueKey(), child: photo()),
+      ),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final again = tester.getSize(find.byKey(ScenePhoto.frameKey));
+    expect(again.width / again.height, closeTo(1, 0.01));
+  });
+
   group('for adults', () {
     testWidgets('a scene is made from a photo, then a drag draws a spot and '
         'asks for its word, and the spot is saved', (tester) async {
