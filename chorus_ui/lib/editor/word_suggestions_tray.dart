@@ -158,12 +158,16 @@ class SuggestionsTray extends StatefulWidget {
     required this.store,
     required this.boardId,
     this.media,
+    this.onCount,
   });
 
   final WordSuggestions suggestions;
   final BoardStore store;
   final String boardId;
   final MediaStore? media;
+
+  /// Told how many suggestions are shown, each time that changes.
+  final ValueChanged<int>? onCount;
 
   @override
   State<SuggestionsTray> createState() => _SuggestionsTrayState();
@@ -182,7 +186,9 @@ class _SuggestionsTrayState extends State<SuggestionsTray> {
   Future<void> _load() async {
     try {
       final items = await widget.suggestions.open();
-      if (mounted) setState(() => _items = items);
+      if (!mounted) return;
+      setState(() => _items = items);
+      widget.onCount?.call(items.length);
     } on Object {
       // Offline: no suggestions shown, nothing alarming.
     }
@@ -257,6 +263,7 @@ class _SuggestionsTrayState extends State<SuggestionsTray> {
           if (i.id != item.id) i,
       ];
     });
+    widget.onCount?.call(_items.length);
   }
 
   @override

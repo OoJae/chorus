@@ -411,9 +411,11 @@ class TrayPanel extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => _SuggestedCount(builder: _build);
+
+  Widget _build(BuildContext context, ValueNotifier<int> suggested) {
     return ListenableBuilder(
-      listenable: store,
+      listenable: Listenable.merge([store, suggested]),
       builder: (context, _) {
         final colors = ChorusColors.of(context);
         final tiles = store.tiles;
@@ -428,6 +430,11 @@ class TrayPanel extends StatelessWidget {
             : emptyCells(board, tiles, boards);
         final canEdit = store.role.canEdit;
         final suggestions = WordSuggestionsScope.maybeOf(context);
+        final showSuggestions =
+            w2.suggestWordEnabled && canEdit && suggestions != null;
+        // Suggested words wait under this heading too, so they count in
+        // it: on a phone the heading is all the resting sheet shows.
+        final suggestedCount = showSuggestions ? suggested.value : 0;
         // Words two adults put in one spot offline, shown side by side.
         final plain = [
           for (final entry in entries)
@@ -437,7 +444,7 @@ class TrayPanel extends StatelessWidget {
               entry,
         ];
         final note = entries.isEmpty
-            ? 'No words are waiting.'
+            ? (suggestedCount == 0 ? 'No words are waiting.' : null)
             : free.isEmpty
             ? 'The board is full. Remove a word to make room.'
             : null;
@@ -447,17 +454,18 @@ class TrayPanel extends StatelessWidget {
           children: [
             _Heading(
               key: headingKey,
-              count: entries.length,
+              count: entries.length + suggestedCount,
               height: headingHeight(context),
               onTap: onHeadingTap,
               expanded: expanded,
             ),
-            if (w2.suggestWordEnabled && canEdit && suggestions != null)
+            if (showSuggestions)
               SuggestionsTray(
                 suggestions: suggestions,
                 store: store,
                 boardId: boardId,
                 media: media,
+                onCount: (count) => suggested.value = count,
               ),
             if (note != null)
               Text(
@@ -585,6 +593,30 @@ class TrayPanel extends StatelessWidget {
 }
 
 /// "Needs a home · 2" in the status face: the machine's voice, counting.
+/// Holds how many suggested words [SuggestionsTray] shows, for the
+/// heading above it.
+class _SuggestedCount extends StatefulWidget {
+  const _SuggestedCount({required this.builder});
+
+  final Widget Function(BuildContext context, ValueNotifier<int> count) builder;
+
+  @override
+  State<_SuggestedCount> createState() => _SuggestedCountState();
+}
+
+class _SuggestedCountState extends State<_SuggestedCount> {
+  final ValueNotifier<int> _count = ValueNotifier(0);
+
+  @override
+  void dispose() {
+    _count.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context, _count);
+}
+
 class _Heading extends StatelessWidget {
   const _Heading({
     super.key,

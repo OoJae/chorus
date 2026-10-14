@@ -262,6 +262,68 @@ void main() {
       expect(find.text(suggestionsTitle(1)), findsNothing);
     });
 
+    testWidgets('a waiting suggestion counts in the heading', (tester) async {
+      final store = FakeBoardStore.seeded();
+      final waiting = trayEntriesFor(store, store.homeBoardId).length;
+      final suggestions = FakeWordSuggestions()..add('slide');
+      await _pump(
+        tester,
+        WordSuggestionsScope(
+          suggestions: suggestions,
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: TrayPanel(store: store, boardId: store.homeBoardId),
+            ),
+          ),
+        ),
+      );
+      final heading = find.byKey(TrayPanel.headingKey);
+      expect(
+        find.descendant(
+          of: heading,
+          matching: find.text(trayTitle(waiting + 1)),
+        ),
+        findsOneWidget,
+      );
+      if (waiting == 0) {
+        expect(find.text('No words are waiting.'), findsNothing);
+      }
+
+      await tester.tap(find.text(noThanksLabel));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: heading, matching: find.text(trayTitle(waiting))),
+        findsOneWidget,
+      );
+      if (waiting == 0) {
+        expect(find.text('No words are waiting.'), findsOneWidget);
+      }
+    });
+
+    testWidgets('a partner\'s heading counts no suggestions', (tester) async {
+      final store = FakeBoardStore.seeded()..role = CircleRole.partner;
+      final waiting = trayEntriesFor(store, store.homeBoardId).length;
+      final suggestions = FakeWordSuggestions()..add('slide');
+      await _pump(
+        tester,
+        WordSuggestionsScope(
+          suggestions: suggestions,
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: TrayPanel(store: store, boardId: store.homeBoardId),
+            ),
+          ),
+        ),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(TrayPanel.headingKey),
+          matching: find.text(trayTitle(waiting)),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('No thanks declines; a partner never sees suggestions', (
       tester,
     ) async {

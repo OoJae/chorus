@@ -1098,7 +1098,13 @@ Future<void> _ideasToTray(
 ) async {
   try {
     final added = await addIdeasToTray(store, boardId, ideas);
-    if (added == 0) return;
+    if (added == 0) {
+      ChorusHaptics.failed();
+      messenger?.showSnackBar(
+        const SnackBar(content: Text(ideasNotAddedMessage)),
+      );
+      return;
+    }
     ChorusHaptics.wordAdded();
     messenger?.showSnackBar(SnackBar(content: Text(ideasInTrayMessage(added))));
   } on Object {

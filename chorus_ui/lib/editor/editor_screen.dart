@@ -23,6 +23,7 @@ import '../contracts_modelling.dart';
 import '../contracts_suggest.dart';
 import '../features/clash/clash_guide.dart';
 import '../features/trust/presence_line.dart';
+import '../features/flags/w4.dart';
 import '../features/flags/w6.dart';
 import '../modelling/focus_words_screen.dart' show focusIdsOf;
 import '../modelling/modelling_tools.dart';
@@ -41,6 +42,12 @@ import 'word_extras.dart';
 /// Shown to a read-only partner in place of the editing hint.
 const String readOnlyMessage =
     'You can view this board. Only the family and therapist can change it.';
+
+/// Tells adults how a phone reaches the word tools, which have no key of
+/// their own there.
+String wordToolsOnPhoneHint(String childName) =>
+    "On a phone, hold the sentence strip on $childName's board for word "
+    'endings, quick phrases and the keyboard.';
 
 /// Tooltip of the action that makes a printable page of the board on show.
 const String printThisBoardLabel = 'Print a paper copy of this board';
@@ -808,6 +815,7 @@ class _EditorScreenState extends State<EditorScreen>
                   parts.grid,
                   const SizedBox(height: 24),
                   parts.replaced,
+                  _WordToolsHint(childName: _store.childName),
                 ],
               ),
             ),
@@ -952,11 +960,35 @@ class _EditorScreenState extends State<EditorScreen>
                   ),
                   const SizedBox(height: 24),
                   parts.replaced,
+                  _WordToolsHint(childName: _store.childName),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Under everything else, so it moves nothing: how a phone reaches the
+/// word tools, which have no key of their own there. Nothing when they
+/// have keys on a phone too, or are all switched off.
+class _WordToolsHint extends StatelessWidget {
+  const _WordToolsHint({required this.childName});
+
+  final String childName;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!w4AnyWordTool || w4WordToolsOnPhones) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Text(
+        wordToolsOnPhoneHint(childName),
+        style: ChorusType.body.copyWith(
+          color: ChorusColors.of(context).inkMuted,
+        ),
       ),
     );
   }

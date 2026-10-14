@@ -80,6 +80,22 @@ void main() {
       await tester.pump(const Duration(seconds: 10));
     });
 
+    testWidgets('with nobody else here it claims no glow', (tester) async {
+      final alone = FakeLiveSession();
+      setScreen(tester, const Size(400, 800));
+      await tester.pumpWidget(
+        featureApp(WordFinderScreen(store: store, live: alone)),
+      );
+      await tester.enterText(find.byType(TextField), 'help');
+      await tester.pump();
+      await tester.tap(find.text(showOnBoardLabel('Maya')).first);
+      await tester.pump();
+      expect(alone.sentPulses, [tileNamed('help').id]);
+      expect(find.text(sentNobodyHereMessage('help', 'Maya')), findsOneWidget);
+      expect(find.textContaining('is glowing'), findsNothing);
+      await tester.pump(const Duration(seconds: 10));
+    });
+
     testWidgets('says when nothing matches, and offers no glow offline', (
       tester,
     ) async {
@@ -194,6 +210,23 @@ void main() {
       await openEditor(tester);
       await tester.enterText(find.byKey(ModellingTools.findFieldKey), 'help');
       await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+      expect(find.byType(WordFinderScreen), findsOneWidget);
+      expect(find.textContaining('row 2, column 5'), findsOneWidget);
+    });
+
+    testWidgets("the bar's arrow opens the finder with the typed word", (
+      tester,
+    ) async {
+      await openEditor(tester);
+      final field = find.byKey(ModellingTools.findFieldKey);
+      await tester.enterText(field, 'help');
+      await tester.tap(
+        find.descendant(
+          of: field,
+          matching: find.byIcon(Icons.arrow_forward_rounded),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.byType(WordFinderScreen), findsOneWidget);
       expect(find.textContaining('row 2, column 5'), findsOneWidget);
