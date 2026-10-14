@@ -1,6 +1,6 @@
 # Chorus demo film: voice-over script
 
-Version 1, 14 October 2026, 14:30 UTC. Scenes 0 to 4, 6 and 7 are final. Scene 5 lists features still being built; its final wording comes at 18:00 UTC, after the device checks. Only features that pass go into it.
+Version 2, 14 October 2026, 16:35 UTC. Every scene is final. Each line of scene 5 names a feature checked on the live Cloud build on 14 October (docs/device-log.md, "late afternoon"). One phrase, "and make it glow on Maya's board", is checked on the phone before recording; if it fails, say the shorter scene 5 text instead.
 
 The film runs 1:50. The narration is about 215 words at a calm pace. Every line describes something shown in a real capture from the live app.
 
@@ -59,12 +59,13 @@ If a word comes out wrong, here is what the text does about it:
 
 ### Scene 5 · 1:16 to 1:36 · what the circle gets
 
-Draft. The final text comes at 18:00, and each line stays only if its feature passes the device check.
-
-**Say (draft):**
+**Say:**
 > You can try that clash on one device. Every change shows who made it, with one-tap undo. Ms Lee can find a word and make it glow on Maya's board, see what was modelled and what Maya said herself, and switch on scanning or a second language.
 
-**On screen:** quick cuts, one per feature: "Try a clash", the "What changed" feed with Undo, the word finder lighting a cell on the phone, "This week" with modelled and said, switch scanning, the second-language switch. Then faster cuts of the rest that passed.
+**Shorter text, only if the glow is not confirmed on the phone:**
+> You can try that clash on one device. Every change shows who made it, with one-tap undo. Ms Lee can find any word, see what was modelled and what Maya said herself, and switch on scanning or a second language.
+
+**On screen:** quick cuts, one per feature, all real captures of the live app: "Try a clash" ending with both words safe; "What changed" with Undo; the word finder; "This week" with "modelled 1 · said 1"; two-switch scanning; the Yoruba switch on the same buttons; photo ideas from a photo; a picture scene.
 
 ### Scene 6 · 1:36 to 1:44 · built on Serverpod
 
