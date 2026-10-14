@@ -4,9 +4,11 @@
 library;
 
 import 'package:chorus_server/src/generated/protocol.dart';
+import 'package:chorus_server/src/jobs/scheduled_jobs.dart';
 import 'package:chorus_server/src/modelling/focus_words.dart';
 import 'package:chorus_server/src/progress/progress_routes.dart';
 import 'package:chorus_shared/chorus_shared.dart' show weekStartOf;
+import 'package:serverpod/protocol.dart' show FutureCallEntry;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart';
 import 'package:test/test.dart';
 
@@ -319,6 +321,26 @@ void main() {
             contains('This report is not here'),
           );
         }
+      });
+    },
+  );
+
+  withServerpod(
+    'Given a server with future calls,',
+    rollbackDatabase: RollbackDatabase.disabled,
+    (sessionBuilder, endpoints) {
+      final session = sessionBuilder.build();
+
+      test('when the server starts twice then the Thursday nudge is '
+          'scheduled once, for a Thursday.', () async {
+        await scheduleJobs(session.serverpod);
+        await scheduleJobs(session.serverpod);
+        final calls = await FutureCallEntry.db.find(
+          session,
+          where: (t) => t.identifier.equals(focusNudgeJob),
+        );
+        expect(calls, hasLength(1));
+        expect(calls.single.time.weekday, DateTime.thursday);
       });
     },
   );

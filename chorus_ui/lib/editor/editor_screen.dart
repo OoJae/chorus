@@ -592,14 +592,19 @@ class _EditorScreenState extends State<EditorScreen>
             onChanged: (value) => setState(() => _modelling = value),
             labelFor: (id) =>
                 _store.tiles.where((tile) => tile.id == id).firstOrNull?.label,
-            extra: ModellingTools(
-              store: _store,
-              live: live,
-              modelling: widget.modelling,
-              speech: widget.speech,
-              boardTiles: () =>
-                  gridOf(board.id, _store.tiles, _store.boards).values,
-            ),
+            extra:
+                !(wordFinderEnabled ||
+                    speechToSymbolsEnabled ||
+                    focusWordsEnabled)
+                ? null
+                : ModellingTools(
+                    store: _store,
+                    live: live,
+                    modelling: widget.modelling,
+                    speech: widget.speech,
+                    boardTiles: () =>
+                        gridOf(board.id, _store.tiles, _store.boards).values,
+                  ),
           );
     return (
       header: _Header(

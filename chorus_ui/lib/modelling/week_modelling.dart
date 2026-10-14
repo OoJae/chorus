@@ -83,7 +83,10 @@ class ProgressReportAction extends StatelessWidget {
   final ModellingSource modelling;
 
   Future<void> _make(BuildContext context) async {
-    final link = Future<String>.sync(modelling.makeProgressReport);
+    final link = Future<String>.sync(modelling.makeProgressReport)
+      // The dialog reads the failure; this only keeps it from being
+      // reported before the dialog is up.
+      ..ignore();
     await showDialog<void>(
       context: context,
       builder: (_) => _ReportDialog(link: link, modelling: modelling),

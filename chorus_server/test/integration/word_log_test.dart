@@ -182,7 +182,8 @@ void main() {
           kept.first.receivedAt.difference(now).inSeconds.abs(),
           lessThan(60),
         );
-        // Ids and times only: the table has no column for a word.
+        // Ids, times and whether an adult modelled it only: the table has
+        // no column for a word.
         expect(WordUseRecord.t.columns.map((c) => c.columnName).toSet(), {
           'id',
           'circleSpace',
@@ -190,7 +191,9 @@ void main() {
           'boardId',
           'spokenAt',
           'receivedAt',
+          'modelled',
         });
+        expect(kept.every((r) => !r.modelled), isTrue);
       });
 
       test('when a partner or a stranger sends words then they are '
