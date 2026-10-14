@@ -63,7 +63,10 @@ void main() {
     const spot = SpotRect(0.2, 0.2, 0.3, 0.3);
 
     test('a move keeps the size and stops at the edges', () {
-      expect(spot.moved(0.1, 0.1), closeRect(const SpotRect(0.3, 0.3, 0.3, 0.3)));
+      expect(
+        spot.moved(0.1, 0.1),
+        closeRect(const SpotRect(0.3, 0.3, 0.3, 0.3)),
+      );
       expect(spot.moved(1, 1), closeRect(const SpotRect(0.7, 0.7, 0.3, 0.3)));
       expect(spot.moved(-1, -1), closeRect(const SpotRect(0, 0, 0.3, 0.3)));
     });

@@ -32,7 +32,8 @@ class SceneEndpoint extends Endpoint {
     await requireMember(session, circleSpace);
     final scenes = await Scene.db.find(
       session,
-      where: (t) => t.circleSpace.equals(circleSpace) & t.archivedAt.equals(null),
+      where: (t) =>
+          t.circleSpace.equals(circleSpace) & t.archivedAt.equals(null),
       orderBy: (t) => t.id,
     );
     if (scenes.isEmpty) return [];
@@ -64,7 +65,8 @@ class SceneEndpoint extends Endpoint {
     }
     final inUse = await Scene.db.count(
       session,
-      where: (t) => t.circleSpace.equals(circleSpace) & t.archivedAt.equals(null),
+      where: (t) =>
+          t.circleSpace.equals(circleSpace) & t.archivedAt.equals(null),
     );
     if (inUse >= maxScenesPerCircle) {
       throw CircleException(failure: CircleFailure.notAllowed);

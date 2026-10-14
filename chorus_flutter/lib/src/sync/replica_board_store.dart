@@ -14,6 +14,7 @@ import 'package:chorus_client/chorus_client.dart' hide CircleRole;
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/contracts_boards.dart';
+import 'package:chorus_ui/contracts_copies.dart' show TrayWordAdder;
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:flutter/foundation.dart';
 import 'package:serverpod_database/serverpod_database.dart';
@@ -35,7 +36,7 @@ abstract final class EditReason {
 /// renamed, archived and imported through it too ([BoardManager]).
 class ReplicaBoardStore extends BoardStore
     with EditLogStore
-    implements TileMediaWriter, BoardManager {
+    implements TileMediaWriter, BoardManager, TrayWordAdder {
   /// [circleId] is the UUID of the circle's sync space; every row of the
   /// circle carries it. [revision] is listened to and each change triggers a
   /// re-read. [onDispose] lets the owner forget the store.
@@ -223,6 +224,56 @@ class ReplicaBoardStore extends BoardStore
     }
     await refresh();
     return placed;
+  }
+
+  /// A new word in [boardId]'s "Needs a home": a tray key, never a cell,
+  /// so an adult chooses where it goes. Used by "Put back" in a board copy.
+  @override
+  Future<String> addToTray({
+    required String boardId,
+    required String label,
+    String? speech,
+    String? colorKey,
+    String? imageHash,
+  }) async {
+    _requireEditor();
+    final text = _requireLabel(label);
+    final board = uuidOf(boardId);
+    final id = UuidValue.fromString(const Uuid().v7());
+    final waiting = trayKey(idOf(id));
+    await _replica.write(circleId, (tx) async {
+      final at = _now().toUtc();
+      final spoken = _blankToNull(speech);
+      final colour = _blankToNull(colorKey);
+      final picture = _blankToNull(imageHash);
+      await Tile.db.insertRow(
+        _replica.session,
+        Tile(
+          id: id,
+          circleId: circleId,
+          boardId: board,
+          cellKey: waiting,
+          label: text,
+          speech: spoken,
+          colorKey: colour,
+          imageHash: picture,
+          noLog: false,
+          createdBy: _replica.userId,
+          createdByName: myName,
+          createdAt: at,
+        ),
+        transaction: tx,
+      );
+      await _log(tx, id, EditReason.add, at, [
+        ('label', null, text),
+        ('cellKey', null, waiting),
+        if (spoken != null) ('speech', null, spoken),
+        if (colour != null) ('colorKey', null, colour),
+        if (picture != null) ('imageHash', null, picture),
+      ], isNewTile: true);
+    });
+    await refresh();
+    return idOf(id);
   }
 
   @override

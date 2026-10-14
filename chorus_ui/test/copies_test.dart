@@ -47,9 +47,7 @@ void main() {
     expect(offersCopies(null), isFalse);
   });
 
-  testWidgets('without copies the board menu has neither item', (
-    tester,
-  ) async {
+  testWidgets('without copies the board menu has neither item', (tester) async {
     await pumpApp(tester, EditorScreen(store: store, sync: FakeSyncStatus()));
     await openMenu(tester);
     expect(find.text(saveCopyLabel), findsNothing);

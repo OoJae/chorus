@@ -336,6 +336,8 @@ class SessionWorkspace implements Workspace {
       summary: features?.summary,
       sharing: features?.sharing,
       boards: features?.boards,
+      scenes: features?.scenes,
+      copies: features?.copies,
     );
   }
 

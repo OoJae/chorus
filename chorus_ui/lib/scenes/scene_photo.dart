@@ -82,7 +82,11 @@ class _ScenePhotoState extends State<ScenePhoto> {
     );
   }
 
-  Widget _frame(BuildContext context, ImageProvider? image, ChorusColors colors) {
+  Widget _frame(
+    BuildContext context,
+    ImageProvider? image,
+    ChorusColors colors,
+  ) {
     if (image != null) _watch(image);
     return Center(
       child: AspectRatio(

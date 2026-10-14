@@ -30,7 +30,10 @@ void main() {
           unauthenticated,
         );
         await expectLater(copies.list(sessionBuilder, space), unauthenticated);
-        await expectLater(copies.get(sessionBuilder, space, 1), unauthenticated);
+        await expectLater(
+          copies.get(sessionBuilder, space, 1),
+          unauthenticated,
+        );
         await expectLater(
           copies.delete(sessionBuilder, space, 1),
           unauthenticated,

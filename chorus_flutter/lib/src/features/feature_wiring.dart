@@ -6,9 +6,14 @@ import 'package:chorus_client/chorus_client.dart' hide CircleRole;
 import 'package:chorus_ui/contracts.dart' show CircleRole, CircleRoleX;
 import 'package:chorus_ui/contracts.dart' as ui show SyncStatus;
 import 'package:chorus_ui/contracts_boards.dart';
+import 'package:chorus_ui/contracts_copies.dart' show BoardCopies;
+import 'package:chorus_ui/contracts_scenes.dart' show SceneBook;
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_wordlog.dart';
 
+import '../copies/server_board_copies.dart';
+import '../media/media_files.dart' show openMediaFiles;
+import '../scenes/server_scene_book.dart';
 import '../sharing/server_board_sharing.dart';
 import '../sync/adapters.dart';
 import '../sync/replica_board_store.dart';
@@ -26,6 +31,8 @@ class CircleFeatures {
     required this.boards,
     required this._log,
     required this._manager,
+    this.scenes,
+    this.copies,
   });
 
   /// The circle's word log on this device. Every role has one, to see
@@ -42,6 +49,14 @@ class CircleFeatures {
   /// Adding, renaming, archiving and importing boards. Null for a partner.
   final BoardManager? boards;
 
+  /// The circle's picture scenes, kept on this device. Every role has
+  /// them; only an editor changes them.
+  final SceneBook? scenes;
+
+  /// Named board copies. Every role may look; only an editor takes or
+  /// deletes one.
+  final BoardCopies? copies;
+
   final ServerWordLog _log;
   final _StoreBoardManager? _manager;
   bool _disposed = false;
@@ -53,6 +68,7 @@ class CircleFeatures {
     _disposed = true;
     _log.dispose();
     _manager?.dispose();
+    scenes?.dispose();
   }
 }
 
@@ -109,6 +125,17 @@ CircleFeatures openCircleFeatures(
     boards: manager,
     log: log,
     manager: manager,
+    scenes: ServerSceneBook(
+      calls: SceneCalls.forClient(client, space),
+      cache: NoteSceneCache(openMediaFiles(), 'scenes_${userId}_${space.uuid}'),
+      canEdit: role.canEdit,
+      sync: sync,
+    ),
+    copies: ServerBoardCopies(
+      calls: CopyCalls.forClient(client, space),
+      canEdit: role.canEdit,
+      sync: sync,
+    ),
   );
 }
 

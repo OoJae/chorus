@@ -65,7 +65,12 @@ void main() {
           'member lists it, spots in the order drawn.', () async {
         final circle = await circles.create();
         final mum = circle.guardian.session;
-        final made = await scenes.create(mum, circle.space, '  At  the park ', photo);
+        final made = await scenes.create(
+          mum,
+          circle.space,
+          '  At  the park ',
+          photo,
+        );
         expect(made.name, 'At the park');
         expect(made.imageHash, photo);
         expect(made.spots, isEmpty);
@@ -118,7 +123,10 @@ void main() {
           'Our kitchen',
         );
         expect(renamed.name, 'Our kitchen');
-        expect((await scenes.list(mum, circle.space)).single.name, 'Our kitchen');
+        expect(
+          (await scenes.list(mum, circle.space)).single.name,
+          'Our kitchen',
+        );
 
         expect(await scenes.archive(mum, circle.space, made.id), isTrue);
         expect(await scenes.archive(mum, circle.space, made.id), isFalse);

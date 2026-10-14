@@ -70,20 +70,24 @@ class BoardCopyEndpoint extends Endpoint {
       cols: board.cols,
       isHome: board.isHome,
     );
-    final words = copyWordsOf(facts.id, [
-      for (final tile in tiles)
-        TileFacts(
-          id: tile.id!.uuid,
-          boardId: tile.boardId.uuid,
-          cellKey: tile.cellKey,
-          label: tile.label,
-          speech: tile.speech,
-          colorKey: tile.colorKey,
-          imageHash: tile.imageHash,
-          archived: tile.archivedAt != null,
-          createdAt: tile.createdAt,
-        ),
-    ], [facts]);
+    final words = copyWordsOf(
+      facts.id,
+      [
+        for (final tile in tiles)
+          TileFacts(
+            id: tile.id!.uuid,
+            boardId: tile.boardId.uuid,
+            cellKey: tile.cellKey,
+            label: tile.label,
+            speech: tile.speech,
+            colorKey: tile.colorKey,
+            imageHash: tile.imageHash,
+            archived: tile.archivedAt != null,
+            createdAt: tile.createdAt,
+          ),
+      ],
+      [facts],
+    );
 
     final copy = await BoardCopy.db.insertRow(
       session,

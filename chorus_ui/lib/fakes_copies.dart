@@ -12,11 +12,8 @@ import 'contracts_copies.dart';
 
 /// A [BoardCopies] held in memory, taking copies of [store]'s boards.
 class FakeBoardCopies extends BoardCopies {
-  FakeBoardCopies(
-    this.store, {
-    this.online = true,
-    DateTime Function()? now,
-  }) : _now = now ?? DateTime.now;
+  FakeBoardCopies(this.store, {this.online = true, DateTime Function()? now})
+    : _now = now ?? DateTime.now;
 
   final BoardStore store;
   final DateTime Function() _now;

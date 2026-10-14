@@ -47,12 +47,7 @@ const String removeSpotLabel = 'Remove spot';
 /// editor. [capture] picks the photo and [media] keeps it and sends it, as
 /// the add-word sheet does; without both, no scene can be made here.
 class ScenesScreen extends StatefulWidget {
-  const ScenesScreen({
-    super.key,
-    required this.book,
-    this.media,
-    this.capture,
-  });
+  const ScenesScreen({super.key, required this.book, this.media, this.capture});
 
   final SceneBook book;
   final MediaStore? media;
@@ -145,9 +140,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
                 if (_canMake) ...[
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed: _making
-                        ? null
-                        : () => _make(fromCamera: false),
+                    onPressed: _making ? null : () => _make(fromCamera: false),
                     icon: const Icon(Icons.add_photo_alternate_rounded),
                     label: const Text(makeSceneLabel),
                   ),
@@ -329,10 +322,9 @@ class _SpotWordDialogState extends State<_SpotWordDialog> {
       return;
     }
     final speech = _speech.text.trim();
-    Navigator.of(context).pop((
-      label: _label.text.trim(),
-      speech: speech.isEmpty ? null : speech,
-    ));
+    Navigator.of(
+      context,
+    ).pop((label: _label.text.trim(), speech: speech.isEmpty ? null : speech));
   }
 
   @override
@@ -425,9 +417,9 @@ class _SceneEditorScreenState extends State<SceneEditorScreen> {
     } on Object {
       ChorusHaptics.failed();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(sceneNotSavedMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text(sceneNotSavedMessage)));
     }
   }
 

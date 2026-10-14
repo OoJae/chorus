@@ -48,10 +48,7 @@ Future<void> pumpApp(
 /// The point at fractions ([x], [y]) of the photo on screen.
 Offset onPhoto(WidgetTester tester, double x, double y) {
   final frame = tester.getRect(find.byKey(ScenePhoto.frameKey).last);
-  return Offset(
-    frame.left + x * frame.width,
-    frame.top + y * frame.height,
-  );
+  return Offset(frame.left + x * frame.width, frame.top + y * frame.height);
 }
 
 Finder tile(String label) =>
@@ -131,7 +128,10 @@ void main() {
       final log = FakeWordLog(enabled: true);
       await pumpApp(
         tester,
-        talker(scenes: FakeSceneBook(scenes: [park()]), log: log),
+        talker(
+          scenes: FakeSceneBook(scenes: [park()]),
+          log: log,
+        ),
       );
       await tester.tap(find.byKey(TalkerScenesButton.buttonKey));
       await tester.pumpAndSettle();
@@ -236,7 +236,10 @@ void main() {
 
       // Resize from its corner.
       final corner = tester.getCenter(find.byKey(SceneEditorScreen.resizeKey));
-      await tester.dragFrom(corner, onPhoto(tester, 0.1, 0.1) - onPhoto(tester, 0, 0));
+      await tester.dragFrom(
+        corner,
+        onPhoto(tester, 0.1, 0.1) - onPhoto(tester, 0, 0),
+      );
       await tester.pumpAndSettle();
       dog = book.scenes.single.spots[1];
       expect(dog.rect.x, closeTo(0.5, 0.02));
@@ -272,10 +275,7 @@ void main() {
     testWidgets('a read-only partner sees the scenes and cannot change them', (
       tester,
     ) async {
-      final book = FakeSceneBook(
-        scenes: [park()],
-        role: CircleRole.partner,
-      );
+      final book = FakeSceneBook(scenes: [park()], role: CircleRole.partner);
       await pumpApp(
         tester,
         ScenesScreen(
@@ -288,10 +288,7 @@ void main() {
       expect(find.text(scenesReadOnlyMessage), findsOneWidget);
       await tester.tap(find.text('At the park'));
       await tester.pumpAndSettle();
-      await tester.dragFrom(
-        onPhoto(tester, 0.6, 0.05),
-        const Offset(40, 40),
-      );
+      await tester.dragFrom(onPhoto(tester, 0.6, 0.05), const Offset(40, 40));
       await tester.pumpAndSettle();
       expect(find.text('What does this spot say?'), findsNothing);
       expect(book.scenes.single.spots, hasLength(2));

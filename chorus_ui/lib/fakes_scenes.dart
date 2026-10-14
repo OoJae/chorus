@@ -69,9 +69,7 @@ class FakeSceneBook extends SceneBook {
   );
 
   void _replace(Scene scene) {
-    _scenes = [
-      for (final held in _scenes) held.id == scene.id ? scene : held,
-    ];
+    _scenes = [for (final held in _scenes) held.id == scene.id ? scene : held];
     notifyListeners();
   }
 

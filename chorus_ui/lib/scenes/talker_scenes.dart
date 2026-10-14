@@ -154,7 +154,8 @@ Future<void> openScenePicker(
   return Navigator.of(context).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
-      builder: (_) => ScenePickerScreen(book: book, media: media, onWord: onWord),
+      builder: (_) =>
+          ScenePickerScreen(book: book, media: media, onWord: onWord),
     ),
   );
 }
@@ -396,10 +397,7 @@ class _SceneScreenState extends State<SceneScreen> {
                               button: true,
                               label: scene.spots[i].label,
                               onTap: () => _tap(
-                                spotRectIn(
-                                  scene.spots[i].rect,
-                                  size,
-                                ).center,
+                                spotRectIn(scene.spots[i].rect, size).center,
                                 size,
                               ),
                               child: SpotOutline(
