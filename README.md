@@ -149,6 +149,3 @@ Counts are from 14 October 2026. The server suite runs on an embedded PostgreSQL
 - **Starter board:** the 36 words of the Universal Core vocabulary, created by the Center for Literacy and Disability Studies, University of North Carolina at Chapel Hill, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Source: https://www.project-core.com/. Chorus adapted it as colour-coded text tiles, without the original symbols, and shares the adapted board under the same licence. Chorus is not affiliated with or endorsed by the Center or the University. See [STARTER_BOARD_LICENSE.md](chorus_shared/STARTER_BOARD_LICENSE.md) and the in-app [Credits screen](chorus_ui/lib/credits/credits_screen.dart).
 - **Browser database files:** unmodified release files of the `sqlite3` and `sqlite_async` Dart packages. No symbol set is bundled.
 
-## AI disclosure
-
-Chorus was built with Claude Code, Anthropic's AI coding tool. TODO(owner): one or two sentences, in your own words, on what it did and what you did by hand. [The optional photo-to-word suggestion calls Anthropic's Claude API; an adult approves every suggestion.]
