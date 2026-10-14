@@ -65,10 +65,7 @@ void main() {
         "Dad renamed 'cup' to 'mug'",
       );
       expect(activityLine(entry(ActivityKind.putAway)), "Dad put 'cup' away");
-      expect(
-        activityLine(entry(ActivityKind.sitterTap)),
-        "Sitter: 'cup'",
-      );
+      expect(activityLine(entry(ActivityKind.sitterTap)), "Sitter: 'cup'");
       expect(sinceLastLookedText(1), 'Since you last looked: 1 change');
       expect(sinceLastLookedText(3), 'Since you last looked: 3 changes');
       expect(initialOf('ms rivera'), 'M');
@@ -116,9 +113,7 @@ void main() {
   });
 
   group('What changed', () {
-    testWidgets('shows lines newest first and undoes a rename', (
-      tester,
-    ) async {
+    testWidgets('shows lines newest first and undoes a rename', (tester) async {
       final store = FakeActivityStore.seeded(leaveEmpty: {(5, 5)});
       await store.addTile(
         boardId: store.homeBoardId,

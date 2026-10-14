@@ -12,18 +12,17 @@ TileFacts tile(
   bool archived = false,
   String? speech,
   DateTime? at,
-}) =>
-    TileFacts(
-      id: id,
-      boardId: board,
-      cellKey: cellKey ?? placedKey(board, 0, 0),
-      label: label,
-      speech: speech,
-      archived: archived,
-      createdBy: 'dad',
-      createdByName: 'Dad',
-      createdAt: at ?? DateTime.utc(2026, 10, 14, 9),
-    );
+}) => TileFacts(
+  id: id,
+  boardId: board,
+  cellKey: cellKey ?? placedKey(board, 0, 0),
+  label: label,
+  speech: speech,
+  archived: archived,
+  createdBy: 'dad',
+  createdByName: 'Dad',
+  createdAt: at ?? DateTime.utc(2026, 10, 14, 9),
+);
 
 EditFacts edit(
   String id,
@@ -33,18 +32,17 @@ EditFacts edit(
   String? newValue, {
   String reason = 'edit',
   DateTime? at,
-}) =>
-    EditFacts(
-      id: id,
-      tileId: tileId,
-      prop: prop,
-      oldValue: oldValue,
-      newValue: newValue,
-      reason: reason,
-      actorId: 'rivera',
-      actorName: 'Ms Rivera',
-      editedAt: at ?? DateTime.utc(2026, 10, 14, 10),
-    );
+}) => EditFacts(
+  id: id,
+  tileId: tileId,
+  prop: prop,
+  oldValue: oldValue,
+  newValue: newValue,
+  reason: reason,
+  actorId: 'rivera',
+  actorName: 'Ms Rivera',
+  editedAt: at ?? DateTime.utc(2026, 10, 14, 10),
+);
 
 void main() {
   test('a new word is one line, its first edits folded in', () {
@@ -52,8 +50,7 @@ void main() {
       [tile(cup, 'cup')],
       [
         edit('e1', cup, 'label', null, 'cup', reason: 'add'),
-        edit('e2', cup, 'cellKey', null, placedKey(board, 0, 0),
-            reason: 'add'),
+        edit('e2', cup, 'cellKey', null, placedKey(board, 0, 0), reason: 'add'),
       ],
     );
     expect(entries, hasLength(1));
@@ -66,17 +63,28 @@ void main() {
       [tile(cup, 'mug')],
       [
         edit('e0', cup, 'label', null, 'cup', reason: 'add'),
-        edit('e1', cup, 'label', 'cup', 'mug',
-            at: DateTime.utc(2026, 10, 14, 10)),
-        edit('e2', cup, 'colorKey', null, 'noun',
-            at: DateTime.utc(2026, 10, 14, 11)),
+        edit(
+          'e1',
+          cup,
+          'label',
+          'cup',
+          'mug',
+          at: DateTime.utc(2026, 10, 14, 10),
+        ),
+        edit(
+          'e2',
+          cup,
+          'colorKey',
+          null,
+          'noun',
+          at: DateTime.utc(2026, 10, 14, 11),
+        ),
       ],
     );
-    expect([for (final e in entries) e.kind], [
-      ActivityKind.colour,
-      ActivityKind.renamed,
-      ActivityKind.added,
-    ]);
+    expect(
+      [for (final e in entries) e.kind],
+      [ActivityKind.colour, ActivityKind.renamed, ActivityKind.added],
+    );
   });
 
   test('putting a word away keeps the cell it freed', () {
@@ -85,10 +93,24 @@ void main() {
     final entries = activityOf(
       [tile(cake, 'cake', cellKey: trayKey(cake), archived: true)],
       [
-        edit('e1', cake, 'archivedAt', null, at.toIso8601String(),
-            reason: 'archive', at: at),
-        edit('e2', cake, 'cellKey', old, trayKey(cake),
-            reason: 'archive', at: at),
+        edit(
+          'e1',
+          cake,
+          'archivedAt',
+          null,
+          at.toIso8601String(),
+          reason: 'archive',
+          at: at,
+        ),
+        edit(
+          'e2',
+          cake,
+          'cellKey',
+          old,
+          trayKey(cake),
+          reason: 'archive',
+          at: at,
+        ),
       ],
     );
     expect(entries.first.kind, ActivityKind.putAway);
@@ -124,8 +146,7 @@ void main() {
       [tile(cup, 'cup')],
       [edit('e0', cup, 'label', null, 'cup', reason: 'add')],
     );
-    expect(undoPlanOf(entries.single, [tile(cup, 'cup')]),
-        const UndoPutAway());
+    expect(undoPlanOf(entries.single, [tile(cup, 'cup')]), const UndoPutAway());
     expect(
       undoPlanOf(entries.single, [tile(cup, 'cup', archived: true)]),
       isNull,
@@ -149,8 +170,14 @@ void main() {
     final entries = activityOf(
       [tile(cup, 'cup')],
       [
-        edit('e1', cup, 'cellKey', trayKey(cup), placedKey(board, 0, 0),
-            reason: 'resolve'),
+        edit(
+          'e1',
+          cup,
+          'cellKey',
+          trayKey(cup),
+          placedKey(board, 0, 0),
+          reason: 'resolve',
+        ),
       ],
     );
     final placed = entries.firstWhere((e) => e.kind == ActivityKind.placed);

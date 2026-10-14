@@ -75,7 +75,7 @@ void main() {
           final html = await response.readAsString();
           expect(html, isNot(contains('<body data-report')));
           expect(html, isNot(contains('data-cell="')));
-        expect(html, isNot(contains('fetch(')));
+          expect(html, isNot(contains('fetch(')));
           final csp = response.headers['content-security-policy']!.single;
           expect(csp, isNot(contains('connect-src')));
           expect(await recordSitterTap(session, token, '0:0'), isFalse);
