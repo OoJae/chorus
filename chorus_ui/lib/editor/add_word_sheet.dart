@@ -8,11 +8,15 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'photo_ideas_strip.dart';
+
 import '../brand/haptics.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_media.dart';
+import '../contracts_photo_ideas.dart';
 import '../contracts_suggest.dart';
+import '../features/flags/w2.dart' as w2;
 
 /// Shown when the cell was filled between opening the sheet and saving.
 const String spotTakenMessage =
@@ -163,6 +167,10 @@ Future<void> showAddWordSheet(
       capture: capture,
       suggester: suggester,
       onSubmit: (draft) => Navigator.of(sheetContext).pop(draft),
+      onAddIdeas: (ideas) {
+        Navigator.of(sheetContext).pop();
+        unawaited(_ideasToTray(store, boardId, ideas, messenger));
+      },
     ),
   );
   if (draft == null) return;
@@ -226,7 +234,12 @@ class WordForm extends StatefulWidget {
     this.capture,
     this.speaker,
     this.suggester,
+    this.onAddIdeas,
   });
+
+  /// Puts every idea for the photo under "Needs a home"; null leaves the
+  /// button out.
+  final ValueChanged<List<WordIdea>>? onAddIdeas;
 
   final String title;
   final String submitLabel;
@@ -277,6 +290,9 @@ class _WordFormState extends State<WordForm> {
   bool _suggesting = false;
   WordIdea? _idea;
   String? _suggestMessage;
+
+  /// Several ideas for [_newImage], when the suggester offers them.
+  List<WordIdea> _ideas = const [];
 
   /// A clip recorded in this sheet.
   Uint8List? _newClip;
@@ -413,6 +429,7 @@ class _WordFormState extends State<WordForm> {
       _removeImage = false;
       _photoMessage = null;
       _idea = null;
+      _ideas = const [];
       _suggestMessage = null;
     });
   }
@@ -422,6 +439,7 @@ class _WordFormState extends State<WordForm> {
     _removeImage = widget.initial?.imageHash != null;
     _photoMessage = null;
     _idea = null;
+    _ideas = const [];
     _suggestMessage = null;
   });
 
@@ -436,8 +454,13 @@ class _WordFormState extends State<WordForm> {
     setState(() {
       _suggesting = true;
       _idea = null;
+      _ideas = const [];
       _suggestMessage = null;
     });
+    if (w2.photoIdeasEnabled && suggester is PhotoIdeasSuggester) {
+      await _suggestIdeas(suggester as PhotoIdeasSuggester, photo);
+      return;
+    }
     WordIdea? idea;
     try {
       idea = await suggester.fromPhoto(photo);
@@ -452,6 +475,24 @@ class _WordFormState extends State<WordForm> {
       if (stale) return;
       _idea = idea;
       _suggestMessage = idea == null ? noSuggestionMessage : null;
+    });
+  }
+
+  /// Asks for several ideas; whatever goes wrong, the adult types the word.
+  Future<void> _suggestIdeas(PhotoIdeasSuggester ideas, Uint8List photo) async {
+    List<WordIdea> found;
+    try {
+      found = await ideas.ideasFromPhoto(photo);
+    } on Object {
+      found = const [];
+    }
+    if (!mounted) return;
+    final stale = !identical(photo, _newImage);
+    setState(() {
+      _suggesting = false;
+      if (stale) return;
+      _ideas = found;
+      _suggestMessage = found.isEmpty ? noSuggestionMessage : null;
     });
   }
 
@@ -500,7 +541,10 @@ class _WordFormState extends State<WordForm> {
                   _suggesting ? 'Looking at the photo' : suggestFromPhotoLabel,
                 ),
               ),
-              if (idea == null && message == null && !_suggesting)
+              if (idea == null &&
+                  _ideas.isEmpty &&
+                  message == null &&
+                  !_suggesting)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
@@ -527,6 +571,14 @@ class _WordFormState extends State<WordForm> {
                       ),
                   ],
                 ),
+              ),
+            if (_ideas.isNotEmpty)
+              PhotoIdeasStrip(
+                ideas: _ideas,
+                onUse: (idea) => _useIdea(idea, idea.label),
+                onAddAll: widget.onAddIdeas == null || _saving
+                    ? null
+                    : () => widget.onAddIdeas!(_ideas),
               ),
             if (message != null)
               Padding(
@@ -1034,5 +1086,23 @@ class _Swatch extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Puts photo [ideas] under "Needs a home" of [boardId] and says so.
+Future<void> _ideasToTray(
+  BoardStore store,
+  String boardId,
+  List<WordIdea> ideas,
+  ScaffoldMessengerState? messenger,
+) async {
+  try {
+    final added = await addIdeasToTray(store, boardId, ideas);
+    if (added == 0) return;
+    ChorusHaptics.wordAdded();
+    messenger?.showSnackBar(SnackBar(content: Text(ideasInTrayMessage(added))));
+  } on Object {
+    ChorusHaptics.failed();
+    messenger?.showSnackBar(const SnackBar(content: Text(wordNotAddedMessage)));
   }
 }

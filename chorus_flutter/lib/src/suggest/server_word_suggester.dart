@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show SyncState, SyncStatus;
+import 'package:chorus_ui/contracts_photo_ideas.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
 import 'package:flutter/foundation.dart';
 
@@ -23,13 +24,14 @@ import '../media/media_hash.dart';
 /// service not set up, the day's budget used, a photo that cannot be read.
 /// When the server says the service is not set up, [available] turns false
 /// for as long as this object lives, so the offer is not made again.
-class ServerWordSuggester implements WordSuggester {
+class ServerWordSuggester implements WordSuggester, PhotoIdeasSuggester {
   /// [upload] puts verified image bytes on the server under their hash.
   /// [suggest] is `client.suggest.fromPhoto` for the circle. [shrink]
   /// exists so tests can skip the image work.
   ServerWordSuggester({
     required this._upload,
     required this._suggest,
+    this._ideas,
     this._sync,
     Future<Uint8List> Function(Uint8List bytes)? shrink,
     this.locale = 'en',
@@ -50,12 +52,19 @@ class ServerWordSuggester implements WordSuggester {
     upload: upload,
     suggest: (hash, locale) =>
         client.suggest.fromPhoto(circleSpace, hash, locale),
+    ideas: (hash, locale) =>
+        client.suggest.ideasFromPhoto(circleSpace, hash, locale),
     sync: sync,
     locale: locale,
   );
 
   final Future<void> Function(String hash, Uint8List bytes) _upload;
   final Future<WordSuggestion> Function(String hash, String locale) _suggest;
+
+  /// `client.suggest.ideasFromPhoto` for the circle; null asks for one word
+  /// only.
+  final Future<List<WordSuggestion>> Function(String hash, String locale)?
+  _ideas;
   final SyncStatus? _sync;
   final Future<Uint8List> Function(Uint8List bytes) _shrink;
 
@@ -119,6 +128,47 @@ class ServerWordSuggester implements WordSuggester {
           if (other.trim().isNotEmpty && other.trim() != label) other.trim(),
       ],
     );
+  }
+
+  /// Several ideas for [photo], or none: every failure, a timeout
+  /// included, is an empty list, as [fromPhoto] answers null.
+  @override
+  Future<List<WordIdea>> ideasFromPhoto(Uint8List photo) async {
+    final ideas = _ideas;
+    if (ideas == null) {
+      final one = await fromPhoto(photo);
+      return one == null ? const [] : [one];
+    }
+    if (_disposed || !_available.value) return const [];
+    try {
+      final jpeg = await _shrink(photo);
+      final hash = sha256Hex(jpeg);
+      final answer = await () async {
+        await _upload(hash, jpeg);
+        return ideas(hash, locale);
+      }().timeout(timeout);
+      return [
+        for (final idea in answer)
+          if (idea.label.trim().isNotEmpty)
+            WordIdea(
+              label: idea.label.trim(),
+              speech: idea.speech.trim() == idea.label.trim()
+                  ? ''
+                  : idea.speech.trim(),
+              colorKey: idea.colorKey.trim().isEmpty
+                  ? null
+                  : idea.colorKey.trim(),
+            ),
+      ];
+    } on SuggestException catch (refusal) {
+      if (refusal.failure == SuggestFailure.notConfigured) {
+        _notConfigured = true;
+        _update();
+      }
+      return const [];
+    } catch (_) {
+      return const [];
+    }
   }
 
   void dispose() {

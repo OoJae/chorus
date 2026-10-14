@@ -17,3 +17,8 @@ const bool suggestWordEnabled = true;
 
 /// "People in this circle", with "Remove from circle" for a guardian.
 const bool circleMembersEnabled = true;
+
+/// Several ideas for one photo, as small word tiles coloured by part of
+/// speech, with "Add all to Needs a home". Off, the sheet asks for one word
+/// as before.
+const bool photoIdeasEnabled = true;
