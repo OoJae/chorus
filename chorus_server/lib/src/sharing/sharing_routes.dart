@@ -7,6 +7,7 @@ import '../obf/obf_export.dart';
 import '../printing/print_page.dart';
 import '../printing/print_routes.dart';
 import '../printing/snapshots.dart';
+import '../voice/circle_voices.dart';
 import 'view_only_page.dart';
 
 /// Status for a token that never existed.
@@ -52,9 +53,18 @@ Future<Response> viewOnlyResponse(Session session, String token) async {
     // Checked when it was published, so this means the row was damaged.
     return sharedPageUnknown();
   }
+  // The circle's chosen speed and pitch, as on every device of it.
+  final voice = voiceSettingOf(
+    await findCircleVoice(session, snapshot.circleSpace),
+  );
   return Response.ok(
     body: Body.fromString(
-      renderViewOnlyPage(board, expiresAt: snapshot.expiresAt),
+      renderViewOnlyPage(
+        board,
+        expiresAt: snapshot.expiresAt,
+        rate: voice.rate,
+        pitch: voice.pitch,
+      ),
       mimeType: MimeType.html,
     ),
     headers: viewOnlyHeaders,

@@ -1,0 +1,7 @@
+### A circle's voice as the app sees it: see CircleVoice.
+class: VoiceSetting
+fields:
+  voiceName: String?
+  rate: double
+  pitch: double
+  changedAt: DateTime?

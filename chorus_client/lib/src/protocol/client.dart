@@ -29,6 +29,8 @@ import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
 import 'package:chorus_client/src/protocol/summary/week_report.dart'
     as _iqxiegs0;
+import 'package:chorus_client/src/protocol/voice/voice_setting.dart'
+    as _iqh4kkre;
 import 'package:chorus_client/src/protocol/wordlog/word_log_status.dart'
     as _izr7qg8x;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
@@ -652,6 +654,45 @@ class EndpointSummary extends _isc.EndpointRef {
   );
 }
 
+/// The voice, speed and pitch the child speaks with, the same on every
+/// device of the circle.
+/// {@category Endpoint}
+class EndpointVoice extends _isc.EndpointRef {
+  EndpointVoice(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'voice';
+
+  /// [circleSpace]'s voice: the defaults when nobody has chosen one. Any
+  /// member may read it.
+  _ida.Future<_iqh4kkre.VoiceSetting> getVoice(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<_iqh4kkre.VoiceSetting>(
+        'voice',
+        'getVoice',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Chooses [circleSpace]'s voice. [voiceName] null is each device's own
+  /// everyday voice; [rate] and [pitch] are kept within what every engine
+  /// accepts. Editors only: a read-only partner gets [CircleException]
+  /// with `notAllowed`.
+  _ida.Future<_iqh4kkre.VoiceSetting> setVoice(
+    _isc.UuidValue circleSpace,
+    String? voiceName,
+    double rate,
+    double pitch,
+  ) => caller.callServerEndpoint<_iqh4kkre.VoiceSetting>(
+    'voice',
+    'setVoice',
+    {
+      'circleSpace': circleSpace,
+      'voiceName': voiceName,
+      'rate': rate,
+      'pitch': pitch,
+    },
+  );
+}
+
 /// The opt-in word log: which tile the child's board spoke, and when.
 ///
 /// Off until a guardian turns it on for the circle. It holds tile ids,
@@ -784,6 +825,7 @@ class Client extends _isc.ServerpodClientShared {
     sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
+    voice = EndpointVoice(this);
     wordLog = EndpointWordLog(this);
     modules = Modules(this);
   }
@@ -810,6 +852,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointSummary summary;
 
+  late final EndpointVoice voice;
+
   late final EndpointWordLog wordLog;
 
   late final Modules modules;
@@ -827,6 +871,7 @@ class Client extends _isc.ServerpodClientShared {
     'sharing': sharing,
     'suggest': suggest,
     'summary': summary,
+    'voice': voice,
     'wordLog': wordLog,
   };
 

@@ -10,6 +10,7 @@ import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
+import 'package:chorus_ui/contracts_voice.dart';
 import 'package:chorus_ui/contracts_wordlog.dart';
 
 import '../src/live/chorus_live_session.dart';
@@ -78,6 +79,7 @@ class CircleServices {
     this.summary,
     this.sharing,
     this.boards,
+    this.voice,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -123,6 +125,10 @@ class CircleServices {
   /// a screen holding the store may use that instead; both write the same
   /// replica.
   final BoardManager? boards;
+
+  /// The circle's voice, speed and pitch, kept on this device. Null leaves
+  /// "Voice" out of "This device".
+  final VoiceChoice? voice;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

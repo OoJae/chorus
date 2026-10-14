@@ -35,6 +35,7 @@ import '../printing/printing_endpoint.dart' as _i0tflb56;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
+import '../voice/voice_endpoint.dart' as _ik7xlzml;
 import '../wordlog/word_log_endpoint.dart' as _ivqq1yo7;
 export 'future_calls.dart' show ServerpodFutureCallsGetter;
 
@@ -106,6 +107,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'summary',
+          null,
+        ),
+      'voice': _ik7xlzml.VoiceEndpoint()
+        ..initialize(
+          server,
+          'voice',
           null,
         ),
       'wordLog': _ivqq1yo7.WordLogEndpoint()
@@ -769,6 +776,68 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['circleSpace'],
                     params['weekStart'],
+                  ),
+        ),
+      },
+    );
+    connectors['voice'] = _is.EndpointConnector(
+      name: 'voice',
+      endpoint: endpoints['voice']!,
+      methodConnectors: {
+        'getVoice': _is.MethodConnector(
+          name: 'getVoice',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['voice'] as _ik7xlzml.VoiceEndpoint).getVoice(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'setVoice': _is.MethodConnector(
+          name: 'setVoice',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'voiceName': _is.ParameterDescription(
+              name: 'voiceName',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'rate': _is.ParameterDescription(
+              name: 'rate',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'pitch': _is.ParameterDescription(
+              name: 'pitch',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['voice'] as _ik7xlzml.VoiceEndpoint).setVoice(
+                    session,
+                    params['circleSpace'],
+                    params['voiceName'],
+                    params['rate'],
+                    params['pitch'],
                   ),
         ),
       },

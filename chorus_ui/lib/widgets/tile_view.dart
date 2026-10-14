@@ -58,7 +58,11 @@ class TileView extends StatelessWidget {
     this.labelSize,
     this.haptic,
     this.pictures,
+    this.semanticLabel,
   });
+
+  /// What a screen reader says for the tile. Null is its label.
+  final String? semanticLabel;
 
   /// Font size of the label. Null sizes this tile by itself.
   final double? labelSize;
@@ -158,7 +162,7 @@ class TileView extends StatelessWidget {
           if (onTap != null) {
             face = PressableSurface(
               onTap: onTap,
-              semanticLabel: tile.label,
+              semanticLabel: semanticLabel ?? tile.label,
               color: colors.fill,
               edgeColor: colors.edge,
               foregroundColor: tileLabelInk,

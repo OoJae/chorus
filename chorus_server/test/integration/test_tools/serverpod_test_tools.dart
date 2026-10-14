@@ -32,6 +32,8 @@ import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
     as _iknl7ub9;
 import 'package:chorus_server/src/generated/summary/week_report.dart'
     as _ih0fhglb;
+import 'package:chorus_server/src/generated/voice/voice_setting.dart'
+    as _iow2zem9;
 import 'package:chorus_server/src/generated/wordlog/word_log_status.dart'
     as _i5jq7z5w;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
@@ -197,6 +199,8 @@ class TestEndpoints {
 
   late final _SummaryEndpoint summary;
 
+  late final _VoiceEndpoint voice;
+
   late final _WordLogEndpoint wordLog;
 }
 
@@ -248,6 +252,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     summary = _SummaryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    voice = _VoiceEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1250,6 +1258,87 @@ class _SummaryEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ih0fhglb.WeekReport>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _VoiceEndpoint {
+  _VoiceEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_iow2zem9.VoiceSetting> getVoice(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'voice',
+            method: 'getVoice',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'voice',
+          methodName: 'getVoice',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iow2zem9.VoiceSetting>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_iow2zem9.VoiceSetting> setVoice(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    String? voiceName,
+    double rate,
+    double pitch,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'voice',
+            method: 'setVoice',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'voice',
+          methodName: 'setVoice',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'voiceName': voiceName,
+            'rate': rate,
+            'pitch': pitch,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iow2zem9.VoiceSetting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

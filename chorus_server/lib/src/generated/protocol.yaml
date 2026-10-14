@@ -35,6 +35,9 @@ suggest:
   - fromPhoto:
 summary:
   - week:
+voice:
+  - getVoice:
+  - setVoice:
 wordLog:
   - status:
   - setEnabled:

@@ -51,6 +51,8 @@ import 'suggest/word_suggestion.dart' as _ifctwajg;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/weekly_summary.dart' as _ikaxfpae;
 import 'summary/word_tally.dart' as _i6roonjc;
+import 'voice/circle_voice.dart' as _iyiv61tv;
+import 'voice/voice_setting.dart' as _iex30usi;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_setting.dart' as _i8exouxb;
@@ -85,6 +87,8 @@ export 'suggest/word_suggestion.dart';
 export 'summary/week_report.dart';
 export 'summary/weekly_summary.dart';
 export 'summary/word_tally.dart';
+export 'voice/circle_voice.dart';
+export 'voice/voice_setting.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_setting.dart';
@@ -293,6 +297,74 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'spaceUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'circle_voice',
+      dartName: 'CircleVoice',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'voiceName',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'rate',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'pitch',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'circle_voice_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
             ),
           ],
           type: 'btree',
@@ -1192,6 +1264,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i6roonjc.WordTally) {
       return _i6roonjc.WordTally.fromJson(data) as T;
     }
+    if (t == _iyiv61tv.CircleVoice) {
+      return _iyiv61tv.CircleVoice.fromJson(data) as T;
+    }
+    if (t == _iex30usi.VoiceSetting) {
+      return _iex30usi.VoiceSetting.fromJson(data) as T;
+    }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
     }
@@ -1301,6 +1379,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_i6roonjc.WordTally?>()) {
       return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_iyiv61tv.CircleVoice?>()) {
+      return (data != null ? _iyiv61tv.CircleVoice.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iex30usi.VoiceSetting?>()) {
+      return (data != null ? _iex30usi.VoiceSetting.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
           as T;
@@ -1405,6 +1489,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iaf8iewd.WeekReport => 'WeekReport',
       _ikaxfpae.WeeklySummary => 'WeeklySummary',
       _i6roonjc.WordTally => 'WordTally',
+      _iyiv61tv.CircleVoice => 'CircleVoice',
+      _iex30usi.VoiceSetting => 'VoiceSetting',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i8exouxb.WordLogSetting => 'WordLogSetting',
@@ -1481,6 +1567,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'WeeklySummary';
       case _i6roonjc.WordTally():
         return 'WordTally';
+      case _iyiv61tv.CircleVoice():
+        return 'CircleVoice';
+      case _iex30usi.VoiceSetting():
+        return 'VoiceSetting';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -1609,6 +1699,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'WordTally') {
       return deserialize<_i6roonjc.WordTally>(data['data']);
     }
+    if (dataClassName == 'CircleVoice') {
+      return deserialize<_iyiv61tv.CircleVoice>(data['data']);
+    }
+    if (dataClassName == 'VoiceSetting') {
+      return deserialize<_iex30usi.VoiceSetting>(data['data']);
+    }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);
     }
@@ -1699,6 +1795,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _inv1atzh.AiUsage.t;
       case _ikaxfpae.WeeklySummary:
         return _ikaxfpae.WeeklySummary.t;
+      case _iyiv61tv.CircleVoice:
+        return _iyiv61tv.CircleVoice.t;
       case _i8exouxb.WordLogSetting:
         return _i8exouxb.WordLogSetting.t;
       case _iqz5pl6l.WordUseRecord:

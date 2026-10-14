@@ -43,6 +43,7 @@ import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/word_tally.dart' as _i6roonjc;
+import 'voice/voice_setting.dart' as _iex30usi;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_status.dart' as _i5lyi3mq;
@@ -67,6 +68,7 @@ export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
 export 'summary/week_report.dart';
 export 'summary/word_tally.dart';
+export 'voice/voice_setting.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_status.dart';
@@ -561,6 +563,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _i6roonjc.WordTally) {
       return _i6roonjc.WordTally.fromJson(data) as T;
     }
+    if (t == _iex30usi.VoiceSetting) {
+      return _iex30usi.VoiceSetting.fromJson(data) as T;
+    }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
     }
@@ -637,6 +642,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _isc.getType<_i6roonjc.WordTally?>()) {
       return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_iex30usi.VoiceSetting?>()) {
+      return (data != null ? _iex30usi.VoiceSetting.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
@@ -723,6 +731,7 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _ifctwajg.WordSuggestion => 'WordSuggestion',
       _iaf8iewd.WeekReport => 'WeekReport',
       _i6roonjc.WordTally => 'WordTally',
+      _iex30usi.VoiceSetting => 'VoiceSetting',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i5lyi3mq.WordLogStatus => 'WordLogStatus',
@@ -781,6 +790,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'WeekReport';
       case _i6roonjc.WordTally():
         return 'WordTally';
+      case _iex30usi.VoiceSetting():
+        return 'VoiceSetting';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -876,6 +887,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordTally') {
       return deserialize<_i6roonjc.WordTally>(data['data']);
+    }
+    if (dataClassName == 'VoiceSetting') {
+      return deserialize<_iex30usi.VoiceSetting>(data['data']);
     }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);
