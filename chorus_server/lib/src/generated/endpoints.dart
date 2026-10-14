@@ -15,6 +15,8 @@ import 'package:chorus_server/src/generated/circles/circle_role.dart'
 import 'package:chorus_server/src/generated/future_calls.dart' as _i1wquigt;
 import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
 import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
+import 'package:chorus_server/src/generated/modelling/focus_word_info.dart'
+    as _iwth5r5i;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -31,7 +33,9 @@ import '../circles/status_endpoint.dart' as _iy5k9ngi;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
+import '../modelling/focus_endpoint.dart' as _ifqi0p3y;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
+import '../progress/progress_endpoint.dart' as _i88xesu5;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
@@ -84,10 +88,22 @@ class Endpoints extends _is.EndpointDispatch {
           'media',
           null,
         ),
+      'focus': _ifqi0p3y.FocusEndpoint()
+        ..initialize(
+          server,
+          'focus',
+          null,
+        ),
       'printing': _i0tflb56.PrintingEndpoint()
         ..initialize(
           server,
           'printing',
+          null,
+        ),
+      'progress': _i88xesu5.ProgressEndpoint()
+        ..initialize(
+          server,
+          'progress',
           null,
         ),
       'sharing': _ifnilofz.SharingEndpoint()
@@ -580,6 +596,73 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['focus'] = _is.EndpointConnector(
+      name: 'focus',
+      endpoint: endpoints['focus']!,
+      methodConnectors: {
+        'words': _is.MethodConnector(
+          name: 'words',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['focus'] as _ifqi0p3y.FocusEndpoint).words(
+                session,
+                params['circleSpace'],
+              ),
+        ),
+        'setWords': _is.MethodConnector(
+          name: 'setWords',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'pins': _is.ParameterDescription(
+              name: 'pins',
+              type: _is.getType<List<_iwth5r5i.FocusWordInfo>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['focus'] as _ifqi0p3y.FocusEndpoint).setWords(
+                    session,
+                    params['circleSpace'],
+                    params['pins'],
+                  ),
+        ),
+        'nudge': _is.MethodConnector(
+          name: 'nudge',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['focus'] as _ifqi0p3y.FocusEndpoint).nudge(
+                session,
+                params['circleSpace'],
+              ),
+        ),
+      },
+    );
     connectors['printing'] = _is.EndpointConnector(
       name: 'printing',
       endpoint: endpoints['printing']!,
@@ -624,6 +707,50 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['printing'] as _i0tflb56.PrintingEndpoint).pageUrl(
+                    session,
+                    params['token'],
+                  ),
+        ),
+      },
+    );
+    connectors['progress'] = _is.EndpointConnector(
+      name: 'progress',
+      endpoint: endpoints['progress']!,
+      methodConnectors: {
+        'makeReport': _is.MethodConnector(
+          name: 'makeReport',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['progress'] as _i88xesu5.ProgressEndpoint)
+                  .makeReport(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'reportUrl': _is.MethodConnector(
+          name: 'reportUrl',
+          params: {
+            'token': _is.ParameterDescription(
+              name: 'token',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['progress'] as _i88xesu5.ProgressEndpoint)
+                  .reportUrl(
                     session,
                     params['token'],
                   ),
@@ -841,6 +968,31 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint).record(
+                    session,
+                    params['circleSpace'],
+                    params['uses'],
+                  ),
+        ),
+        'recordModelled': _is.MethodConnector(
+          name: 'recordModelled',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'uses': _is.ParameterDescription(
+              name: 'uses',
+              type: _is.getType<List<_i1jjj2rd.WordUseEntry>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint)
+                  .recordModelled(
                     session,
                     params['circleSpace'],
                     params['uses'],

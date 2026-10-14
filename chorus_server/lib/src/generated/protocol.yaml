@@ -24,9 +24,16 @@ media:
   - requestUpload:
   - confirmUpload:
   - downloadUrls:
+focus:
+  - words:
+  - setWords:
+  - nudge:
 printing:
   - publishBoard:
   - pageUrl:
+progress:
+  - makeReport:
+  - reportUrl:
 sharing:
   - publishViewOnly:
   - withdraw:
@@ -39,4 +46,5 @@ wordLog:
   - status:
   - setEnabled:
   - record:
+  - recordModelled:
   - deleteAll:

@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
+import 'package:chorus_server/src/generated/modelling/focus_word_info.dart'
+    as _iwth5r5i;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
 import 'package:serverpod/protocol.dart' as _isp;
@@ -41,13 +43,21 @@ import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/media_object.dart' as _i87lco0i;
 import 'media/upload_ticket.dart' as _illp1jkh;
+import 'modelling/focus_nudge.dart' as _ihy8fc6y;
+import 'modelling/focus_nudge_info.dart' as _id6gvdoh;
+import 'modelling/focus_word.dart' as _i0v59hpr;
+import 'modelling/focus_word_info.dart' as _i5dbpwlf;
 import 'printing/shared_snapshot.dart' as _if9s8td9;
 import 'printing/snapshot_kind.dart' as _iergzj3e;
+import 'progress/focus_report_line.dart' as _itswlrkt;
+import 'progress/progress_report.dart' as _i5135299;
+import 'progress/progress_report_link.dart' as _i6l0lkqz;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/ai_usage.dart' as _inv1atzh;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
+import 'summary/modelled_tally.dart' as _ix06wsh7;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/weekly_summary.dart' as _ikaxfpae;
 import 'summary/word_tally.dart' as _i6roonjc;
@@ -75,13 +85,21 @@ export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/media_object.dart';
 export 'media/upload_ticket.dart';
+export 'modelling/focus_nudge.dart';
+export 'modelling/focus_nudge_info.dart';
+export 'modelling/focus_word.dart';
+export 'modelling/focus_word_info.dart';
 export 'printing/shared_snapshot.dart';
 export 'printing/snapshot_kind.dart';
+export 'progress/focus_report_line.dart';
+export 'progress/progress_report.dart';
+export 'progress/progress_report_link.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/ai_usage.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
+export 'summary/modelled_tally.dart';
 export 'summary/week_report.dart';
 export 'summary/weekly_summary.dart';
 export 'summary/word_tally.dart';
@@ -293,6 +311,142 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'spaceUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'focus_nudge',
+      dartName: 'FocusNudge',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'weekStart',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tileId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'focus_nudge_circle_week_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'weekStart',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'focus_word',
+      dartName: 'FocusWord',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tileId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tip',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'weekStart',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'pinnedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'pinnedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'focus_word_circle_week_tile_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'weekStart',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'tileId',
             ),
           ],
           type: 'btree',
@@ -528,6 +682,74 @@ class Protocol extends _is.DatabaseSerializationManager {
           ],
           type: 'btree',
           isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'progress_report_link',
+      dartName: 'ProgressReportLink',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'token',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'report',
+          columnType: _isp.ColumnType.json,
+          isNullable: false,
+          dartType: 'protocol:ProgressReport',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'expiresAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'progress_report_link_token_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'token',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
           isPrimary: false,
         ),
       ],
@@ -1048,6 +1270,13 @@ class Protocol extends _is.DatabaseSerializationManager {
           isNullable: false,
           dartType: 'DateTime',
         ),
+        _isp.ColumnDefinition(
+          name: 'modelled',
+          columnType: _isp.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+          columnDefault: 'false',
+        ),
       ],
       foreignKeys: [],
       indexes: [
@@ -1162,11 +1391,32 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _illp1jkh.UploadTicket) {
       return _illp1jkh.UploadTicket.fromJson(data) as T;
     }
+    if (t == _ihy8fc6y.FocusNudge) {
+      return _ihy8fc6y.FocusNudge.fromJson(data) as T;
+    }
+    if (t == _id6gvdoh.FocusNudgeInfo) {
+      return _id6gvdoh.FocusNudgeInfo.fromJson(data) as T;
+    }
+    if (t == _i0v59hpr.FocusWord) {
+      return _i0v59hpr.FocusWord.fromJson(data) as T;
+    }
+    if (t == _i5dbpwlf.FocusWordInfo) {
+      return _i5dbpwlf.FocusWordInfo.fromJson(data) as T;
+    }
     if (t == _if9s8td9.SharedSnapshot) {
       return _if9s8td9.SharedSnapshot.fromJson(data) as T;
     }
     if (t == _iergzj3e.SnapshotKind) {
       return _iergzj3e.SnapshotKind.fromJson(data) as T;
+    }
+    if (t == _itswlrkt.FocusReportLine) {
+      return _itswlrkt.FocusReportLine.fromJson(data) as T;
+    }
+    if (t == _i5135299.ProgressReport) {
+      return _i5135299.ProgressReport.fromJson(data) as T;
+    }
+    if (t == _i6l0lkqz.ProgressReportLink) {
+      return _i6l0lkqz.ProgressReportLink.fromJson(data) as T;
     }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
@@ -1182,6 +1432,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ifctwajg.WordSuggestion) {
       return _ifctwajg.WordSuggestion.fromJson(data) as T;
+    }
+    if (t == _ix06wsh7.ModelledTally) {
+      return _ix06wsh7.ModelledTally.fromJson(data) as T;
     }
     if (t == _iaf8iewd.WeekReport) {
       return _iaf8iewd.WeekReport.fromJson(data) as T;
@@ -1266,12 +1519,38 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_illp1jkh.UploadTicket?>()) {
       return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ihy8fc6y.FocusNudge?>()) {
+      return (data != null ? _ihy8fc6y.FocusNudge.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_id6gvdoh.FocusNudgeInfo?>()) {
+      return (data != null ? _id6gvdoh.FocusNudgeInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i0v59hpr.FocusWord?>()) {
+      return (data != null ? _i0v59hpr.FocusWord.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i5dbpwlf.FocusWordInfo?>()) {
+      return (data != null ? _i5dbpwlf.FocusWordInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_if9s8td9.SharedSnapshot?>()) {
       return (data != null ? _if9s8td9.SharedSnapshot.fromJson(data) : null)
           as T;
     }
     if (t == _is.getType<_iergzj3e.SnapshotKind?>()) {
       return (data != null ? _iergzj3e.SnapshotKind.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_itswlrkt.FocusReportLine?>()) {
+      return (data != null ? _itswlrkt.FocusReportLine.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i5135299.ProgressReport?>()) {
+      return (data != null ? _i5135299.ProgressReport.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i6l0lkqz.ProgressReportLink?>()) {
+      return (data != null ? _i6l0lkqz.ProgressReportLink.fromJson(data) : null)
+          as T;
     }
     if (t == _is.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
@@ -1289,6 +1568,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_ifctwajg.WordSuggestion?>()) {
       return (data != null ? _ifctwajg.WordSuggestion.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ix06wsh7.ModelledTally?>()) {
+      return (data != null ? _ix06wsh7.ModelledTally.fromJson(data) : null)
           as T;
     }
     if (t == _is.getType<_iaf8iewd.WeekReport?>()) {
@@ -1330,6 +1613,12 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_itswlrkt.FocusReportLine>) {
+      return (data as List)
+              .map((e) => deserialize<_itswlrkt.FocusReportLine>(e))
+              .toList()
+          as T;
+    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
@@ -1337,6 +1626,20 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data as List)
               .map((e) => deserialize<_i6roonjc.WordTally>(e))
               .toList()
+          as T;
+    }
+    if (t == List<_ix06wsh7.ModelledTally>) {
+      return (data as List)
+              .map((e) => deserialize<_ix06wsh7.ModelledTally>(e))
+              .toList()
+          as T;
+    }
+    if (t == _is.getType<List<_ix06wsh7.ModelledTally>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_ix06wsh7.ModelledTally>(e))
+                    .toList()
+              : null)
           as T;
     }
     if (t == List<_iun4jhfl.CircleInfo>) {
@@ -1353,6 +1656,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_iwth5r5i.FocusWordInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iwth5r5i.FocusWordInfo>(e))
+              .toList()
+          as T;
     }
     if (t == List<_i1jjj2rd.WordUseEntry>) {
       return (data as List)
@@ -1395,13 +1704,21 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i8mjpd0r.MediaKind => 'MediaKind',
       _i87lco0i.MediaObject => 'MediaObject',
       _illp1jkh.UploadTicket => 'UploadTicket',
+      _ihy8fc6y.FocusNudge => 'FocusNudge',
+      _id6gvdoh.FocusNudgeInfo => 'FocusNudgeInfo',
+      _i0v59hpr.FocusWord => 'FocusWord',
+      _i5dbpwlf.FocusWordInfo => 'FocusWordInfo',
       _if9s8td9.SharedSnapshot => 'SharedSnapshot',
       _iergzj3e.SnapshotKind => 'SnapshotKind',
+      _itswlrkt.FocusReportLine => 'FocusReportLine',
+      _i5135299.ProgressReport => 'ProgressReport',
+      _i6l0lkqz.ProgressReportLink => 'ProgressReportLink',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _inv1atzh.AiUsage => 'AiUsage',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
+      _ix06wsh7.ModelledTally => 'ModelledTally',
       _iaf8iewd.WeekReport => 'WeekReport',
       _ikaxfpae.WeeklySummary => 'WeeklySummary',
       _i6roonjc.WordTally => 'WordTally',
@@ -1461,10 +1778,24 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'MediaObject';
       case _illp1jkh.UploadTicket():
         return 'UploadTicket';
+      case _ihy8fc6y.FocusNudge():
+        return 'FocusNudge';
+      case _id6gvdoh.FocusNudgeInfo():
+        return 'FocusNudgeInfo';
+      case _i0v59hpr.FocusWord():
+        return 'FocusWord';
+      case _i5dbpwlf.FocusWordInfo():
+        return 'FocusWordInfo';
       case _if9s8td9.SharedSnapshot():
         return 'SharedSnapshot';
       case _iergzj3e.SnapshotKind():
         return 'SnapshotKind';
+      case _itswlrkt.FocusReportLine():
+        return 'FocusReportLine';
+      case _i5135299.ProgressReport():
+        return 'ProgressReport';
+      case _i6l0lkqz.ProgressReportLink():
+        return 'ProgressReportLink';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
       case _inv1atzh.AiUsage():
@@ -1475,6 +1806,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'SuggestFailure';
       case _ifctwajg.WordSuggestion():
         return 'WordSuggestion';
+      case _ix06wsh7.ModelledTally():
+        return 'ModelledTally';
       case _iaf8iewd.WeekReport():
         return 'WeekReport';
       case _ikaxfpae.WeeklySummary():
@@ -1579,11 +1912,32 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'UploadTicket') {
       return deserialize<_illp1jkh.UploadTicket>(data['data']);
     }
+    if (dataClassName == 'FocusNudge') {
+      return deserialize<_ihy8fc6y.FocusNudge>(data['data']);
+    }
+    if (dataClassName == 'FocusNudgeInfo') {
+      return deserialize<_id6gvdoh.FocusNudgeInfo>(data['data']);
+    }
+    if (dataClassName == 'FocusWord') {
+      return deserialize<_i0v59hpr.FocusWord>(data['data']);
+    }
+    if (dataClassName == 'FocusWordInfo') {
+      return deserialize<_i5dbpwlf.FocusWordInfo>(data['data']);
+    }
     if (dataClassName == 'SharedSnapshot') {
       return deserialize<_if9s8td9.SharedSnapshot>(data['data']);
     }
     if (dataClassName == 'SnapshotKind') {
       return deserialize<_iergzj3e.SnapshotKind>(data['data']);
+    }
+    if (dataClassName == 'FocusReportLine') {
+      return deserialize<_itswlrkt.FocusReportLine>(data['data']);
+    }
+    if (dataClassName == 'ProgressReport') {
+      return deserialize<_i5135299.ProgressReport>(data['data']);
+    }
+    if (dataClassName == 'ProgressReportLink') {
+      return deserialize<_i6l0lkqz.ProgressReportLink>(data['data']);
     }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
@@ -1599,6 +1953,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordSuggestion') {
       return deserialize<_ifctwajg.WordSuggestion>(data['data']);
+    }
+    if (dataClassName == 'ModelledTally') {
+      return deserialize<_ix06wsh7.ModelledTally>(data['data']);
     }
     if (dataClassName == 'WeekReport') {
       return deserialize<_iaf8iewd.WeekReport>(data['data']);
@@ -1693,8 +2050,14 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _i5ll2qlc.Membership.t;
       case _i87lco0i.MediaObject:
         return _i87lco0i.MediaObject.t;
+      case _ihy8fc6y.FocusNudge:
+        return _ihy8fc6y.FocusNudge.t;
+      case _i0v59hpr.FocusWord:
+        return _i0v59hpr.FocusWord.t;
       case _if9s8td9.SharedSnapshot:
         return _if9s8td9.SharedSnapshot.t;
+      case _i6l0lkqz.ProgressReportLink:
+        return _i6l0lkqz.ProgressReportLink.t;
       case _inv1atzh.AiUsage:
         return _inv1atzh.AiUsage.t;
       case _ikaxfpae.WeeklySummary:

@@ -1,0 +1,18 @@
+### A word an adult pinned for the week, with a one-line modelling tip.
+### Server-only and not synced; at most three per circle and week.
+class: FocusWord
+table: focus_word
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  tileId: UuidValue
+  ### "At bath time: 'more bubbles?'". May be empty.
+  tip: String
+  ### Monday 00:00 UTC of the week it is pinned for.
+  weekStart: DateTime
+  pinnedBy: UuidValue
+  pinnedAt: DateTime
+indexes:
+  focus_word_circle_week_tile_idx:
+    fields: circleSpace, weekStart, tileId
+    unique: true

@@ -23,6 +23,10 @@ import 'package:chorus_client/src/protocol/live/live_event.dart' as _ij4123it;
 import 'package:chorus_client/src/protocol/media/media_kind.dart' as _i1n9e0sn;
 import 'package:chorus_client/src/protocol/media/upload_ticket.dart'
     as _i4yoz54l;
+import 'package:chorus_client/src/protocol/modelling/focus_nudge_info.dart'
+    as _illvav7f;
+import 'package:chorus_client/src/protocol/modelling/focus_word_info.dart'
+    as _ih7sffdq;
 import 'package:chorus_client/src/protocol/sharing/view_only_link.dart'
     as _i15qvapk;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
@@ -488,6 +492,55 @@ class EndpointMedia extends _isc.EndpointRef {
   );
 }
 
+/// Focus words of the week: up to three words a guardian or therapist pins,
+/// each with a one-line modelling tip, and the Thursday nudge when one has
+/// not been modelled yet. Adults only see them; the child's board stays
+/// calm.
+/// {@category Endpoint}
+class EndpointFocus extends _isc.EndpointRef {
+  EndpointFocus(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'focus';
+
+  /// This week's focus words of [circleSpace], oldest pin first. Members.
+  _ida.Future<List<_ih7sffdq.FocusWordInfo>> words(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_ih7sffdq.FocusWordInfo>>(
+    'focus',
+    'words',
+    {'circleSpace': circleSpace},
+  );
+
+  /// Replaces this week's focus words of [circleSpace] with [pins] (their
+  /// `weekStart` is ignored) and returns them as kept. Guardians and
+  /// therapists only.
+  ///
+  /// Throws [CircleException] with `notAllowed` for another role, more than
+  /// three words, the same word twice, a tip over 120 characters, or a
+  /// word that is not on one of the circle's boards.
+  _ida.Future<List<_ih7sffdq.FocusWordInfo>> setWords(
+    _isc.UuidValue circleSpace,
+    List<_ih7sffdq.FocusWordInfo> pins,
+  ) => caller.callServerEndpoint<List<_ih7sffdq.FocusWordInfo>>(
+    'focus',
+    'setWords',
+    {
+      'circleSpace': circleSpace,
+      'pins': pins,
+    },
+  );
+
+  /// This week's nudge for [circleSpace]: a focus word nobody had modelled
+  /// by Thursday and still has not, or null. Members.
+  _ida.Future<_illvav7f.FocusNudgeInfo?> nudge(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<_illvav7f.FocusNudgeInfo?>(
+        'focus',
+        'nudge',
+        {'circleSpace': circleSpace},
+      );
+}
+
 /// Paper backups of a board.
 /// {@category Endpoint}
 class EndpointPrinting extends _isc.EndpointRef {
@@ -526,6 +579,35 @@ class EndpointPrinting extends _isc.EndpointRef {
       caller.callServerEndpoint<String>(
         'printing',
         'pageUrl',
+        {'token': token},
+      );
+}
+
+/// The one-page progress report: this week's counts, kept behind a token so
+/// it can be opened and printed anywhere. Counts only, never a transcript.
+/// {@category Endpoint}
+class EndpointProgress extends _isc.EndpointRef {
+  EndpointProgress(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'progress';
+
+  /// Works out this week's report for [circleSpace], keeps it behind a new
+  /// token for 30 days, and returns the token. Guardians and therapists
+  /// only, as for "This week".
+  _ida.Future<String> makeReport(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<String>(
+        'progress',
+        'makeReport',
+        {'circleSpace': circleSpace},
+      );
+
+  /// The address of the report page for [token] on this server's web
+  /// server. Throws [CircleException] (`notAllowed`) for a malformed token.
+  _ida.Future<String> reportUrl(String token) =>
+      caller.callServerEndpoint<String>(
+        'progress',
+        'reportUrl',
         {'token': token},
       );
 }
@@ -718,6 +800,23 @@ class EndpointWordLog extends _isc.EndpointRef {
     },
   );
 
+  /// Adds words an adult tapped in "Show words on the board" (model mode)
+  /// as modelled, not said, and returns how many were new. The same rules
+  /// and failures as [record]: editing roles only, only while the log is
+  /// on, never words of tiles marked "never log". The device leaves them
+  /// out in private mode.
+  _ida.Future<int> recordModelled(
+    _isc.UuidValue circleSpace,
+    List<_iyisc6zi.WordUseEntry> uses,
+  ) => caller.callServerEndpoint<int>(
+    'wordLog',
+    'recordModelled',
+    {
+      'circleSpace': circleSpace,
+      'uses': uses,
+    },
+  );
+
   /// Removes the circle's whole word log for good, with the weeks worked
   /// out from it. Guardians only. Returns how many words went.
   ///
@@ -780,7 +879,9 @@ class Client extends _isc.ServerpodClientShared {
     greeting = EndpointGreeting(this);
     live = EndpointLive(this);
     media = EndpointMedia(this);
+    focus = EndpointFocus(this);
     printing = EndpointPrinting(this);
+    progress = EndpointProgress(this);
     sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
@@ -802,7 +903,11 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointMedia media;
 
+  late final EndpointFocus focus;
+
   late final EndpointPrinting printing;
+
+  late final EndpointProgress progress;
 
   late final EndpointSharing sharing;
 
@@ -823,7 +928,9 @@ class Client extends _isc.ServerpodClientShared {
     'greeting': greeting,
     'live': live,
     'media': media,
+    'focus': focus,
     'printing': printing,
+    'progress': progress,
     'sharing': sharing,
     'suggest': suggest,
     'summary': summary,

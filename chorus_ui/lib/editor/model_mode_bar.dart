@@ -31,9 +31,14 @@ class ModelModeBar extends StatelessWidget {
     required this.enabled,
     required this.onChanged,
     this.labelFor,
+    this.extra,
   });
 
   final LiveSession live;
+
+  /// More tools shown under the live details while on: see
+  /// `ModellingTools`.
+  final Widget? extra;
 
   /// Whether model mode is on. The editor owns this.
   final bool enabled;
@@ -91,6 +96,11 @@ class ModelModeBar extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: _LiveDetails(live: live, labelFor: labelFor),
+                  ),
+                if (on && extra != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: extra,
                   ),
               ],
             ),

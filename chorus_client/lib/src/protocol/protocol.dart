@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
+import 'package:chorus_client/src/protocol/modelling/focus_word_info.dart'
+    as _ih7sffdq;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -37,10 +39,15 @@ import 'live/live_event.dart' as _ixdzvre4;
 import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/upload_ticket.dart' as _illp1jkh;
+import 'modelling/focus_nudge_info.dart' as _id6gvdoh;
+import 'modelling/focus_word_info.dart' as _i5dbpwlf;
+import 'progress/focus_report_line.dart' as _itswlrkt;
+import 'progress/progress_report.dart' as _i5135299;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
+import 'summary/modelled_tally.dart' as _ix06wsh7;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/word_tally.dart' as _i6roonjc;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
@@ -61,10 +68,15 @@ export 'live/live_event.dart';
 export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/upload_ticket.dart';
+export 'modelling/focus_nudge_info.dart';
+export 'modelling/focus_word_info.dart';
+export 'progress/focus_report_line.dart';
+export 'progress/progress_report.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
+export 'summary/modelled_tally.dart';
 export 'summary/week_report.dart';
 export 'summary/word_tally.dart';
 export 'wordlog/word_log_exception.dart';
@@ -543,6 +555,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _illp1jkh.UploadTicket) {
       return _illp1jkh.UploadTicket.fromJson(data) as T;
     }
+    if (t == _id6gvdoh.FocusNudgeInfo) {
+      return _id6gvdoh.FocusNudgeInfo.fromJson(data) as T;
+    }
+    if (t == _i5dbpwlf.FocusWordInfo) {
+      return _i5dbpwlf.FocusWordInfo.fromJson(data) as T;
+    }
+    if (t == _itswlrkt.FocusReportLine) {
+      return _itswlrkt.FocusReportLine.fromJson(data) as T;
+    }
+    if (t == _i5135299.ProgressReport) {
+      return _i5135299.ProgressReport.fromJson(data) as T;
+    }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
     }
@@ -554,6 +578,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _ifctwajg.WordSuggestion) {
       return _ifctwajg.WordSuggestion.fromJson(data) as T;
+    }
+    if (t == _ix06wsh7.ModelledTally) {
+      return _ix06wsh7.ModelledTally.fromJson(data) as T;
     }
     if (t == _iaf8iewd.WeekReport) {
       return _iaf8iewd.WeekReport.fromJson(data) as T;
@@ -617,6 +644,22 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_illp1jkh.UploadTicket?>()) {
       return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_id6gvdoh.FocusNudgeInfo?>()) {
+      return (data != null ? _id6gvdoh.FocusNudgeInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i5dbpwlf.FocusWordInfo?>()) {
+      return (data != null ? _i5dbpwlf.FocusWordInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_itswlrkt.FocusReportLine?>()) {
+      return (data != null ? _itswlrkt.FocusReportLine.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i5135299.ProgressReport?>()) {
+      return (data != null ? _i5135299.ProgressReport.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
     }
@@ -630,6 +673,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _isc.getType<_ifctwajg.WordSuggestion?>()) {
       return (data != null ? _ifctwajg.WordSuggestion.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ix06wsh7.ModelledTally?>()) {
+      return (data != null ? _ix06wsh7.ModelledTally.fromJson(data) : null)
           as T;
     }
     if (t == _isc.getType<_iaf8iewd.WeekReport?>()) {
@@ -659,6 +706,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_itswlrkt.FocusReportLine>) {
+      return (data as List)
+              .map((e) => deserialize<_itswlrkt.FocusReportLine>(e))
+              .toList()
+          as T;
+    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
@@ -666,6 +719,20 @@ class Protocol extends _isd.DatabaseSerializationManager {
       return (data as List)
               .map((e) => deserialize<_i6roonjc.WordTally>(e))
               .toList()
+          as T;
+    }
+    if (t == List<_ix06wsh7.ModelledTally>) {
+      return (data as List)
+              .map((e) => deserialize<_ix06wsh7.ModelledTally>(e))
+              .toList()
+          as T;
+    }
+    if (t == _isc.getType<List<_ix06wsh7.ModelledTally>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_ix06wsh7.ModelledTally>(e))
+                    .toList()
+              : null)
           as T;
     }
     if (t == List<_icfd3qx2.CircleInfo>) {
@@ -682,6 +749,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_ih7sffdq.FocusWordInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ih7sffdq.FocusWordInfo>(e))
+              .toList()
+          as T;
     }
     if (t == List<_iyisc6zi.WordUseEntry>) {
       return (data as List)
@@ -717,10 +790,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _il8wtxvt.LiveKind => 'LiveKind',
       _i8mjpd0r.MediaKind => 'MediaKind',
       _illp1jkh.UploadTicket => 'UploadTicket',
+      _id6gvdoh.FocusNudgeInfo => 'FocusNudgeInfo',
+      _i5dbpwlf.FocusWordInfo => 'FocusWordInfo',
+      _itswlrkt.FocusReportLine => 'FocusReportLine',
+      _i5135299.ProgressReport => 'ProgressReport',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
+      _ix06wsh7.ModelledTally => 'ModelledTally',
       _iaf8iewd.WeekReport => 'WeekReport',
       _i6roonjc.WordTally => 'WordTally',
       _i163yf92.WordLogException => 'WordLogException',
@@ -769,6 +847,14 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'MediaKind';
       case _illp1jkh.UploadTicket():
         return 'UploadTicket';
+      case _id6gvdoh.FocusNudgeInfo():
+        return 'FocusNudgeInfo';
+      case _i5dbpwlf.FocusWordInfo():
+        return 'FocusWordInfo';
+      case _itswlrkt.FocusReportLine():
+        return 'FocusReportLine';
+      case _i5135299.ProgressReport():
+        return 'ProgressReport';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
       case _iw5bueja.SuggestException():
@@ -777,6 +863,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'SuggestFailure';
       case _ifctwajg.WordSuggestion():
         return 'WordSuggestion';
+      case _ix06wsh7.ModelledTally():
+        return 'ModelledTally';
       case _iaf8iewd.WeekReport():
         return 'WeekReport';
       case _i6roonjc.WordTally():
@@ -859,6 +947,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'UploadTicket') {
       return deserialize<_illp1jkh.UploadTicket>(data['data']);
     }
+    if (dataClassName == 'FocusNudgeInfo') {
+      return deserialize<_id6gvdoh.FocusNudgeInfo>(data['data']);
+    }
+    if (dataClassName == 'FocusWordInfo') {
+      return deserialize<_i5dbpwlf.FocusWordInfo>(data['data']);
+    }
+    if (dataClassName == 'FocusReportLine') {
+      return deserialize<_itswlrkt.FocusReportLine>(data['data']);
+    }
+    if (dataClassName == 'ProgressReport') {
+      return deserialize<_i5135299.ProgressReport>(data['data']);
+    }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
     }
@@ -870,6 +970,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordSuggestion') {
       return deserialize<_ifctwajg.WordSuggestion>(data['data']);
+    }
+    if (dataClassName == 'ModelledTally') {
+      return deserialize<_ix06wsh7.ModelledTally>(data['data']);
     }
     if (dataClassName == 'WeekReport') {
       return deserialize<_iaf8iewd.WeekReport>(data['data']);

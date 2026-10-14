@@ -12,6 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_client/src/protocol/protocol.dart' as _iuvo7w6p;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import '../summary/modelled_tally.dart' as _ip94lnx1;
 import '../summary/word_tally.dart' as _id72khb3;
 
 /// One week of the word log, for the adults ("This week"). The same fields
@@ -27,6 +28,7 @@ abstract class WeekReport
     required this.totalUses,
     required this.wordsUsed,
     required this.computedAt,
+    this.modelled,
   });
 
   factory WeekReport({
@@ -38,6 +40,7 @@ abstract class WeekReport
     required int totalUses,
     required int wordsUsed,
     required DateTime computedAt,
+    List<_ip94lnx1.ModelledTally>? modelled,
   }) = _WeekReportImpl;
 
   factory WeekReport.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -62,6 +65,11 @@ abstract class WeekReport
       computedAt: _isc.DateTimeJsonExtension.fromJson(
         jsonSerialization['computedAt'],
       ),
+      modelled: jsonSerialization['modelled'] == null
+          ? null
+          : _iuvo7w6p.Protocol().deserialize<List<_ip94lnx1.ModelledTally>>(
+              jsonSerialization['modelled'],
+            ),
     );
   }
 
@@ -89,6 +97,10 @@ abstract class WeekReport
   /// When these numbers were worked out.
   DateTime computedAt;
 
+  /// Words an adult modelled this week, with how often the child said each.
+  /// Null from an older server or a week stored before it was counted.
+  List<_ip94lnx1.ModelledTally>? modelled;
+
   /// Returns a shallow copy of this [WeekReport]
   /// with some or all fields replaced by the given arguments.
   @_isc.useResult
@@ -101,6 +113,7 @@ abstract class WeekReport
     int? totalUses,
     int? wordsUsed,
     DateTime? computedAt,
+    List<_ip94lnx1.ModelledTally>? modelled,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -114,6 +127,8 @@ abstract class WeekReport
       'totalUses': totalUses,
       'wordsUsed': wordsUsed,
       'computedAt': computedAt.toJson(),
+      if (modelled != null)
+        'modelled': modelled?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -129,6 +144,8 @@ abstract class WeekReport
       'totalUses': totalUses,
       'wordsUsed': wordsUsed,
       'computedAt': computedAt.toJson(),
+      if (modelled != null)
+        'modelled': modelled?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
     };
   }
 
@@ -137,6 +154,8 @@ abstract class WeekReport
     return _isc.SerializationManager.encode(this);
   }
 }
+
+class _Undefined {}
 
 class _WeekReportImpl extends WeekReport {
   _WeekReportImpl({
@@ -148,6 +167,7 @@ class _WeekReportImpl extends WeekReport {
     required int totalUses,
     required int wordsUsed,
     required DateTime computedAt,
+    List<_ip94lnx1.ModelledTally>? modelled,
   }) : super._(
          weekStart: weekStart,
          topWords: topWords,
@@ -157,6 +177,7 @@ class _WeekReportImpl extends WeekReport {
          totalUses: totalUses,
          wordsUsed: wordsUsed,
          computedAt: computedAt,
+         modelled: modelled,
        );
 
   /// Returns a shallow copy of this [WeekReport]
@@ -172,6 +193,7 @@ class _WeekReportImpl extends WeekReport {
     int? totalUses,
     int? wordsUsed,
     DateTime? computedAt,
+    Object? modelled = _Undefined,
   }) {
     return WeekReport(
       weekStart: weekStart ?? this.weekStart,
@@ -183,6 +205,9 @@ class _WeekReportImpl extends WeekReport {
       totalUses: totalUses ?? this.totalUses,
       wordsUsed: wordsUsed ?? this.wordsUsed,
       computedAt: computedAt ?? this.computedAt,
+      modelled: modelled is List<_ip94lnx1.ModelledTally>?
+          ? modelled
+          : this.modelled?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }

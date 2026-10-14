@@ -26,6 +26,10 @@ import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
 import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
 import 'package:chorus_server/src/generated/media/upload_ticket.dart'
     as _i1laibyz;
+import 'package:chorus_server/src/generated/modelling/focus_nudge_info.dart'
+    as _inpd3myd;
+import 'package:chorus_server/src/generated/modelling/focus_word_info.dart'
+    as _iwth5r5i;
 import 'package:chorus_server/src/generated/sharing/view_only_link.dart'
     as _ienfv6p6;
 import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
@@ -189,7 +193,11 @@ class TestEndpoints {
 
   late final _MediaEndpoint media;
 
+  late final _FocusEndpoint focus;
+
   late final _PrintingEndpoint printing;
+
+  late final _ProgressEndpoint progress;
 
   late final _SharingEndpoint sharing;
 
@@ -235,7 +243,15 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    focus = _FocusEndpoint(
+      endpoints,
+      serializationManager,
+    );
     printing = _PrintingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    progress = _ProgressEndpoint(
       endpoints,
       serializationManager,
     );
@@ -259,6 +275,8 @@ class _InternalTestEndpoints extends TestEndpoints
 }
 
 class _FutureCalls {
+  late final focusNudge = _FocusNudgeFutureCall();
+
   late final snapshotCleanup = _SnapshotCleanupFutureCall();
 
   late final weeklySummary = _WeeklySummaryFutureCall();
@@ -975,6 +993,114 @@ class _MediaEndpoint {
   }
 }
 
+class _FocusEndpoint {
+  _FocusEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_iwth5r5i.FocusWordInfo>> words(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'focus',
+            method: 'words',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'focus',
+          methodName: 'words',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iwth5r5i.FocusWordInfo>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_iwth5r5i.FocusWordInfo>> setWords(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    List<_iwth5r5i.FocusWordInfo> pins,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'focus',
+            method: 'setWords',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'focus',
+          methodName: 'setWords',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'pins': pins,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iwth5r5i.FocusWordInfo>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_inpd3myd.FocusNudgeInfo?> nudge(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'focus',
+            method: 'nudge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'focus',
+          methodName: 'nudge',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_inpd3myd.FocusNudgeInfo?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _PrintingEndpoint {
   _PrintingEndpoint(
     this._endpointDispatch,
@@ -1035,6 +1161,79 @@ class _PrintingEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'printing',
           methodName: 'pageUrl',
+          parameters: _ist.testObjectToJson({'token': token}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _ProgressEndpoint {
+  _ProgressEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<String> makeReport(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'progress',
+            method: 'makeReport',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'progress',
+          methodName: 'makeReport',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<String> reportUrl(
+    _ist.TestSessionBuilder sessionBuilder,
+    String token,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'progress',
+            method: 'reportUrl',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'progress',
+          methodName: 'reportUrl',
           parameters: _ist.testObjectToJson({'token': token}),
           serializationManager: _serializationManager,
         );
@@ -1369,6 +1568,41 @@ class _WordLogEndpoint {
     });
   }
 
+  _ida.Future<int> recordModelled(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    List<_i1jjj2rd.WordUseEntry> uses,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'wordLog',
+            method: 'recordModelled',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'wordLog',
+          methodName: 'recordModelled',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'uses': uses,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<int> deleteAll(
     _ist.TestSessionBuilder sessionBuilder,
     _is.UuidValue circleSpace,
@@ -1398,6 +1632,21 @@ class _WordLogEndpoint {
         await _localUniqueSession.close();
       }
     });
+  }
+}
+
+class _FocusNudgeFutureCall {
+  Future<void> writeNudges(_ist.TestSessionBuilder sessionBuilder) async {
+    var _localUniqueSession =
+        (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild();
+    try {
+      await _i1wquigt.FocusNudgeWriteNudgesFutureCall().invoke(
+        _localUniqueSession,
+        null,
+      );
+    } finally {
+      await _localUniqueSession.close();
+    }
   }
 }
 

@@ -8,6 +8,7 @@ import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncStatus;
 import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_media.dart';
+import 'package:chorus_ui/contracts_modelling.dart';
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
 import 'package:chorus_ui/contracts_wordlog.dart';
@@ -78,6 +79,8 @@ class CircleServices {
     this.summary,
     this.sharing,
     this.boards,
+    this.modelling,
+    this.speech,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -123,6 +126,13 @@ class CircleServices {
   /// a screen holding the store may use that instead; both write the same
   /// replica.
   final BoardManager? boards;
+
+  /// Modelled taps, focus words, the Thursday nudge and the progress
+  /// report. Null leaves them out.
+  final ModellingSource? modelling;
+
+  /// The browser's speech recognition for "Listen" in model mode.
+  final SpeechListener? speech;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

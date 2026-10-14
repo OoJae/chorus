@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart' hide CircleRole;
+import 'package:chorus_shared/chorus_shared.dart' show ModelledCount;
 import 'package:chorus_ui/contracts.dart' show CircleRole, SyncStatus;
 import 'package:chorus_ui/contracts_wordlog.dart';
 
@@ -72,4 +73,8 @@ WeekSummary weekSummaryOf(WeekReport report) => WeekSummary(
   notUsedYet: List.unmodifiable(report.notUsedYet),
   totalUses: report.totalUses,
   wordsUsed: report.wordsUsed,
+  modelled: [
+    for (final row in report.modelled ?? const <ModelledTally>[])
+      ModelledCount(row.label, modelled: row.modelled, said: row.said),
+  ],
 );

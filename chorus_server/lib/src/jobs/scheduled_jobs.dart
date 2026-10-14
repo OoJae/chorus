@@ -16,6 +16,12 @@ const String weeklySummaryCron = '0 2 * * 1';
 /// Every day at 03:30 UTC.
 const String snapshotCleanupCron = '30 3 * * *';
 
+/// Identifier of the Thursday focus-word nudge.
+const String focusNudgeJob = 'chorus-focus-nudge';
+
+/// Thursdays at 09:00 UTC, with half the week left to model the word.
+const String focusNudgeCron = '0 9 * * 4';
+
 /// Schedules the weekly summary and the daily cleanup. Call after the
 /// server has started.
 ///
@@ -42,6 +48,12 @@ Future<void> scheduleJobs(Serverpod pod) async {
         .cron(snapshotCleanupCron)
         .snapshotCleanup
         .sweep();
+    await calls.cancel(focusNudgeJob);
+    await calls
+        .callRecurring(identifier: focusNudgeJob)
+        .cron(focusNudgeCron)
+        .focusNudge
+        .writeNudges();
   } catch (error) {
     // The type only, as for the demo seed.
     stderr.writeln('Scheduling jobs failed: ${error.runtimeType}');

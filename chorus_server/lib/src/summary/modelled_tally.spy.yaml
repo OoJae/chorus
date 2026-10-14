@@ -1,0 +1,7 @@
+### One word in a week: how often an adult modelled it ("Show words on the
+### board") and how often the child said it.
+class: ModelledTally
+fields:
+  label: String
+  modelled: int
+  said: int

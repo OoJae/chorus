@@ -17,6 +17,7 @@ import 'package:chorus_ui/credits/credits_screen.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/features/features.dart';
 import 'package:chorus_ui/home/home.dart';
+import 'package:chorus_ui/modelling/focus_nudge_note.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
@@ -178,6 +179,7 @@ class HomeScreen extends StatelessWidget {
           summary: summary,
           store: store,
           sync: sync,
+          modelling: services?.modelling,
         ),
       );
     } else if (summary != null) {
@@ -188,6 +190,7 @@ class HomeScreen extends StatelessWidget {
           childName: selected.childName,
           tiles: store.tiles,
           role: store.role,
+          modelling: services?.modelling,
         ),
       );
     }
@@ -222,6 +225,8 @@ class HomeScreen extends StatelessWidget {
                 sync: sync,
               ),
             ),
+      modelling: services?.modelling,
+      speech: services?.speech,
     );
     _open(
       context,
@@ -322,6 +327,8 @@ class HomeScreen extends StatelessWidget {
           ),
           notes: [
             ?readinessNote,
+            if (services?.modelling case final modelling?)
+              FocusNudgeNoteView(modelling: modelling),
             if (noWords)
               HomeNote(
                 icon: const Icon(Icons.grid_view_rounded),
