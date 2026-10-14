@@ -4,6 +4,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:chorus_server/src/generated/protocol.dart';
 import 'package:chorus_server/src/sharing/sharing_routes.dart';
@@ -102,6 +103,35 @@ void main() {
           if (await recordSitterTap(session, token, '0:0')) kept++;
         }
         expect(kept, maxTapsPerMinute);
+      });
+
+      test('over HTTP the page posts to its own /tap and gets 204, and the '
+          'page itself still opens', () async {
+        final (circle, token) = await shared();
+        final web = session.serverpod.webServer;
+        registerSharingRoutes(session.serverpod);
+        expect(await web.start(), isTrue);
+        addTearDown(web.stop);
+        final client = HttpClient();
+        addTearDown(() => client.close(force: true));
+
+        final post = await client.post('localhost', web.port!, '/b/$token/tap');
+        post.headers.contentType = ContentType.text;
+        post.write('0:0');
+        final posted = await post.close();
+        await posted.drain<void>();
+        expect(posted.statusCode, 204);
+
+        final get = await client.get('localhost', web.port!, '/b/$token');
+        final page = await get.close();
+        await page.drain<void>();
+        expect(page.statusCode, 200);
+
+        final rows = await SitterTap.db.find(
+          session,
+          where: (t) => t.circleSpace.equals(circle.space),
+        );
+        expect(rows.map((r) => r.label), ['tired']);
       });
 
       test('only guardians and therapists read the taps', () async {
