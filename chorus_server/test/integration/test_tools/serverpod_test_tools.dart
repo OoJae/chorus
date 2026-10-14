@@ -17,6 +17,8 @@ import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
 import 'package:chorus_server/src/generated/circles/circle_role.dart'
     as _iwu0lutr;
+import 'package:chorus_server/src/generated/circles/member_info.dart'
+    as _isrvpywl;
 import 'package:chorus_server/src/generated/circles/server_info.dart'
     as _is8r66a7;
 import 'package:chorus_server/src/generated/future_calls.dart' as _i1wquigt;
@@ -32,6 +34,8 @@ import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
     as _iknl7ub9;
 import 'package:chorus_server/src/generated/summary/week_report.dart'
     as _ih0fhglb;
+import 'package:chorus_server/src/generated/word_suggestions/suggested_word_info.dart'
+    as _igagi3at;
 import 'package:chorus_server/src/generated/wordlog/word_log_status.dart'
     as _i5jq7z5w;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
@@ -189,6 +193,8 @@ class TestEndpoints {
 
   late final _MediaEndpoint media;
 
+  late final _MembersEndpoint members;
+
   late final _PrintingEndpoint printing;
 
   late final _SharingEndpoint sharing;
@@ -196,6 +202,8 @@ class TestEndpoints {
   late final _SuggestEndpoint suggest;
 
   late final _SummaryEndpoint summary;
+
+  late final _WordSuggestionEndpoint wordSuggestion;
 
   late final _WordLogEndpoint wordLog;
 }
@@ -235,6 +243,10 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    members = _MembersEndpoint(
+      endpoints,
+      serializationManager,
+    );
     printing = _PrintingEndpoint(
       endpoints,
       serializationManager,
@@ -248,6 +260,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     summary = _SummaryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    wordSuggestion = _WordSuggestionEndpoint(
       endpoints,
       serializationManager,
     );
@@ -975,6 +991,83 @@ class _MediaEndpoint {
   }
 }
 
+class _MembersEndpoint {
+  _MembersEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_isrvpywl.MemberInfo>> list(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'members',
+            method: 'list',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'members',
+          methodName: 'list',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_isrvpywl.MemberInfo>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> remove(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    _is.UuidValue userId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'members',
+            method: 'remove',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'members',
+          methodName: 'remove',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'userId': userId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _PrintingEndpoint {
   _PrintingEndpoint(
     this._endpointDispatch,
@@ -1250,6 +1343,124 @@ class _SummaryEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ih0fhglb.WeekReport>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _WordSuggestionEndpoint {
+  _WordSuggestionEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_igagi3at.SuggestedWordInfo> suggest(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    String label,
+    String? speech,
+    String? colorKey,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'wordSuggestion',
+            method: 'suggest',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'wordSuggestion',
+          methodName: 'suggest',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'label': label,
+            'speech': speech,
+            'colorKey': colorKey,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_igagi3at.SuggestedWordInfo>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_igagi3at.SuggestedWordInfo>> list(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'wordSuggestion',
+            method: 'list',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'wordSuggestion',
+          methodName: 'list',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_igagi3at.SuggestedWordInfo>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> resolve(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    int id,
+    bool added,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'wordSuggestion',
+            method: 'resolve',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'wordSuggestion',
+          methodName: 'resolve',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'id': id,
+            'added': added,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

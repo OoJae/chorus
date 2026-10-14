@@ -4,6 +4,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../circles/membership_guard.dart';
 import '../generated/protocol.dart';
+import '../members/members_endpoint.dart' show closeOnRemoval;
 
 /// `text` of a presence event: the sender has just joined.
 const presenceJoined = 'joined';
@@ -142,10 +143,13 @@ class LiveEndpoint extends Endpoint {
     }
 
     incoming.onCancel = leave;
+    // Removed from the circle by a guardian: the stream closes at once.
+    final stopOnRemoval = closeOnRemoval(session, circleSpace, me, leave);
     post(LiveKind.presence, text: presenceJoined);
     try {
       yield* incoming.stream;
     } finally {
+      stopOnRemoval();
       await leave();
     }
   }

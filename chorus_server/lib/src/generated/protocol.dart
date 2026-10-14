@@ -13,6 +13,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
+import 'package:chorus_server/src/generated/circles/member_info.dart'
+    as _isrvpywl;
+import 'package:chorus_server/src/generated/word_suggestions/suggested_word_info.dart'
+    as _igagi3at;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
 import 'package:serverpod/protocol.dart' as _isp;
@@ -51,6 +55,8 @@ import 'suggest/word_suggestion.dart' as _ifctwajg;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/weekly_summary.dart' as _ikaxfpae;
 import 'summary/word_tally.dart' as _i6roonjc;
+import 'word_suggestions/suggested_word.dart' as _io8ht510;
+import 'word_suggestions/suggested_word_info.dart' as _i6q1oeir;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_setting.dart' as _i8exouxb;
@@ -85,6 +91,8 @@ export 'suggest/word_suggestion.dart';
 export 'summary/week_report.dart';
 export 'summary/weekly_summary.dart';
 export 'summary/word_tally.dart';
+export 'word_suggestions/suggested_word.dart';
+export 'word_suggestions/suggested_word_info.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_setting.dart';
@@ -1006,6 +1014,108 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'word_suggestion',
+      dartName: 'SuggestedWord',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'label',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'speech',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'colorKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'suggestedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'suggestedByName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'source',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'resolvedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'resolution',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'resolvedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'word_suggestion_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'resolvedAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'word_use',
       dartName: 'WordUseRecord',
       schema: 'public',
@@ -1192,6 +1302,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i6roonjc.WordTally) {
       return _i6roonjc.WordTally.fromJson(data) as T;
     }
+    if (t == _io8ht510.SuggestedWord) {
+      return _io8ht510.SuggestedWord.fromJson(data) as T;
+    }
+    if (t == _i6q1oeir.SuggestedWordInfo) {
+      return _i6q1oeir.SuggestedWordInfo.fromJson(data) as T;
+    }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
     }
@@ -1301,6 +1417,14 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_i6roonjc.WordTally?>()) {
       return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_io8ht510.SuggestedWord?>()) {
+      return (data != null ? _io8ht510.SuggestedWord.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i6q1oeir.SuggestedWordInfo?>()) {
+      return (data != null ? _i6q1oeir.SuggestedWordInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
           as T;
@@ -1354,6 +1478,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
+    if (t == List<_isrvpywl.MemberInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_isrvpywl.MemberInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_igagi3at.SuggestedWordInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_igagi3at.SuggestedWordInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_i1jjj2rd.WordUseEntry>) {
       return (data as List)
               .map((e) => deserialize<_i1jjj2rd.WordUseEntry>(e))
@@ -1405,6 +1541,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iaf8iewd.WeekReport => 'WeekReport',
       _ikaxfpae.WeeklySummary => 'WeeklySummary',
       _i6roonjc.WordTally => 'WordTally',
+      _io8ht510.SuggestedWord => 'SuggestedWord',
+      _i6q1oeir.SuggestedWordInfo => 'SuggestedWordInfo',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i8exouxb.WordLogSetting => 'WordLogSetting',
@@ -1481,6 +1619,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'WeeklySummary';
       case _i6roonjc.WordTally():
         return 'WordTally';
+      case _io8ht510.SuggestedWord():
+        return 'SuggestedWord';
+      case _i6q1oeir.SuggestedWordInfo():
+        return 'SuggestedWordInfo';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -1609,6 +1751,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'WordTally') {
       return deserialize<_i6roonjc.WordTally>(data['data']);
     }
+    if (dataClassName == 'SuggestedWord') {
+      return deserialize<_io8ht510.SuggestedWord>(data['data']);
+    }
+    if (dataClassName == 'SuggestedWordInfo') {
+      return deserialize<_i6q1oeir.SuggestedWordInfo>(data['data']);
+    }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);
     }
@@ -1699,6 +1847,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _inv1atzh.AiUsage.t;
       case _ikaxfpae.WeeklySummary:
         return _ikaxfpae.WeeklySummary.t;
+      case _io8ht510.SuggestedWord:
+        return _io8ht510.SuggestedWord.t;
       case _i8exouxb.WordLogSetting:
         return _i8exouxb.WordLogSetting.t;
       case _iqz5pl6l.WordUseRecord:

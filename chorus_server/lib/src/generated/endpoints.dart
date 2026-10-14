@@ -31,10 +31,12 @@ import '../circles/status_endpoint.dart' as _iy5k9ngi;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
+import '../members/members_endpoint.dart' as _ioz9zj50;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
+import '../word_suggestions/word_suggestion_endpoint.dart' as _ig9c0beb;
 import '../wordlog/word_log_endpoint.dart' as _ivqq1yo7;
 export 'future_calls.dart' show ServerpodFutureCallsGetter;
 
@@ -84,6 +86,12 @@ class Endpoints extends _is.EndpointDispatch {
           'media',
           null,
         ),
+      'members': _ioz9zj50.MembersEndpoint()
+        ..initialize(
+          server,
+          'members',
+          null,
+        ),
       'printing': _i0tflb56.PrintingEndpoint()
         ..initialize(
           server,
@@ -106,6 +114,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'summary',
+          null,
+        ),
+      'wordSuggestion': _ig9c0beb.WordSuggestionEndpoint()
+        ..initialize(
+          server,
+          'wordSuggestion',
           null,
         ),
       'wordLog': _ivqq1yo7.WordLogEndpoint()
@@ -580,6 +594,56 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['members'] = _is.EndpointConnector(
+      name: 'members',
+      endpoint: endpoints['members']!,
+      methodConnectors: {
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['members'] as _ioz9zj50.MembersEndpoint).list(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'remove': _is.MethodConnector(
+          name: 'remove',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['members'] as _ioz9zj50.MembersEndpoint).remove(
+                    session,
+                    params['circleSpace'],
+                    params['userId'],
+                  ),
+        ),
+      },
+    );
     connectors['printing'] = _is.EndpointConnector(
       name: 'printing',
       endpoint: endpoints['printing']!,
@@ -770,6 +834,105 @@ class Endpoints extends _is.EndpointDispatch {
                     params['circleSpace'],
                     params['weekStart'],
                   ),
+        ),
+      },
+    );
+    connectors['wordSuggestion'] = _is.EndpointConnector(
+      name: 'wordSuggestion',
+      endpoint: endpoints['wordSuggestion']!,
+      methodConnectors: {
+        'suggest': _is.MethodConnector(
+          name: 'suggest',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'label': _is.ParameterDescription(
+              name: 'label',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'speech': _is.ParameterDescription(
+              name: 'speech',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'colorKey': _is.ParameterDescription(
+              name: 'colorKey',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordSuggestion']
+                          as _ig9c0beb.WordSuggestionEndpoint)
+                      .suggest(
+                        session,
+                        params['circleSpace'],
+                        params['label'],
+                        params['speech'],
+                        params['colorKey'],
+                      ),
+        ),
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordSuggestion']
+                          as _ig9c0beb.WordSuggestionEndpoint)
+                      .list(
+                        session,
+                        params['circleSpace'],
+                      ),
+        ),
+        'resolve': _is.MethodConnector(
+          name: 'resolve',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'id': _is.ParameterDescription(
+              name: 'id',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'added': _is.ParameterDescription(
+              name: 'added',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordSuggestion']
+                          as _ig9c0beb.WordSuggestionEndpoint)
+                      .resolve(
+                        session,
+                        params['circleSpace'],
+                        params['id'],
+                        params['added'],
+                      ),
         ),
       },
     );

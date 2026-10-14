@@ -13,6 +13,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
+import 'package:chorus_client/src/protocol/circles/member_info.dart'
+    as _iw7jhh88;
+import 'package:chorus_client/src/protocol/word_suggestions/suggested_word_info.dart'
+    as _iov4dup2;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -43,6 +47,7 @@ import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/word_tally.dart' as _i6roonjc;
+import 'word_suggestions/suggested_word_info.dart' as _i6q1oeir;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_status.dart' as _i5lyi3mq;
@@ -67,6 +72,7 @@ export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
 export 'summary/week_report.dart';
 export 'summary/word_tally.dart';
+export 'word_suggestions/suggested_word_info.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_status.dart';
@@ -561,6 +567,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _i6roonjc.WordTally) {
       return _i6roonjc.WordTally.fromJson(data) as T;
     }
+    if (t == _i6q1oeir.SuggestedWordInfo) {
+      return _i6q1oeir.SuggestedWordInfo.fromJson(data) as T;
+    }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
     }
@@ -638,6 +647,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_i6roonjc.WordTally?>()) {
       return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_i6q1oeir.SuggestedWordInfo?>()) {
+      return (data != null ? _i6q1oeir.SuggestedWordInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
           as T;
@@ -683,6 +696,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
+    if (t == List<_iw7jhh88.MemberInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iw7jhh88.MemberInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iov4dup2.SuggestedWordInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iov4dup2.SuggestedWordInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_iyisc6zi.WordUseEntry>) {
       return (data as List)
               .map((e) => deserialize<_iyisc6zi.WordUseEntry>(e))
@@ -723,6 +748,7 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _ifctwajg.WordSuggestion => 'WordSuggestion',
       _iaf8iewd.WeekReport => 'WeekReport',
       _i6roonjc.WordTally => 'WordTally',
+      _i6q1oeir.SuggestedWordInfo => 'SuggestedWordInfo',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i5lyi3mq.WordLogStatus => 'WordLogStatus',
@@ -781,6 +807,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'WeekReport';
       case _i6roonjc.WordTally():
         return 'WordTally';
+      case _i6q1oeir.SuggestedWordInfo():
+        return 'SuggestedWordInfo';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -876,6 +904,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordTally') {
       return deserialize<_i6roonjc.WordTally>(data['data']);
+    }
+    if (dataClassName == 'SuggestedWordInfo') {
+      return deserialize<_i6q1oeir.SuggestedWordInfo>(data['data']);
     }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);

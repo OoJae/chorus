@@ -24,6 +24,9 @@ media:
   - requestUpload:
   - confirmUpload:
   - downloadUrls:
+members:
+  - list:
+  - remove:
 printing:
   - publishBoard:
   - pageUrl:
@@ -35,6 +38,10 @@ suggest:
   - fromPhoto:
 summary:
   - week:
+wordSuggestion:
+  - suggest:
+  - list:
+  - resolve:
 wordLog:
   - status:
   - setEnabled:

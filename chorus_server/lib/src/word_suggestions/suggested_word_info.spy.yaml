@@ -1,0 +1,10 @@
+### A suggested word as editors see it in "Needs a home".
+class: SuggestedWordInfo
+fields:
+  id: int
+  label: String
+  speech: String?
+  colorKey: String?
+  suggestedByName: String
+  source: String
+  createdAt: DateTime

@@ -1,0 +1,22 @@
+### A word someone in the circle suggested for the board. Server-only, not
+### synced: nothing reaches the board until an editor adds it there.
+class: SuggestedWord
+table: word_suggestion
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  label: String
+  speech: String?
+  colorKey: String?
+  suggestedBy: UuidValue
+  suggestedByName: String
+  ### `person` (a read-only member) or `photo` (a photo suggestion).
+  source: String
+  createdAt: DateTime
+  ### When an editor answered it, and how: `added` or `declined`.
+  resolvedAt: DateTime?
+  resolution: String?
+  resolvedBy: UuidValue?
+indexes:
+  word_suggestion_circle_idx:
+    fields: circleSpace, resolvedAt

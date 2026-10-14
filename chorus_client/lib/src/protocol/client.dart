@@ -15,6 +15,8 @@ import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
 import 'package:chorus_client/src/protocol/circles/circle_role.dart'
     as _ixctvk32;
+import 'package:chorus_client/src/protocol/circles/member_info.dart'
+    as _iw7jhh88;
 import 'package:chorus_client/src/protocol/circles/server_info.dart'
     as _i01ishb8;
 import 'package:chorus_client/src/protocol/greetings/greeting.dart'
@@ -29,6 +31,8 @@ import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
 import 'package:chorus_client/src/protocol/summary/week_report.dart'
     as _iqxiegs0;
+import 'package:chorus_client/src/protocol/word_suggestions/suggested_word_info.dart'
+    as _iov4dup2;
 import 'package:chorus_client/src/protocol/wordlog/word_log_status.dart'
     as _izr7qg8x;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
@@ -488,6 +492,42 @@ class EndpointMedia extends _isc.EndpointRef {
   );
 }
 
+/// Who is in a circle, and a guardian's way to remove someone.
+/// {@category Endpoint}
+class EndpointMembers extends _isc.EndpointRef {
+  EndpointMembers(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'members';
+
+  /// Everyone in [circleSpace], guardians first, then by name. Any member.
+  _ida.Future<List<_iw7jhh88.MemberInfo>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_iw7jhh88.MemberInfo>>(
+        'members',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Removes [userId] from [circleSpace]: their sync access is revoked,
+  /// their membership deleted, and a live stream of theirs closes at once.
+  /// The words they added stay. Guardians only, and never themselves.
+  ///
+  /// Throws [CircleException] with `notAllowed` for a caller who is not a
+  /// guardian or who names themselves, and `notAMember` when [userId] is
+  /// not in the circle.
+  _ida.Future<void> remove(
+    _isc.UuidValue circleSpace,
+    _isc.UuidValue userId,
+  ) => caller.callServerEndpoint<void>(
+    'members',
+    'remove',
+    {
+      'circleSpace': circleSpace,
+      'userId': userId,
+    },
+  );
+}
+
 /// Paper backups of a board.
 /// {@category Endpoint}
 class EndpointPrinting extends _isc.EndpointRef {
@@ -652,6 +692,61 @@ class EndpointSummary extends _isc.EndpointRef {
   );
 }
 
+/// Words suggested for the board by anyone in the circle, read-only members
+/// included. A suggestion never reaches the board by itself: an editor adds
+/// it through the normal add path, then chooses its spot.
+/// {@category Endpoint}
+class EndpointWordSuggestion extends _isc.EndpointRef {
+  EndpointWordSuggestion(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'wordSuggestion';
+
+  /// Suggests [label] (with optional [speech] and part-of-speech
+  /// [colorKey]) for [circleSpace]'s board. Any member.
+  _ida.Future<_iov4dup2.SuggestedWordInfo> suggest(
+    _isc.UuidValue circleSpace,
+    String label,
+    String? speech,
+    String? colorKey,
+  ) => caller.callServerEndpoint<_iov4dup2.SuggestedWordInfo>(
+    'wordSuggestion',
+    'suggest',
+    {
+      'circleSpace': circleSpace,
+      'label': label,
+      'speech': speech,
+      'colorKey': colorKey,
+    },
+  );
+
+  /// The circle's open suggestions, oldest first. Editors only.
+  _ida.Future<List<_iov4dup2.SuggestedWordInfo>> list(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_iov4dup2.SuggestedWordInfo>>(
+    'wordSuggestion',
+    'list',
+    {'circleSpace': circleSpace},
+  );
+
+  /// Answers suggestion [id]: [added] when an editor put it on the board,
+  /// false when they said no. Editors only. Answering twice changes
+  /// nothing.
+  _ida.Future<void> resolve(
+    _isc.UuidValue circleSpace,
+    int id,
+    bool added,
+  ) => caller.callServerEndpoint<void>(
+    'wordSuggestion',
+    'resolve',
+    {
+      'circleSpace': circleSpace,
+      'id': id,
+      'added': added,
+    },
+  );
+}
+
 /// The opt-in word log: which tile the child's board spoke, and when.
 ///
 /// Off until a guardian turns it on for the circle. It holds tile ids,
@@ -780,10 +875,12 @@ class Client extends _isc.ServerpodClientShared {
     greeting = EndpointGreeting(this);
     live = EndpointLive(this);
     media = EndpointMedia(this);
+    members = EndpointMembers(this);
     printing = EndpointPrinting(this);
     sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
+    wordSuggestion = EndpointWordSuggestion(this);
     wordLog = EndpointWordLog(this);
     modules = Modules(this);
   }
@@ -802,6 +899,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointMedia media;
 
+  late final EndpointMembers members;
+
   late final EndpointPrinting printing;
 
   late final EndpointSharing sharing;
@@ -809,6 +908,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointSuggest suggest;
 
   late final EndpointSummary summary;
+
+  late final EndpointWordSuggestion wordSuggestion;
 
   late final EndpointWordLog wordLog;
 
@@ -823,10 +924,12 @@ class Client extends _isc.ServerpodClientShared {
     'greeting': greeting,
     'live': live,
     'media': media,
+    'members': members,
     'printing': printing,
     'sharing': sharing,
     'suggest': suggest,
     'summary': summary,
+    'wordSuggestion': wordSuggestion,
     'wordLog': wordLog,
   };
 

@@ -1,6 +1,7 @@
 /// Rules shared by the Chorus app, the server and the tests. Pure Dart.
 library;
 
+export 'src/activity.dart';
 export 'src/backoff.dart';
 export 'src/board_rules.dart';
 export 'src/cell_key.dart';
