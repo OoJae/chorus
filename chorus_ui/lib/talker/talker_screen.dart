@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:chorus_shared/chorus_shared.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -189,6 +190,9 @@ class _TalkerScreenState extends State<TalkerScreen> {
   /// Hidden words and the second language; null without either.
   TalkerExtras? _extras;
 
+  /// True while switch scanning is on the sentence strip.
+  final ValueNotifier<bool> _scanOnStrip = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
@@ -206,7 +210,9 @@ class _TalkerScreenState extends State<TalkerScreen> {
 
   TalkerController _newController() => TalkerController(
     store: widget.store,
-    speech: _extras?.speechFor(widget.speech) ?? widget.speech,
+    speech:
+        _extras?.speechFor(widget.speech, strip: () => _controller.strip) ??
+        widget.speech,
     speaker:
         _extras?.speakerFor(
           widget.speaker,
@@ -245,6 +251,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
   void dispose() {
     _controller.dispose();
     _extras?.dispose();
+    _scanOnStrip.dispose();
     super.dispose();
   }
 
@@ -258,6 +265,14 @@ class _TalkerScreenState extends State<TalkerScreen> {
     if (_controller.strip.isNotEmpty) ChorusHaptics.sentenceSpoken();
     noteSentenceSpoken(_controller.strip, private: _controller.private);
     unawaited(_controller.speakStrip());
+  }
+
+  /// A switch chose the strip: the sentence is said, then cleared, so a
+  /// switch user can start a new one (and the board can take changes that
+  /// wait for an empty strip).
+  void _speakAndClear() {
+    _speak();
+    _controller.clearStrip();
   }
 
   /// Reached only by holding the waiting pill; asks before moving anything.
@@ -347,6 +362,13 @@ class _TalkerScreenState extends State<TalkerScreen> {
             snapshot: snapshot,
             speech: widget.speech,
             onSelect: controller.tapTile,
+            // The board as the child sees it: hidden words are blank and
+            // silent, and words show in the second language while it is on.
+            hides: _extras?.hides,
+            shown: _extras?.shownTile,
+            previewIn: _extras?.speakInLanguage,
+            onStrip: controller.strip.isEmpty ? null : _speakAndClear,
+            stripHighlight: _scanOnStrip,
             gap: layout == TalkerLayout.short ? 3 : 4,
             child: _BoardGrid(
               snapshot: snapshot,
@@ -405,13 +427,15 @@ class _TalkerScreenState extends State<TalkerScreen> {
             const SizedBox(height: _rowGap),
           ]
         : const <Widget>[];
-    Widget strip({double fontSize = 32}) => wordToolsHold(
+    Widget strip({double fontSize = 32, bool phone = true}) => wordToolsHold(
       controller: controller,
       speech: widget.speech,
+      phone: phone,
       child: _SentenceBox(
         controller: controller,
         onSpeak: _speak,
         fontSize: fontSize,
+        scanHighlight: _scanOnStrip,
       ),
     );
 
@@ -425,7 +449,8 @@ class _TalkerScreenState extends State<TalkerScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(child: strip()),
+                  // The tools have keys here: a slow press still speaks.
+                  Expanded(child: strip(phone: false)),
                   ...wordToolKeys(
                     controller: controller,
                     speech: widget.speech,
@@ -1110,6 +1135,7 @@ class _SentenceBox extends StatelessWidget {
   const _SentenceBox({
     required this.controller,
     required this.onSpeak,
+    required this.scanHighlight,
     this.fontSize = 32,
   });
 
@@ -1117,17 +1143,47 @@ class _SentenceBox extends StatelessWidget {
   final VoidCallback onSpeak;
   final double fontSize;
 
+  /// True while switch scanning is on the strip: an ink ring is drawn
+  /// over it, which moves nothing.
+  final ValueListenable<bool> scanHighlight;
+
   /// The ink line round the strip.
   static const double _line = 2;
 
+  /// From the strip's edge to its first word.
+  static const double _side = 12;
+
   @override
   Widget build(BuildContext context) {
-    // From the strip's edge to its first word.
-    const side = 12.0;
     final colors = ChorusColors.of(context);
     final words = controller.strip;
     final sentence = words.map((t) => t.label).join(' ');
     final radius = BorderRadius.circular(ChorusSpace.buttonRadius);
+    return ValueListenableBuilder<bool>(
+      valueListenable: scanHighlight,
+      builder: (context, on, child) => DecoratedBox(
+        key: scanStripHighlightKey,
+        position: DecorationPosition.foreground,
+        decoration: on
+            ? BoxDecoration(
+                borderRadius: radius,
+                border: Border.all(color: colors.ink, width: 6),
+              )
+            : const BoxDecoration(),
+        child: child,
+      ),
+      child: _surface(context, colors, words, sentence, radius),
+    );
+  }
+
+  Widget _surface(
+    BuildContext context,
+    ChorusColors colors,
+    List<TileFacts> words,
+    String sentence,
+    BorderRadius radius,
+  ) {
+    const side = _side;
     return PressableSurface(
       onTap: onSpeak,
       semanticLabel: words.isEmpty ? 'Sentence, empty' : 'Sentence: $sentence',

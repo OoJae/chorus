@@ -19,6 +19,10 @@ class ChosenVoice {
 
   void use(VoicePrefs prefs) => _wanted = prefs;
 
+  /// Another voice was set on the engine: the chosen one is set again
+  /// before the next word.
+  void forget() => _applied = null;
+
   /// The engine's speed for [rate], a share of normal speech: the plugin's
   /// normal is 0.5 on phones and desktops and 1.0 in a browser.
   static double engineRate(double rate, {required bool web}) =>

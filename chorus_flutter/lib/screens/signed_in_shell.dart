@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
+import 'package:chorus_ui/talker/recent_sentences.dart';
 import 'package:flutter/material.dart';
 
 import '../src/sync/replica_board_store.dart';
@@ -94,6 +95,7 @@ class _SignedInShellState extends State<SignedInShell> {
   @override
   void dispose() {
     // Signed out from elsewhere, or the app is going away.
+    RecentSentences.clearAll();
     final workspace = _workspace;
     _workspace = null;
     if (workspace != null) {
@@ -260,6 +262,8 @@ class _SignedInShellState extends State<SignedInShell> {
     _stores.clear();
     _readiness.clear();
     _readying.clear();
+    // The child's sentences never reach the next adult to sign in.
+    RecentSentences.clearAll();
     try {
       await workspace?.close().timeout(_closeTimeout);
     } catch (_) {

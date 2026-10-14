@@ -160,6 +160,34 @@ class TalkerExtras extends ChangeNotifier {
     );
   }
 
+  /// Whether [words] are all shown in the second language, so a sentence
+  /// of them is said with its voice. A quick phrase, a typed word, a scene's
+  /// spot, a word with a new ending or a word put on the strip before the
+  /// switch came on is in the first language.
+  bool speaksInLanguage(Iterable<TileFacts> words) {
+    if (!languageOn || words.isEmpty) return false;
+    return words.every((tile) {
+      final word = languages?.wordFor(tile.id);
+      return word != null &&
+          tile.label == word.label &&
+          tile.spokenText == word.spokenText;
+    });
+  }
+
+  /// Says [text] with the device's voice for the second language while
+  /// [languageOn]. False when it did not: the switch is off, or there is no
+  /// voice for it.
+  Future<bool> speakInLanguage(String text) async {
+    final code = language?.code;
+    final voice = this.voice;
+    if (!languageOn || code == null || voice == null) return false;
+    try {
+      return await voice.speakIn(code, text);
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// The speaker the board's controller should use: [base] (or [speech]
   /// when it plays clips itself, else [speech]'s voice) for a word in the
   /// first language; for a word shown in the second language, the
@@ -176,11 +204,15 @@ class TalkerExtras extends ChangeNotifier {
   }
 
   /// The speech the board's controller should use for whole sentences:
-  /// the device's voice for the second language while [languageOn], when
-  /// it has one, otherwise [speech]. Null when there is no second language.
-  SpeechService? speechFor(SpeechService speech) {
+  /// the device's voice for the second language while every word of
+  /// [strip] is shown in it (see [speaksInLanguage]) and the device has
+  /// one, otherwise [speech]. Null when there is no second language.
+  SpeechService? speechFor(
+    SpeechService speech, {
+    required List<TileFacts> Function() strip,
+  }) {
     if (languages == null) return null;
-    return _LanguageSpeech(this, speech);
+    return _LanguageSpeech(this, speech, strip);
   }
 
   /// Applies a change to the hidden words if this is a safe moment.
@@ -398,19 +430,19 @@ class _LanguageTileSpeaker implements TileSpeaker {
 /// [SpeechService] that says sentences with the second language's voice
 /// while the board shows it.
 class _LanguageSpeech implements SpeechService {
-  _LanguageSpeech(this._extras, this._base);
+  _LanguageSpeech(this._extras, this._base, this._strip);
 
   final TalkerExtras _extras;
   final SpeechService _base;
 
+  /// The words on the strip: every word the board says is on it.
+  final List<TileFacts> Function() _strip;
+
   @override
   Future<void> speak(String text) async {
-    final language = _extras.language;
-    final voice = _extras.voice;
-    if (_extras.languageOn && language != null && voice != null) {
-      try {
-        if (await voice.speakIn(language.code, text)) return;
-      } catch (_) {}
+    if (_extras.speaksInLanguage(_strip()) &&
+        await _extras.speakInLanguage(text)) {
+      return;
     }
     await _base.speak(text);
   }

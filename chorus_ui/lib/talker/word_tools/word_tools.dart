@@ -154,16 +154,23 @@ void openKeyboard(
 }
 
 /// Wraps the sentence strip: counts each word that reaches it on this
-/// device (for the keyboard's predictions), and on a long press offers the
-/// word tools, which is how a phone reaches them. [child] alone when every
-/// word tool is off.
+/// device (for the keyboard's predictions), and on a [phone] layout with no
+/// tool keys offers the word tools on a long press, which is how a phone
+/// reaches them. Elsewhere the tools have keys, so a slow press on the
+/// strip still speaks it. [child] alone when every word tool is off.
 Widget wordToolsHold({
   required TalkerController controller,
   required SpeechService speech,
   required Widget child,
+  bool phone = false,
 }) {
   if (!w4AnyWordTool) return child;
-  return WordToolsHold(controller: controller, speech: speech, child: child);
+  return WordToolsHold(
+    controller: controller,
+    speech: speech,
+    offerTools: phone && !w4WordToolsOnPhones,
+    child: child,
+  );
 }
 
 class WordToolsHold extends StatefulWidget {
@@ -172,11 +179,15 @@ class WordToolsHold extends StatefulWidget {
     required this.controller,
     required this.speech,
     required this.child,
+    this.offerTools = true,
   });
 
   final TalkerController controller;
   final SpeechService speech;
   final Widget child;
+
+  /// Whether a long press offers the word tools.
+  final bool offerTools;
 
   @override
   State<WordToolsHold> createState() => _WordToolsHoldState();
@@ -247,8 +258,10 @@ class _WordToolsHoldState extends State<WordToolsHold> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      GestureDetector(onLongPress: _choose, child: widget.child);
+  Widget build(BuildContext context) => GestureDetector(
+    onLongPress: widget.offerTools ? _choose : null,
+    child: widget.child,
+  );
 }
 
 /// The word tools as three large choices, for a phone, where they have no

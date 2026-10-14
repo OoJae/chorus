@@ -330,6 +330,7 @@ class TtsSpeechService implements SpeechService, QuietSpeech {
     await warmUp();
     final tts = _tts;
     if (tts == null || mine != _utterance) return false;
+    var switched = false;
     try {
       final voices = await tts.getVoices;
       final voice = voiceForLanguage(
@@ -344,18 +345,23 @@ class TtsSpeechService implements SpeechService, QuietSpeech {
         await tts.stop();
       }
       if (mine != _utterance) return true;
+      switched = true;
       await tts.setLanguage(voice['locale']!);
       await tts.setVoice(voice);
-      // The next word in [language] chooses its own voice again.
-      _voiceChosen = false;
       await tts.speak(text);
       return true;
     } catch (_) {
       return false;
     } finally {
-      try {
-        await tts.setLanguage(language);
-      } catch (_) {}
+      if (switched) {
+        // The next word in [language] chooses its own voice again, then the
+        // circle's chosen voice, speed and pitch, which this one replaced.
+        _voiceChosen = false;
+        _voice.forget();
+        try {
+          await tts.setLanguage(language);
+        } catch (_) {}
+      }
       if (mine == _utterance) _speaking.value = false;
     }
   }
