@@ -142,6 +142,24 @@ void main() {
     expect(find.text(putBackLabel), findsNothing);
   });
 
+  testWidgets('the long press on a board tab offers both too', (tester) async {
+    await pumpApp(
+      tester,
+      EditorScreen(store: store, sync: FakeSyncStatus(), copies: copies),
+    );
+    await tester.longPress(find.text('My words').first);
+    await tester.pumpAndSettle();
+    expect(find.text(saveCopyLabel), findsOneWidget);
+    await tester.tap(find.text(saveCopyLabel));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Spare');
+    await tester.tap(find.text('Save copy'));
+    await tester.pumpAndSettle();
+    final kept = await copies.list();
+    expect(kept.single.boardName, 'My words');
+    expect(kept.single.wordCount, 0);
+  });
+
   testWidgets('a copy can be deleted after asking', (tester) async {
     final board = store.boards.firstWhere((b) => b.isHome);
     await copies.take(board, 'Old');

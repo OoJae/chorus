@@ -613,6 +613,7 @@ class _EditorScreenState extends State<EditorScreen>
                 store: _store,
                 manager: manager,
                 board: tabBoard,
+                copies: widget.copies,
               ),
       ),
       hasTabs: BoardTabs.showFor(_store.boards, canAdd: manager != null),

@@ -8,6 +8,8 @@ import '../brand/haptics.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_boards.dart';
+import '../contracts_copies.dart' show BoardCopies;
+import '../copies/copies_screens.dart';
 import 'obf_picker.dart';
 import 'tray_panel.dart' show notSavedMessage;
 
@@ -240,13 +242,15 @@ Future<bool> archiveBoardFrom(
 
 /// What can be done to [board] from its tab: rename it, and archive it
 /// unless [archiveProblem] says no, in which case the reason is shown in
-/// place of the action.
+/// place of the action. With [copies], also "Save a copy" and "Copies".
 Future<void> showBoardActions(
   BuildContext context, {
   required BoardStore store,
   required BoardManager manager,
   required BoardFacts board,
+  BoardCopies? copies,
 }) async {
+  final offered = offersCopies(copies) ? copies : null;
   final colors = ChorusColors.of(context);
   final problem = archiveProblem(board, store.boards);
   final choice = await showModalBottomSheet<String>(
@@ -285,6 +289,22 @@ Future<void> showBoardActions(
               enabled: problem == null,
               onTap: () => Navigator.of(sheetContext).pop('archive'),
             ),
+            if (offered != null) ...[
+              if (offered.canEdit)
+                ListTile(
+                  leading: const Icon(Icons.bookmark_add_rounded),
+                  title: const Text(saveCopyLabel),
+                  subtitle: const Text(
+                    'Keeps the words as they are now, under a name.',
+                  ),
+                  onTap: () => Navigator.of(sheetContext).pop('save-copy'),
+                ),
+              ListTile(
+                leading: const Icon(Icons.history_rounded),
+                title: const Text(copiesLabel),
+                onTap: () => Navigator.of(sheetContext).pop('copies'),
+              ),
+            ],
           ],
         ),
       ),
@@ -306,6 +326,10 @@ Future<void> showBoardActions(
         manager: manager,
         board: board,
       );
+    case 'save-copy' when offered != null:
+      await saveCopyFrom(context, copies: offered, board: board);
+    case 'copies' when offered != null:
+      await openCopies(context, copies: offered, store: store);
   }
 }
 
