@@ -193,6 +193,17 @@ void main() {
       expect(talker.counts.counts, isEmpty);
     });
 
+    testWidgets('a quick phrase takes no ending', (tester) async {
+      await _pump(tester);
+      await tester.tap(_toolKey(quickPhrasesLabel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('I need a break'));
+      await tester.pumpAndSettle();
+      await tester.tap(_toolKey(wordEndingsLabel));
+      await tester.pumpAndSettle();
+      expect(find.text(endingsNoneMessage('I need a break')), findsOneWidget);
+    });
+
     testWidgets("quick phrases show the circle's own", (tester) async {
       await _pump(
         tester,
@@ -307,6 +318,49 @@ void main() {
         expect(_sentence('Help'), findsOneWidget);
       });
     }
+
+    for (final (name, size) in [
+      ('upright', _portrait),
+      ('on its side', _landscape),
+    ]) {
+      testWidgets('$name: the keyboard fits, every key a target, and adds '
+          'to the sentence', (tester) async {
+        await _pump(tester, size: size);
+        await tester.longPress(_strip);
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel(keyboardLabel));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byType(KeyboardPage), findsOneWidget);
+        final a = tester.getSize(find.bySemanticsLabel('a'));
+        expect(a.height, greaterThanOrEqualTo(48));
+        await tester.tap(find.bySemanticsLabel('h'));
+        await tester.pump();
+        await tester.tap(find.bySemanticsLabel('i'));
+        await tester.pump();
+        final add = find.bySemanticsLabel(keyboardAddLabel);
+        await tester.ensureVisible(add);
+        await tester.pumpAndSettle();
+        await tester.tap(add);
+        await tester.pumpAndSettle();
+        expect(_sentence('hi'), findsOneWidget);
+      });
+    }
+
+    testWidgets('word endings open from the strip on a phone', (tester) async {
+      final talker = await _pump(tester, size: _portrait);
+      await tester.tap(_tile('want'));
+      await tester.pump();
+      await tester.longPress(_strip);
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel(wordEndingsLabel));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('wanted'));
+      await tester.pumpAndSettle();
+      expect(_sentence('wanted'), findsOneWidget);
+      expect(talker.speech.spoken.last, 'wanted');
+    });
 
     testWidgets('a tap on the strip still speaks it', (tester) async {
       final talker = await _pump(tester, size: _portrait);

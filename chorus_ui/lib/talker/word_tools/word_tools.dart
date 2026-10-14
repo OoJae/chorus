@@ -57,6 +57,10 @@ class WordToolsScope extends InheritedWidget {
   static WordToolsScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<WordToolsScope>();
 
+  /// The nearest scope, read once without depending on it: for callbacks.
+  static WordToolsScope? read(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<WordToolsScope>();
+
   @override
   bool updateShouldNotify(WordToolsScope oldWidget) =>
       oldWidget.phrases != phrases || oldWidget.counts != counts;
@@ -123,7 +127,7 @@ void openWordEndings(BuildContext context, TalkerController controller) {
 /// Opens the quick phrases over the whole screen.
 void openQuickPhrases(BuildContext context, TalkerController controller) {
   if (!w4QuickPhrases) return;
-  final book = WordToolsScope.maybeOf(context)?.phrases ?? _defaultPhrases;
+  final book = WordToolsScope.read(context)?.phrases ?? _defaultPhrases;
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
@@ -139,7 +143,7 @@ void openKeyboard(
   SpeechService speech,
 ) {
   if (!w4Keyboard) return;
-  final counts = WordToolsScope.maybeOf(context)?.counts ?? _memoryCounts;
+  final counts = WordToolsScope.read(context)?.counts ?? _memoryCounts;
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
@@ -210,7 +214,7 @@ class _WordToolsHoldState extends State<WordToolsHold> {
   void _onStrip() {
     final strip = widget.controller.strip;
     if (strip.length > _seen && !widget.controller.private) {
-      final counts = WordToolsScope.maybeOf(context)?.counts ?? _memoryCounts;
+      final counts = WordToolsScope.read(context)?.counts ?? _memoryCounts;
       for (final word in strip.skip(_seen)) {
         if (word.id.startsWith('phrase:')) continue;
         try {
@@ -459,7 +463,8 @@ class WordEndingsPanel extends StatelessWidget {
     final colors = ChorusColors.of(context);
     final strip = controller.strip;
     final last = strip.isEmpty ? null : strip.last;
-    final forms = last == null
+    // A quick phrase is a whole sentence: it takes no ending.
+    final forms = last == null || last.id.startsWith('phrase:')
         ? const <EndingForm>[]
         : wordFormsFor(last.label, colorKey: last.colorKey);
     final family = TileFamily.forKey(

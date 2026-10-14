@@ -158,6 +158,14 @@ class _KeyboardPageState extends State<KeyboardPage> {
     final predictions = _predictions;
     final rows = _qwerty ? qwertyRows : abcRows;
     const gap = SizedBox(width: ChorusSpace.targetGap, height: 6);
+    // A phone on its side has no height for rows that share it out: the
+    // keys keep a target's height and the page scrolls.
+    final short = MediaQuery.sizeOf(context).height < 600;
+    Widget fill(Widget child) =>
+        short ? SizedBox(height: 52, child: child) : Expanded(child: child);
+    Widget page(Widget column) =>
+        short ? SingleChildScrollView(child: column) : column;
+    Widget keys(Widget column) => short ? column : Expanded(child: column);
     return Focus(
       focusNode: _focus,
       autofocus: true,
@@ -167,174 +175,176 @@ class _KeyboardPageState extends State<KeyboardPage> {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: 64,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(child: _TextLine(text: _text)),
-                      gap,
-                      SizedBox(
-                        width: 64,
-                        child: _Key(
-                          label: backToBoardLabel,
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Icon(Icons.close_rounded, color: colors.ink),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                gap,
-                // Three places, always: a prediction that goes leaves its
-                // place empty, so the others do not move under a finger.
-                SizedBox(
-                  height: 64,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var i = 0; i < 3; i++) ...[
-                        if (i > 0) gap,
-                        Expanded(
-                          child: i < predictions.length
-                              ? _Key(
-                                  label: predictions[i],
-                                  onTap: () => _pick(predictions[i]),
-                                  strong: true,
-                                  text: predictions[i],
-                                )
-                              : const SizedBox.shrink(),
+            child: page(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: 64,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(child: _TextLine(text: _text)),
+                        gap,
+                        SizedBox(
+                          width: 64,
+                          child: _Key(
+                            label: backToBoardLabel,
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Icon(Icons.close_rounded, color: colors.ink),
+                          ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                gap,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final row in rows) ...[
-                        Expanded(
+                  gap,
+                  // Three places, always: a prediction that goes leaves its
+                  // place empty, so the others do not move under a finger.
+                  SizedBox(
+                    height: 64,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < 3; i++) ...[
+                          if (i > 0) gap,
+                          Expanded(
+                            child: i < predictions.length
+                                ? _Key(
+                                    label: predictions[i],
+                                    onTap: () => _pick(predictions[i]),
+                                    strong: true,
+                                    text: predictions[i],
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  gap,
+                  keys(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final row in rows) ...[
+                          fill(
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (var i = 0; i < row.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 6),
+                                  Expanded(
+                                    child: _Key(
+                                      label: row[i],
+                                      text: row[i],
+                                      onTap: () => _type(row[i]),
+                                    ),
+                                  ),
+                                ],
+                                // Short rows keep keys the size of the
+                                // longest row's.
+                                for (
+                                  var i = row.length;
+                                  i < rows.map((r) => r.length).reduce(_max);
+                                  i++
+                                ) ...[
+                                  const SizedBox(width: 6),
+                                  const Expanded(child: SizedBox.shrink()),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                        SizedBox(
+                          height: 56,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              for (var i = 0; i < row.length; i++) ...[
-                                if (i > 0) const SizedBox(width: 6),
-                                Expanded(
-                                  child: _Key(
-                                    label: row[i],
-                                    text: row[i],
-                                    onTap: () => _type(row[i]),
+                              Expanded(
+                                flex: 2,
+                                child: _Key(
+                                  label: _qwerty
+                                      ? keyboardAbcLabel
+                                      : keyboardQwertyLabel,
+                                  text: _qwerty
+                                      ? keyboardAbcLabel
+                                      : keyboardQwertyLabel,
+                                  onTap: _toggleLayout,
+                                  small: true,
+                                ),
+                              ),
+                              gap,
+                              Expanded(
+                                flex: 4,
+                                child: _Key(
+                                  label: keyboardSpaceLabel,
+                                  text: keyboardSpaceLabel,
+                                  onTap: _space,
+                                  small: true,
+                                ),
+                              ),
+                              gap,
+                              Expanded(
+                                flex: 2,
+                                child: _Key(
+                                  label: keyboardDeleteLabel,
+                                  onTap: _delete,
+                                  child: Icon(
+                                    Icons.backspace_rounded,
+                                    color: colors.ink,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  gap,
+                  SizedBox(
+                    height: 64,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: _Key(
+                            label: keyboardSpeakLabel,
+                            onTap: _speak,
+                            primary: true,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.volume_up_rounded,
+                                  color: colors.surface,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  keyboardSpeakLabel,
+                                  style: ChorusType.label.copyWith(
+                                    color: colors.surface,
                                   ),
                                 ),
                               ],
-                              // Short rows keep keys the size of the
-                              // longest row's.
-                              for (
-                                var i = row.length;
-                                i < rows.map((r) => r.length).reduce(_max);
-                                i++
-                              ) ...[
-                                const SizedBox(width: 6),
-                                const Expanded(child: SizedBox.shrink()),
-                              ],
-                            ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        gap,
+                        Expanded(
+                          child: _Key(
+                            label: keyboardAddLabel,
+                            onTap: _add,
+                            small: true,
+                            text: keyboardAddLabel,
+                          ),
+                        ),
                       ],
-                      SizedBox(
-                        height: 56,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: _Key(
-                                label: _qwerty
-                                    ? keyboardAbcLabel
-                                    : keyboardQwertyLabel,
-                                text: _qwerty
-                                    ? keyboardAbcLabel
-                                    : keyboardQwertyLabel,
-                                onTap: _toggleLayout,
-                                small: true,
-                              ),
-                            ),
-                            gap,
-                            Expanded(
-                              flex: 4,
-                              child: _Key(
-                                label: keyboardSpaceLabel,
-                                text: keyboardSpaceLabel,
-                                onTap: _space,
-                                small: true,
-                              ),
-                            ),
-                            gap,
-                            Expanded(
-                              flex: 2,
-                              child: _Key(
-                                label: keyboardDeleteLabel,
-                                onTap: _delete,
-                                child: Icon(
-                                  Icons.backspace_rounded,
-                                  color: colors.ink,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                gap,
-                SizedBox(
-                  height: 64,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: _Key(
-                          label: keyboardSpeakLabel,
-                          onTap: _speak,
-                          primary: true,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.volume_up_rounded,
-                                color: colors.surface,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                keyboardSpeakLabel,
-                                style: ChorusType.label.copyWith(
-                                  color: colors.surface,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      gap,
-                      Expanded(
-                        child: _Key(
-                          label: keyboardAddLabel,
-                          onTap: _add,
-                          small: true,
-                          text: keyboardAddLabel,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

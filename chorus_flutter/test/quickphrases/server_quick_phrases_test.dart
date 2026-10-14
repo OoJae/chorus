@@ -48,6 +48,19 @@ void main() {
       expect(offline.phrases, ['Swing', 'Snack']);
     });
 
+    test('asks the server once when made', () async {
+      var asked = 0;
+      final phrases = book(
+        fetch: () async {
+          asked++;
+          return ['Hi'];
+        },
+      );
+      await pumpEventQueue();
+      expect(asked, 1);
+      expect(phrases.phrases, ['Hi']);
+    });
+
     test('saves through the server and keeps what it kept', () async {
       List<String>? sent;
       final phrases = book(

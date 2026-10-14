@@ -24,8 +24,9 @@ typedef WriteText = Future<void> Function(String name, String text);
 /// [QuickPhraseBook] over the server's `quickPhrase` endpoint.
 ///
 /// What the device kept last time shows at once, the defaults when it
-/// kept nothing. [refresh] asks the server and keeps the answer; [save]
-/// needs the server and keeps what it kept.
+/// kept nothing; the server is asked once on creation. [refresh] asks the
+/// server and keeps the answer; [save] needs the server and keeps what it
+/// kept.
 class ServerQuickPhrases extends QuickPhraseBook {
   ServerQuickPhrases({
     required this.circleId,
@@ -37,7 +38,9 @@ class ServerQuickPhrases extends QuickPhraseBook {
   }) : _editable = canEdit,
        _read = read ?? platform.readText,
        _write = write ?? platform.writeText {
-    unawaited(_load());
+    // The device's copy first; then the circle's latest, when there is a
+    // connection, so the child's board has it before the panel opens.
+    unawaited(_load().whenComplete(refresh));
   }
 
   /// The phrases of [circleSpace] through [client].
