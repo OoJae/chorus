@@ -61,6 +61,26 @@ CREATE TABLE "board" (
 CREATE INDEX "board_circle_idx" ON "board" USING btree ("circleId");
 
 --
+-- Class BoardCopy as table board_copy
+--
+CREATE TABLE "board_copy" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "boardId" uuid NOT NULL,
+    "boardName" text NOT NULL,
+    "rows" bigint NOT NULL,
+    "cols" bigint NOT NULL,
+    "name" text NOT NULL,
+    "takenBy" uuid NOT NULL,
+    "takenByName" text NOT NULL,
+    "takenAt" timestamp without time zone NOT NULL,
+    "words" json NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "board_copy_circle_idx" ON "board_copy" USING btree ("circleSpace", "takenAt");
+
+--
 -- Class Circle as table circle
 --
 CREATE TABLE "circle" (
@@ -73,6 +93,37 @@ CREATE TABLE "circle" (
 
 -- Indexes
 CREATE UNIQUE INDEX "circle_space_idx" ON "circle" USING btree ("spaceUuid");
+
+--
+-- Class CircleLanguage as table circle_language
+--
+CREATE TABLE "circle_language" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "languageCode" text NOT NULL,
+    "languageName" text NOT NULL,
+    "changedBy" uuid NOT NULL,
+    "changedAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "circle_language_space_idx" ON "circle_language" USING btree ("circleSpace");
+
+--
+-- Class CircleVoice as table circle_voice
+--
+CREATE TABLE "circle_voice" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "voiceName" text,
+    "rate" double precision NOT NULL,
+    "pitch" double precision NOT NULL,
+    "changedBy" uuid NOT NULL,
+    "changedAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "circle_voice_circle_idx" ON "circle_voice" USING btree ("circleSpace");
 
 --
 -- Class DeviceSeen as table device_seen
@@ -90,6 +141,36 @@ CREATE TABLE "device_seen" (
 
 -- Indexes
 CREATE UNIQUE INDEX "device_seen_circle_user_device_idx" ON "device_seen" USING btree ("circleSpace", "userId", "deviceId");
+
+--
+-- Class FocusNudge as table focus_nudge
+--
+CREATE TABLE "focus_nudge" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "weekStart" timestamp without time zone NOT NULL,
+    "tileId" uuid NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "focus_nudge_circle_week_idx" ON "focus_nudge" USING btree ("circleSpace", "weekStart");
+
+--
+-- Class FocusWord as table focus_word
+--
+CREATE TABLE "focus_word" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "tileId" uuid NOT NULL,
+    "tip" text NOT NULL,
+    "weekStart" timestamp without time zone NOT NULL,
+    "pinnedBy" uuid NOT NULL,
+    "pinnedAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "focus_word_circle_week_tile_idx" ON "focus_word" USING btree ("circleSpace", "weekStart", "tileId");
 
 --
 -- Class Invitation as table invitation
@@ -142,6 +223,84 @@ CREATE UNIQUE INDEX "membership_circle_user_idx" ON "membership" USING btree ("c
 CREATE INDEX "membership_user_idx" ON "membership" USING btree ("userId");
 
 --
+-- Class PhotoIdeaCache as table photo_idea_cache
+--
+CREATE TABLE "photo_idea_cache" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "imageSha256" text NOT NULL,
+    "locale" text NOT NULL,
+    "ideasJson" text NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "photo_idea_cache_key_idx" ON "photo_idea_cache" USING btree ("circleSpace", "imageSha256", "locale");
+
+--
+-- Class ProgressReportLink as table progress_report_link
+--
+CREATE TABLE "progress_report_link" (
+    "id" bigserial PRIMARY KEY,
+    "token" text NOT NULL,
+    "circleSpace" uuid NOT NULL,
+    "report" json NOT NULL,
+    "createdBy" uuid NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL,
+    "expiresAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "progress_report_link_token_idx" ON "progress_report_link" USING btree ("token");
+
+--
+-- Class QuickPhrase as table quick_phrase
+--
+CREATE TABLE "quick_phrase" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "position" bigint NOT NULL,
+    "text" text NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "quick_phrase_space_position_idx" ON "quick_phrase" USING btree ("circleSpace", "position");
+
+--
+-- Class Scene as table scene
+--
+CREATE TABLE "scene" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "name" text NOT NULL,
+    "imageHash" text NOT NULL,
+    "createdBy" uuid NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL,
+    "archivedAt" timestamp without time zone
+);
+
+-- Indexes
+CREATE INDEX "scene_circle_idx" ON "scene" USING btree ("circleSpace");
+
+--
+-- Class SceneSpot as table scene_spot
+--
+CREATE TABLE "scene_spot" (
+    "id" bigserial PRIMARY KEY,
+    "sceneId" bigint NOT NULL,
+    "x" double precision NOT NULL,
+    "y" double precision NOT NULL,
+    "width" double precision NOT NULL,
+    "height" double precision NOT NULL,
+    "label" text NOT NULL,
+    "speech" text,
+    "position" bigint NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "scene_spot_scene_idx" ON "scene_spot" USING btree ("sceneId");
+
+--
 -- Class SharedSnapshot as table shared_snapshot
 --
 CREATE TABLE "shared_snapshot" (
@@ -157,6 +316,19 @@ CREATE TABLE "shared_snapshot" (
 
 -- Indexes
 CREATE UNIQUE INDEX "shared_snapshot_token_idx" ON "shared_snapshot" USING btree ("token");
+
+--
+-- Class SitterTap as table sitter_tap
+--
+CREATE TABLE "sitter_tap" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "label" text NOT NULL,
+    "tappedAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "sitter_tap_circle_idx" ON "sitter_tap" USING btree ("circleSpace", "tappedAt");
 
 --
 -- Class Tile as table tile
@@ -207,6 +379,38 @@ CREATE INDEX "tile_edit_circle_idx" ON "tile_edit" USING btree ("circleId");
 CREATE INDEX "tile_edit_tile_idx" ON "tile_edit" USING btree ("tileId", "prop");
 
 --
+-- Class TileSetting as table tile_setting
+--
+CREATE TABLE "tile_setting" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "tileId" uuid NOT NULL,
+    "hidden" boolean NOT NULL,
+    "changedBy" uuid NOT NULL,
+    "changedAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "tile_setting_space_tile_idx" ON "tile_setting" USING btree ("circleSpace", "tileId");
+
+--
+-- Class TileTranslation as table tile_translation
+--
+CREATE TABLE "tile_translation" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "tileId" uuid NOT NULL,
+    "languageCode" text NOT NULL,
+    "label" text NOT NULL,
+    "speech" text,
+    "changedBy" uuid NOT NULL,
+    "changedAt" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "tile_translation_space_tile_lang_idx" ON "tile_translation" USING btree ("circleSpace", "tileId", "languageCode");
+
+--
 -- Class WeeklySummary as table weekly_summary
 --
 CREATE TABLE "weekly_summary" (
@@ -234,6 +438,27 @@ CREATE TABLE "word_log_setting" (
 CREATE UNIQUE INDEX "word_log_setting_circle_idx" ON "word_log_setting" USING btree ("circleSpace");
 
 --
+-- Class SuggestedWord as table word_suggestion
+--
+CREATE TABLE "word_suggestion" (
+    "id" bigserial PRIMARY KEY,
+    "circleSpace" uuid NOT NULL,
+    "label" text NOT NULL,
+    "speech" text,
+    "colorKey" text,
+    "suggestedBy" uuid NOT NULL,
+    "suggestedByName" text NOT NULL,
+    "source" text NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL,
+    "resolvedAt" timestamp without time zone,
+    "resolution" text,
+    "resolvedBy" uuid
+);
+
+-- Indexes
+CREATE INDEX "word_suggestion_circle_idx" ON "word_suggestion" USING btree ("circleSpace", "resolvedAt");
+
+--
 -- Class WordUseRecord as table word_use
 --
 CREATE TABLE "word_use" (
@@ -242,7 +467,8 @@ CREATE TABLE "word_use" (
     "tileId" uuid NOT NULL,
     "boardId" uuid NOT NULL,
     "spokenAt" timestamp without time zone NOT NULL,
-    "receivedAt" timestamp without time zone NOT NULL
+    "receivedAt" timestamp without time zone NOT NULL,
+    "modelled" boolean NOT NULL DEFAULT false
 );
 
 -- Indexes
@@ -1300,9 +1526,9 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR chorus
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('chorus', '20261014142120543', now())
+    VALUES ('chorus', '20261014151037130', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20261014142120543', "timestamp" = now();
+    DO UPDATE SET "version" = '20261014151037130', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

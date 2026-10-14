@@ -13,8 +13,23 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
+import 'package:chorus_client/src/protocol/circles/member_info.dart'
+    as _iw7jhh88;
+import 'package:chorus_client/src/protocol/copies/board_copy_info.dart'
+    as _if69lgi4;
+import 'package:chorus_client/src/protocol/modelling/focus_word_info.dart'
+    as _ih7sffdq;
+import 'package:chorus_client/src/protocol/scenes/scene_info.dart' as _iolb456x;
+import 'package:chorus_client/src/protocol/scenes/scene_spot_info.dart'
+    as _ipq9e2w5;
+import 'package:chorus_client/src/protocol/sitter/sitter_tap_info.dart'
+    as _ixcw47ye;
+import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
+    as _igbppnkp;
 import 'package:chorus_client/src/protocol/trust/device_status.dart'
     as _ilm3njl8;
+import 'package:chorus_client/src/protocol/word_suggestions/suggested_word_info.dart'
+    as _iov4dup2;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
 import 'package:chorus_client/src/protocol/wordsettings/word_translation.dart'
@@ -36,21 +51,33 @@ import 'circles/circle_info.dart' as _i5j3z7cn;
 import 'circles/circle_role.dart' as _il0wc3z7;
 import 'circles/member_info.dart' as _i5nn4t9p;
 import 'circles/server_info.dart' as _iqe7186e;
+import 'copies/board_copy_info.dart' as _icohyzn9;
+import 'copies/board_copy_word.dart' as _i2osxjs3;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'live/live_event.dart' as _ixdzvre4;
 import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/upload_ticket.dart' as _illp1jkh;
+import 'modelling/focus_nudge_info.dart' as _id6gvdoh;
+import 'modelling/focus_word_info.dart' as _i5dbpwlf;
 import 'practice/practice_exception.dart' as _ilvwtkyp;
 import 'practice/practice_failure.dart' as _iv6qijxa;
 import 'practice/practice_word.dart' as _iu9klhki;
+import 'progress/focus_report_line.dart' as _itswlrkt;
+import 'progress/progress_report.dart' as _i5135299;
+import 'scenes/scene_info.dart' as _idpmi5ts;
+import 'scenes/scene_spot_info.dart' as _iex9guyq;
 import 'sharing/view_only_link.dart' as _iveyennw;
+import 'sitter/sitter_tap_info.dart' as _igr2wwcr;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
+import 'summary/modelled_tally.dart' as _ix06wsh7;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/word_tally.dart' as _i6roonjc;
 import 'trust/device_status.dart' as _i1bd2zm2;
+import 'voice/voice_setting.dart' as _iex30usi;
+import 'word_suggestions/suggested_word_info.dart' as _i6q1oeir;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_status.dart' as _i5lyi3mq;
@@ -67,21 +94,33 @@ export 'circles/circle_info.dart';
 export 'circles/circle_role.dart';
 export 'circles/member_info.dart';
 export 'circles/server_info.dart';
+export 'copies/board_copy_info.dart';
+export 'copies/board_copy_word.dart';
 export 'greetings/greeting.dart';
 export 'live/live_event.dart';
 export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/upload_ticket.dart';
+export 'modelling/focus_nudge_info.dart';
+export 'modelling/focus_word_info.dart';
 export 'practice/practice_exception.dart';
 export 'practice/practice_failure.dart';
 export 'practice/practice_word.dart';
+export 'progress/focus_report_line.dart';
+export 'progress/progress_report.dart';
+export 'scenes/scene_info.dart';
+export 'scenes/scene_spot_info.dart';
 export 'sharing/view_only_link.dart';
+export 'sitter/sitter_tap_info.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
+export 'summary/modelled_tally.dart';
 export 'summary/week_report.dart';
 export 'summary/word_tally.dart';
 export 'trust/device_status.dart';
+export 'voice/voice_setting.dart';
+export 'word_suggestions/suggested_word_info.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_status.dart';
@@ -546,6 +585,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _iqe7186e.ServerInfo) {
       return _iqe7186e.ServerInfo.fromJson(data) as T;
     }
+    if (t == _icohyzn9.BoardCopyInfo) {
+      return _icohyzn9.BoardCopyInfo.fromJson(data) as T;
+    }
+    if (t == _i2osxjs3.BoardCopyWord) {
+      return _i2osxjs3.BoardCopyWord.fromJson(data) as T;
+    }
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
@@ -561,6 +606,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _illp1jkh.UploadTicket) {
       return _illp1jkh.UploadTicket.fromJson(data) as T;
     }
+    if (t == _id6gvdoh.FocusNudgeInfo) {
+      return _id6gvdoh.FocusNudgeInfo.fromJson(data) as T;
+    }
+    if (t == _i5dbpwlf.FocusWordInfo) {
+      return _i5dbpwlf.FocusWordInfo.fromJson(data) as T;
+    }
     if (t == _ilvwtkyp.PracticeException) {
       return _ilvwtkyp.PracticeException.fromJson(data) as T;
     }
@@ -570,8 +621,23 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _iu9klhki.PracticeWord) {
       return _iu9klhki.PracticeWord.fromJson(data) as T;
     }
+    if (t == _itswlrkt.FocusReportLine) {
+      return _itswlrkt.FocusReportLine.fromJson(data) as T;
+    }
+    if (t == _i5135299.ProgressReport) {
+      return _i5135299.ProgressReport.fromJson(data) as T;
+    }
+    if (t == _idpmi5ts.SceneInfo) {
+      return _idpmi5ts.SceneInfo.fromJson(data) as T;
+    }
+    if (t == _iex9guyq.SceneSpotInfo) {
+      return _iex9guyq.SceneSpotInfo.fromJson(data) as T;
+    }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
+    }
+    if (t == _igr2wwcr.SitterTapInfo) {
+      return _igr2wwcr.SitterTapInfo.fromJson(data) as T;
     }
     if (t == _iw5bueja.SuggestException) {
       return _iw5bueja.SuggestException.fromJson(data) as T;
@@ -582,6 +648,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _ifctwajg.WordSuggestion) {
       return _ifctwajg.WordSuggestion.fromJson(data) as T;
     }
+    if (t == _ix06wsh7.ModelledTally) {
+      return _ix06wsh7.ModelledTally.fromJson(data) as T;
+    }
     if (t == _iaf8iewd.WeekReport) {
       return _iaf8iewd.WeekReport.fromJson(data) as T;
     }
@@ -590,6 +659,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _i1bd2zm2.DeviceStatus) {
       return _i1bd2zm2.DeviceStatus.fromJson(data) as T;
+    }
+    if (t == _iex30usi.VoiceSetting) {
+      return _iex30usi.VoiceSetting.fromJson(data) as T;
+    }
+    if (t == _i6q1oeir.SuggestedWordInfo) {
+      return _i6q1oeir.SuggestedWordInfo.fromJson(data) as T;
     }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
@@ -641,6 +716,14 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_iqe7186e.ServerInfo?>()) {
       return (data != null ? _iqe7186e.ServerInfo.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_icohyzn9.BoardCopyInfo?>()) {
+      return (data != null ? _icohyzn9.BoardCopyInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i2osxjs3.BoardCopyWord?>()) {
+      return (data != null ? _i2osxjs3.BoardCopyWord.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
@@ -656,6 +739,14 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_illp1jkh.UploadTicket?>()) {
       return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_id6gvdoh.FocusNudgeInfo?>()) {
+      return (data != null ? _id6gvdoh.FocusNudgeInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i5dbpwlf.FocusWordInfo?>()) {
+      return (data != null ? _i5dbpwlf.FocusWordInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_ilvwtkyp.PracticeException?>()) {
       return (data != null ? _ilvwtkyp.PracticeException.fromJson(data) : null)
           as T;
@@ -667,8 +758,27 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_iu9klhki.PracticeWord?>()) {
       return (data != null ? _iu9klhki.PracticeWord.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_itswlrkt.FocusReportLine?>()) {
+      return (data != null ? _itswlrkt.FocusReportLine.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i5135299.ProgressReport?>()) {
+      return (data != null ? _i5135299.ProgressReport.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_idpmi5ts.SceneInfo?>()) {
+      return (data != null ? _idpmi5ts.SceneInfo.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_iex9guyq.SceneSpotInfo?>()) {
+      return (data != null ? _iex9guyq.SceneSpotInfo.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_igr2wwcr.SitterTapInfo?>()) {
+      return (data != null ? _igr2wwcr.SitterTapInfo.fromJson(data) : null)
+          as T;
     }
     if (t == _isc.getType<_iw5bueja.SuggestException?>()) {
       return (data != null ? _iw5bueja.SuggestException.fromJson(data) : null)
@@ -682,6 +792,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
       return (data != null ? _ifctwajg.WordSuggestion.fromJson(data) : null)
           as T;
     }
+    if (t == _isc.getType<_ix06wsh7.ModelledTally?>()) {
+      return (data != null ? _ix06wsh7.ModelledTally.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_iaf8iewd.WeekReport?>()) {
       return (data != null ? _iaf8iewd.WeekReport.fromJson(data) : null) as T;
     }
@@ -690,6 +804,13 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _isc.getType<_i1bd2zm2.DeviceStatus?>()) {
       return (data != null ? _i1bd2zm2.DeviceStatus.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_iex30usi.VoiceSetting?>()) {
+      return (data != null ? _iex30usi.VoiceSetting.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i6q1oeir.SuggestedWordInfo?>()) {
+      return (data != null ? _i6q1oeir.SuggestedWordInfo.fromJson(data) : null)
+          as T;
     }
     if (t == _isc.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
@@ -726,6 +847,24 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_i2osxjs3.BoardCopyWord>) {
+      return (data as List)
+              .map((e) => deserialize<_i2osxjs3.BoardCopyWord>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_itswlrkt.FocusReportLine>) {
+      return (data as List)
+              .map((e) => deserialize<_itswlrkt.FocusReportLine>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iex9guyq.SceneSpotInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iex9guyq.SceneSpotInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
@@ -735,9 +874,29 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_ix06wsh7.ModelledTally>) {
+      return (data as List)
+              .map((e) => deserialize<_ix06wsh7.ModelledTally>(e))
+              .toList()
+          as T;
+    }
+    if (t == _isc.getType<List<_ix06wsh7.ModelledTally>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_ix06wsh7.ModelledTally>(e))
+                    .toList()
+              : null)
+          as T;
+    }
     if (t == List<_icfd3qx2.CircleInfo>) {
       return (data as List)
               .map((e) => deserialize<_icfd3qx2.CircleInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_if69lgi4.BoardCopyInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_if69lgi4.BoardCopyInfo>(e))
               .toList()
           as T;
     }
@@ -750,9 +909,51 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
+    if (t == List<_iw7jhh88.MemberInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iw7jhh88.MemberInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ih7sffdq.FocusWordInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ih7sffdq.FocusWordInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iolb456x.SceneInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iolb456x.SceneInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ipq9e2w5.SceneSpotInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ipq9e2w5.SceneSpotInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ixcw47ye.SitterTapInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ixcw47ye.SitterTapInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_igbppnkp.WordSuggestion>) {
+      return (data as List)
+              .map((e) => deserialize<_igbppnkp.WordSuggestion>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_ilm3njl8.DeviceStatus>) {
       return (data as List)
               .map((e) => deserialize<_ilm3njl8.DeviceStatus>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iov4dup2.SuggestedWordInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iov4dup2.SuggestedWordInfo>(e))
               .toList()
           as T;
     }
@@ -795,21 +996,33 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _il0wc3z7.CircleRole => 'CircleRole',
       _i5nn4t9p.MemberInfo => 'MemberInfo',
       _iqe7186e.ServerInfo => 'ServerInfo',
+      _icohyzn9.BoardCopyInfo => 'BoardCopyInfo',
+      _i2osxjs3.BoardCopyWord => 'BoardCopyWord',
       _izw8z7ou.Greeting => 'Greeting',
       _ixdzvre4.LiveEvent => 'LiveEvent',
       _il8wtxvt.LiveKind => 'LiveKind',
       _i8mjpd0r.MediaKind => 'MediaKind',
       _illp1jkh.UploadTicket => 'UploadTicket',
+      _id6gvdoh.FocusNudgeInfo => 'FocusNudgeInfo',
+      _i5dbpwlf.FocusWordInfo => 'FocusWordInfo',
       _ilvwtkyp.PracticeException => 'PracticeException',
       _iv6qijxa.PracticeFailure => 'PracticeFailure',
       _iu9klhki.PracticeWord => 'PracticeWord',
+      _itswlrkt.FocusReportLine => 'FocusReportLine',
+      _i5135299.ProgressReport => 'ProgressReport',
+      _idpmi5ts.SceneInfo => 'SceneInfo',
+      _iex9guyq.SceneSpotInfo => 'SceneSpotInfo',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
+      _igr2wwcr.SitterTapInfo => 'SitterTapInfo',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
+      _ix06wsh7.ModelledTally => 'ModelledTally',
       _iaf8iewd.WeekReport => 'WeekReport',
       _i6roonjc.WordTally => 'WordTally',
       _i1bd2zm2.DeviceStatus => 'DeviceStatus',
+      _iex30usi.VoiceSetting => 'VoiceSetting',
+      _i6q1oeir.SuggestedWordInfo => 'SuggestedWordInfo',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i5lyi3mq.WordLogStatus => 'WordLogStatus',
@@ -849,6 +1062,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'MemberInfo';
       case _iqe7186e.ServerInfo():
         return 'ServerInfo';
+      case _icohyzn9.BoardCopyInfo():
+        return 'BoardCopyInfo';
+      case _i2osxjs3.BoardCopyWord():
+        return 'BoardCopyWord';
       case _izw8z7ou.Greeting():
         return 'Greeting';
       case _ixdzvre4.LiveEvent():
@@ -859,26 +1076,46 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'MediaKind';
       case _illp1jkh.UploadTicket():
         return 'UploadTicket';
+      case _id6gvdoh.FocusNudgeInfo():
+        return 'FocusNudgeInfo';
+      case _i5dbpwlf.FocusWordInfo():
+        return 'FocusWordInfo';
       case _ilvwtkyp.PracticeException():
         return 'PracticeException';
       case _iv6qijxa.PracticeFailure():
         return 'PracticeFailure';
       case _iu9klhki.PracticeWord():
         return 'PracticeWord';
+      case _itswlrkt.FocusReportLine():
+        return 'FocusReportLine';
+      case _i5135299.ProgressReport():
+        return 'ProgressReport';
+      case _idpmi5ts.SceneInfo():
+        return 'SceneInfo';
+      case _iex9guyq.SceneSpotInfo():
+        return 'SceneSpotInfo';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
+      case _igr2wwcr.SitterTapInfo():
+        return 'SitterTapInfo';
       case _iw5bueja.SuggestException():
         return 'SuggestException';
       case _iv4peolp.SuggestFailure():
         return 'SuggestFailure';
       case _ifctwajg.WordSuggestion():
         return 'WordSuggestion';
+      case _ix06wsh7.ModelledTally():
+        return 'ModelledTally';
       case _iaf8iewd.WeekReport():
         return 'WeekReport';
       case _i6roonjc.WordTally():
         return 'WordTally';
       case _i1bd2zm2.DeviceStatus():
         return 'DeviceStatus';
+      case _iex30usi.VoiceSetting():
+        return 'VoiceSetting';
+      case _i6q1oeir.SuggestedWordInfo():
+        return 'SuggestedWordInfo';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -948,6 +1185,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'ServerInfo') {
       return deserialize<_iqe7186e.ServerInfo>(data['data']);
     }
+    if (dataClassName == 'BoardCopyInfo') {
+      return deserialize<_icohyzn9.BoardCopyInfo>(data['data']);
+    }
+    if (dataClassName == 'BoardCopyWord') {
+      return deserialize<_i2osxjs3.BoardCopyWord>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
@@ -963,6 +1206,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'UploadTicket') {
       return deserialize<_illp1jkh.UploadTicket>(data['data']);
     }
+    if (dataClassName == 'FocusNudgeInfo') {
+      return deserialize<_id6gvdoh.FocusNudgeInfo>(data['data']);
+    }
+    if (dataClassName == 'FocusWordInfo') {
+      return deserialize<_i5dbpwlf.FocusWordInfo>(data['data']);
+    }
     if (dataClassName == 'PracticeException') {
       return deserialize<_ilvwtkyp.PracticeException>(data['data']);
     }
@@ -972,8 +1221,23 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'PracticeWord') {
       return deserialize<_iu9klhki.PracticeWord>(data['data']);
     }
+    if (dataClassName == 'FocusReportLine') {
+      return deserialize<_itswlrkt.FocusReportLine>(data['data']);
+    }
+    if (dataClassName == 'ProgressReport') {
+      return deserialize<_i5135299.ProgressReport>(data['data']);
+    }
+    if (dataClassName == 'SceneInfo') {
+      return deserialize<_idpmi5ts.SceneInfo>(data['data']);
+    }
+    if (dataClassName == 'SceneSpotInfo') {
+      return deserialize<_iex9guyq.SceneSpotInfo>(data['data']);
+    }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
+    }
+    if (dataClassName == 'SitterTapInfo') {
+      return deserialize<_igr2wwcr.SitterTapInfo>(data['data']);
     }
     if (dataClassName == 'SuggestException') {
       return deserialize<_iw5bueja.SuggestException>(data['data']);
@@ -984,6 +1248,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'WordSuggestion') {
       return deserialize<_ifctwajg.WordSuggestion>(data['data']);
     }
+    if (dataClassName == 'ModelledTally') {
+      return deserialize<_ix06wsh7.ModelledTally>(data['data']);
+    }
     if (dataClassName == 'WeekReport') {
       return deserialize<_iaf8iewd.WeekReport>(data['data']);
     }
@@ -992,6 +1259,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'DeviceStatus') {
       return deserialize<_i1bd2zm2.DeviceStatus>(data['data']);
+    }
+    if (dataClassName == 'VoiceSetting') {
+      return deserialize<_iex30usi.VoiceSetting>(data['data']);
+    }
+    if (dataClassName == 'SuggestedWordInfo') {
+      return deserialize<_i6q1oeir.SuggestedWordInfo>(data['data']);
     }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);

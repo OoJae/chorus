@@ -15,6 +15,8 @@ import 'package:chorus_server/src/generated/circles/circle_role.dart'
 import 'package:chorus_server/src/generated/future_calls.dart' as _i1wquigt;
 import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
 import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
+import 'package:chorus_server/src/generated/modelling/focus_word_info.dart'
+    as _iwth5r5i;
 import 'package:chorus_server/src/generated/scenes/scene_spot_info.dart'
     as _ipw1gwuw;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
@@ -38,13 +40,20 @@ import '../copies/board_copy_endpoint.dart' as _igbglv03;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
+import '../members/members_endpoint.dart' as _ioz9zj50;
+import '../modelling/focus_endpoint.dart' as _ifqi0p3y;
 import '../practice/practice_endpoint.dart' as _i56xzqly;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
+import '../progress/progress_endpoint.dart' as _i88xesu5;
+import '../quickphrases/quick_phrase_endpoint.dart' as _i2z0d7f4;
 import '../scenes/scene_endpoint.dart' as _iakn3uy1;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
+import '../sitter/sitter_taps.dart' as _ir137qtt;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
 import '../trust/device_seen_endpoint.dart' as _ixbcgbh7;
+import '../voice/voice_endpoint.dart' as _ik7xlzml;
+import '../word_suggestions/word_suggestion_endpoint.dart' as _ig9c0beb;
 import '../wordlog/word_log_endpoint.dart' as _ivqq1yo7;
 import '../wordsettings/word_settings_endpoints.dart' as _izawk72m;
 export 'future_calls.dart' show ServerpodFutureCallsGetter;
@@ -101,6 +110,18 @@ class Endpoints extends _is.EndpointDispatch {
           'media',
           null,
         ),
+      'members': _ioz9zj50.MembersEndpoint()
+        ..initialize(
+          server,
+          'members',
+          null,
+        ),
+      'focus': _ifqi0p3y.FocusEndpoint()
+        ..initialize(
+          server,
+          'focus',
+          null,
+        ),
       'practice': _i56xzqly.PracticeEndpoint()
         ..initialize(
           server,
@@ -113,6 +134,18 @@ class Endpoints extends _is.EndpointDispatch {
           'printing',
           null,
         ),
+      'progress': _i88xesu5.ProgressEndpoint()
+        ..initialize(
+          server,
+          'progress',
+          null,
+        ),
+      'quickPhrase': _i2z0d7f4.QuickPhraseEndpoint()
+        ..initialize(
+          server,
+          'quickPhrase',
+          null,
+        ),
       'scene': _iakn3uy1.SceneEndpoint()
         ..initialize(
           server,
@@ -123,6 +156,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'sharing',
+          null,
+        ),
+      'sitter': _ir137qtt.SitterEndpoint()
+        ..initialize(
+          server,
+          'sitter',
           null,
         ),
       'suggest': _idurguj6.SuggestEndpoint()
@@ -141,6 +180,18 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'deviceSeen',
+          null,
+        ),
+      'voice': _ik7xlzml.VoiceEndpoint()
+        ..initialize(
+          server,
+          'voice',
+          null,
+        ),
+      'wordSuggestion': _ig9c0beb.WordSuggestionEndpoint()
+        ..initialize(
+          server,
+          'wordSuggestion',
           null,
         ),
       'wordLog': _ivqq1yo7.WordLogEndpoint()
@@ -733,6 +784,123 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['members'] = _is.EndpointConnector(
+      name: 'members',
+      endpoint: endpoints['members']!,
+      methodConnectors: {
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['members'] as _ioz9zj50.MembersEndpoint).list(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'remove': _is.MethodConnector(
+          name: 'remove',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['members'] as _ioz9zj50.MembersEndpoint).remove(
+                    session,
+                    params['circleSpace'],
+                    params['userId'],
+                  ),
+        ),
+      },
+    );
+    connectors['focus'] = _is.EndpointConnector(
+      name: 'focus',
+      endpoint: endpoints['focus']!,
+      methodConnectors: {
+        'words': _is.MethodConnector(
+          name: 'words',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['focus'] as _ifqi0p3y.FocusEndpoint).words(
+                session,
+                params['circleSpace'],
+              ),
+        ),
+        'setWords': _is.MethodConnector(
+          name: 'setWords',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'pins': _is.ParameterDescription(
+              name: 'pins',
+              type: _is.getType<List<_iwth5r5i.FocusWordInfo>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['focus'] as _ifqi0p3y.FocusEndpoint).setWords(
+                    session,
+                    params['circleSpace'],
+                    params['pins'],
+                  ),
+        ),
+        'nudge': _is.MethodConnector(
+          name: 'nudge',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['focus'] as _ifqi0p3y.FocusEndpoint).nudge(
+                session,
+                params['circleSpace'],
+              ),
+        ),
+      },
+    );
     connectors['practice'] = _is.EndpointConnector(
       name: 'practice',
       endpoint: endpoints['practice']!,
@@ -817,6 +985,102 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['token'],
                   ),
+        ),
+      },
+    );
+    connectors['progress'] = _is.EndpointConnector(
+      name: 'progress',
+      endpoint: endpoints['progress']!,
+      methodConnectors: {
+        'makeReport': _is.MethodConnector(
+          name: 'makeReport',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['progress'] as _i88xesu5.ProgressEndpoint)
+                  .makeReport(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'reportUrl': _is.MethodConnector(
+          name: 'reportUrl',
+          params: {
+            'token': _is.ParameterDescription(
+              name: 'token',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['progress'] as _i88xesu5.ProgressEndpoint)
+                  .reportUrl(
+                    session,
+                    params['token'],
+                  ),
+        ),
+      },
+    );
+    connectors['quickPhrase'] = _is.EndpointConnector(
+      name: 'quickPhrase',
+      endpoint: endpoints['quickPhrase']!,
+      methodConnectors: {
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['quickPhrase'] as _i2z0d7f4.QuickPhraseEndpoint)
+                      .list(
+                        session,
+                        params['circleSpace'],
+                      ),
+        ),
+        'set': _is.MethodConnector(
+          name: 'set',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'phrases': _is.ParameterDescription(
+              name: 'phrases',
+              type: _is.getType<List<String>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['quickPhrase'] as _i2z0d7f4.QuickPhraseEndpoint)
+                      .set(
+                        session,
+                        params['circleSpace'],
+                        params['phrases'],
+                      ),
         ),
       },
     );
@@ -1035,6 +1299,31 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['sitter'] = _is.EndpointConnector(
+      name: 'sitter',
+      endpoint: endpoints['sitter']!,
+      methodConnectors: {
+        'recentTaps': _is.MethodConnector(
+          name: 'recentTaps',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['sitter'] as _ir137qtt.SitterEndpoint).recentTaps(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+      },
+    );
     connectors['suggest'] = _is.EndpointConnector(
       name: 'suggest',
       endpoint: endpoints['suggest']!,
@@ -1064,6 +1353,37 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['suggest'] as _idurguj6.SuggestEndpoint).fromPhoto(
+                    session,
+                    params['circleSpace'],
+                    params['imageSha256'],
+                    params['locale'],
+                  ),
+        ),
+        'ideasFromPhoto': _is.MethodConnector(
+          name: 'ideasFromPhoto',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'imageSha256': _is.ParameterDescription(
+              name: 'imageSha256',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'locale': _is.ParameterDescription(
+              name: 'locale',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['suggest'] as _idurguj6.SuggestEndpoint)
+                  .ideasFromPhoto(
                     session,
                     params['circleSpace'],
                     params['imageSha256'],
@@ -1167,6 +1487,167 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['voice'] = _is.EndpointConnector(
+      name: 'voice',
+      endpoint: endpoints['voice']!,
+      methodConnectors: {
+        'getVoice': _is.MethodConnector(
+          name: 'getVoice',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['voice'] as _ik7xlzml.VoiceEndpoint).getVoice(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'setVoice': _is.MethodConnector(
+          name: 'setVoice',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'voiceName': _is.ParameterDescription(
+              name: 'voiceName',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'rate': _is.ParameterDescription(
+              name: 'rate',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'pitch': _is.ParameterDescription(
+              name: 'pitch',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['voice'] as _ik7xlzml.VoiceEndpoint).setVoice(
+                    session,
+                    params['circleSpace'],
+                    params['voiceName'],
+                    params['rate'],
+                    params['pitch'],
+                  ),
+        ),
+      },
+    );
+    connectors['wordSuggestion'] = _is.EndpointConnector(
+      name: 'wordSuggestion',
+      endpoint: endpoints['wordSuggestion']!,
+      methodConnectors: {
+        'suggest': _is.MethodConnector(
+          name: 'suggest',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'label': _is.ParameterDescription(
+              name: 'label',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'speech': _is.ParameterDescription(
+              name: 'speech',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'colorKey': _is.ParameterDescription(
+              name: 'colorKey',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordSuggestion']
+                          as _ig9c0beb.WordSuggestionEndpoint)
+                      .suggest(
+                        session,
+                        params['circleSpace'],
+                        params['label'],
+                        params['speech'],
+                        params['colorKey'],
+                      ),
+        ),
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordSuggestion']
+                          as _ig9c0beb.WordSuggestionEndpoint)
+                      .list(
+                        session,
+                        params['circleSpace'],
+                      ),
+        ),
+        'resolve': _is.MethodConnector(
+          name: 'resolve',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'id': _is.ParameterDescription(
+              name: 'id',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'added': _is.ParameterDescription(
+              name: 'added',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordSuggestion']
+                          as _ig9c0beb.WordSuggestionEndpoint)
+                      .resolve(
+                        session,
+                        params['circleSpace'],
+                        params['id'],
+                        params['added'],
+                      ),
+        ),
+      },
+    );
     connectors['wordLog'] = _is.EndpointConnector(
       name: 'wordLog',
       endpoint: endpoints['wordLog']!,
@@ -1235,6 +1716,31 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint).record(
+                    session,
+                    params['circleSpace'],
+                    params['uses'],
+                  ),
+        ),
+        'recordModelled': _is.MethodConnector(
+          name: 'recordModelled',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'uses': _is.ParameterDescription(
+              name: 'uses',
+              type: _is.getType<List<_i1jjj2rd.WordUseEntry>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint)
+                  .recordModelled(
                     session,
                     params['circleSpace'],
                     params['uses'],

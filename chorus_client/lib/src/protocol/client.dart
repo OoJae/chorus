@@ -15,24 +15,41 @@ import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
 import 'package:chorus_client/src/protocol/circles/circle_role.dart'
     as _ixctvk32;
+import 'package:chorus_client/src/protocol/circles/member_info.dart'
+    as _iw7jhh88;
 import 'package:chorus_client/src/protocol/circles/server_info.dart'
     as _i01ishb8;
+import 'package:chorus_client/src/protocol/copies/board_copy_info.dart'
+    as _if69lgi4;
 import 'package:chorus_client/src/protocol/greetings/greeting.dart'
     as _ix52s3dn;
 import 'package:chorus_client/src/protocol/live/live_event.dart' as _ij4123it;
 import 'package:chorus_client/src/protocol/media/media_kind.dart' as _i1n9e0sn;
 import 'package:chorus_client/src/protocol/media/upload_ticket.dart'
     as _i4yoz54l;
+import 'package:chorus_client/src/protocol/modelling/focus_nudge_info.dart'
+    as _illvav7f;
+import 'package:chorus_client/src/protocol/modelling/focus_word_info.dart'
+    as _ih7sffdq;
 import 'package:chorus_client/src/protocol/practice/practice_word.dart'
     as _ijitwxif;
+import 'package:chorus_client/src/protocol/scenes/scene_info.dart' as _iolb456x;
+import 'package:chorus_client/src/protocol/scenes/scene_spot_info.dart'
+    as _ipq9e2w5;
 import 'package:chorus_client/src/protocol/sharing/view_only_link.dart'
     as _i15qvapk;
+import 'package:chorus_client/src/protocol/sitter/sitter_tap_info.dart'
+    as _ixcw47ye;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
 import 'package:chorus_client/src/protocol/summary/week_report.dart'
     as _iqxiegs0;
 import 'package:chorus_client/src/protocol/trust/device_status.dart'
     as _ilm3njl8;
+import 'package:chorus_client/src/protocol/voice/voice_setting.dart'
+    as _iqh4kkre;
+import 'package:chorus_client/src/protocol/word_suggestions/suggested_word_info.dart'
+    as _iov4dup2;
 import 'package:chorus_client/src/protocol/wordlog/word_log_status.dart'
     as _izr7qg8x;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
@@ -364,6 +381,78 @@ class EndpointStatus extends _isc.EndpointRef {
       );
 }
 
+/// Named copies of a board, such as "Before the school trip".
+///
+/// A copy keeps the board's placed words as the server holds them when it
+/// is taken. Taking, reading or deleting one never touches the board: a
+/// word is put back on the adult's own device, through "Needs a home".
+///
+/// Each method throws [CircleException] with `notAMember` for someone
+/// outside the circle, and with `notAllowed` for a read-only partner who
+/// takes or deletes a copy, or for a name or board the rules refuse.
+/// {@category Endpoint}
+class EndpointBoardCopy extends _isc.EndpointRef {
+  EndpointBoardCopy(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'boardCopy';
+
+  /// Takes a copy of the board [boardId] called [name]. Editing roles
+  /// only. Refused for a board the circle does not have in use, a name
+  /// `copyNameProblem` refuses, and a circle that already keeps
+  /// [maxCopiesPerCircle] copies.
+  _ida.Future<_if69lgi4.BoardCopyInfo> take(
+    _isc.UuidValue circleSpace,
+    _isc.UuidValue boardId,
+    String name,
+  ) => caller.callServerEndpoint<_if69lgi4.BoardCopyInfo>(
+    'boardCopy',
+    'take',
+    {
+      'circleSpace': circleSpace,
+      'boardId': boardId,
+      'name': name,
+    },
+  );
+
+  /// The circle's copies, newest first, without their words. Members
+  /// only.
+  _ida.Future<List<_if69lgi4.BoardCopyInfo>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_if69lgi4.BoardCopyInfo>>(
+        'boardCopy',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// The copy [copyId] with its words, or null when the circle has no such
+  /// copy. Members only.
+  _ida.Future<_if69lgi4.BoardCopyInfo?> get(
+    _isc.UuidValue circleSpace,
+    int copyId,
+  ) => caller.callServerEndpoint<_if69lgi4.BoardCopyInfo?>(
+    'boardCopy',
+    'get',
+    {
+      'circleSpace': circleSpace,
+      'copyId': copyId,
+    },
+  );
+
+  /// Deletes the copy [copyId]. The board is not touched. Editing roles
+  /// only. Returns false when the circle has no such copy.
+  _ida.Future<bool> delete(
+    _isc.UuidValue circleSpace,
+    int copyId,
+  ) => caller.callServerEndpoint<bool>(
+    'boardCopy',
+    'delete',
+    {
+      'circleSpace': circleSpace,
+      'copyId': copyId,
+    },
+  );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -496,6 +585,91 @@ class EndpointMedia extends _isc.EndpointRef {
   );
 }
 
+/// Who is in a circle, and a guardian's way to remove someone.
+/// {@category Endpoint}
+class EndpointMembers extends _isc.EndpointRef {
+  EndpointMembers(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'members';
+
+  /// Everyone in [circleSpace], guardians first, then by name. Any member.
+  _ida.Future<List<_iw7jhh88.MemberInfo>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_iw7jhh88.MemberInfo>>(
+        'members',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Removes [userId] from [circleSpace]: their sync access is revoked,
+  /// their membership deleted, and a live stream of theirs closes at once.
+  /// The words they added stay. Guardians only, and never themselves.
+  ///
+  /// Throws [CircleException] with `notAllowed` for a caller who is not a
+  /// guardian or who names themselves, and `notAMember` when [userId] is
+  /// not in the circle.
+  _ida.Future<void> remove(
+    _isc.UuidValue circleSpace,
+    _isc.UuidValue userId,
+  ) => caller.callServerEndpoint<void>(
+    'members',
+    'remove',
+    {
+      'circleSpace': circleSpace,
+      'userId': userId,
+    },
+  );
+}
+
+/// Focus words of the week: up to three words a guardian or therapist pins,
+/// each with a one-line modelling tip, and the Thursday nudge when one has
+/// not been modelled yet. Adults only see them; the child's board stays
+/// calm.
+/// {@category Endpoint}
+class EndpointFocus extends _isc.EndpointRef {
+  EndpointFocus(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'focus';
+
+  /// This week's focus words of [circleSpace], oldest pin first. Members.
+  _ida.Future<List<_ih7sffdq.FocusWordInfo>> words(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_ih7sffdq.FocusWordInfo>>(
+    'focus',
+    'words',
+    {'circleSpace': circleSpace},
+  );
+
+  /// Replaces this week's focus words of [circleSpace] with [pins] (their
+  /// `weekStart` is ignored) and returns them as kept. Guardians and
+  /// therapists only.
+  ///
+  /// Throws [CircleException] with `notAllowed` for another role, more than
+  /// three words, the same word twice, a tip over 120 characters, or a
+  /// word that is not on one of the circle's boards.
+  _ida.Future<List<_ih7sffdq.FocusWordInfo>> setWords(
+    _isc.UuidValue circleSpace,
+    List<_ih7sffdq.FocusWordInfo> pins,
+  ) => caller.callServerEndpoint<List<_ih7sffdq.FocusWordInfo>>(
+    'focus',
+    'setWords',
+    {
+      'circleSpace': circleSpace,
+      'pins': pins,
+    },
+  );
+
+  /// This week's nudge for [circleSpace]: a focus word nobody had modelled
+  /// by Thursday and still has not, or null. Members.
+  _ida.Future<_illvav7f.FocusNudgeInfo?> nudge(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<_illvav7f.FocusNudgeInfo?>(
+        'focus',
+        'nudge',
+        {'circleSpace': circleSpace},
+      );
+}
+
 /// "Try a clash": a practice partner that puts a word into one cell of the
 /// circle's board, so one adult with one device can watch two offline
 /// claims on the same cell both survive.
@@ -577,6 +751,35 @@ class EndpointPrinting extends _isc.EndpointRef {
       );
 }
 
+/// The one-page progress report: this week's counts, kept behind a token so
+/// it can be opened and printed anywhere. Counts only, never a transcript.
+/// {@category Endpoint}
+class EndpointProgress extends _isc.EndpointRef {
+  EndpointProgress(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'progress';
+
+  /// Works out this week's report for [circleSpace], keeps it behind a new
+  /// token for 30 days, and returns the token. Guardians and therapists
+  /// only, as for "This week".
+  _ida.Future<String> makeReport(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<String>(
+        'progress',
+        'makeReport',
+        {'circleSpace': circleSpace},
+      );
+
+  /// The address of the report page for [token] on this server's web
+  /// server. Throws [CircleException] (`notAllowed`) for a malformed token.
+  _ida.Future<String> reportUrl(String token) =>
+      caller.callServerEndpoint<String>(
+        'progress',
+        'reportUrl',
+        {'token': token},
+      );
+}
+
 /// A circle's quick phrases: the few whole sentences the child's board says
 /// at once ("Stop", "Help", "I'm hurt"). Every member reads them; editing
 /// roles change them. Kept on the server only, never synced: each device
@@ -611,6 +814,98 @@ class EndpointQuickPhrase extends _isc.EndpointRef {
     {
       'circleSpace': circleSpace,
       'phrases': phrases,
+    },
+  );
+}
+
+/// Picture scenes: a family photo with spots that speak when the child taps
+/// them. Every member may list them; editing roles make and change them.
+///
+/// Each method throws [CircleException] with `notAMember` for someone
+/// outside the circle, and with `notAllowed` for a read-only partner who
+/// tries to change something, for a scene that is not one of the circle's
+/// scenes in use, and for a name, photo or spot the rules refuse.
+/// {@category Endpoint}
+class EndpointScene extends _isc.EndpointRef {
+  EndpointScene(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'scene';
+
+  /// The circle's scenes in use, oldest first, each with its spots in the
+  /// order they were drawn. Members only.
+  _ida.Future<List<_iolb456x.SceneInfo>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_iolb456x.SceneInfo>>(
+        'scene',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Makes a scene called [name] from the photo with hash [imageHash], with
+  /// no spots yet. Editing roles only.
+  ///
+  /// The photo may still be on its way from the adult's device: like a
+  /// tile's picture, it is shown wherever it has arrived.
+  _ida.Future<_iolb456x.SceneInfo> create(
+    _isc.UuidValue circleSpace,
+    String name,
+    String imageHash,
+  ) => caller.callServerEndpoint<_iolb456x.SceneInfo>(
+    'scene',
+    'create',
+    {
+      'circleSpace': circleSpace,
+      'name': name,
+      'imageHash': imageHash,
+    },
+  );
+
+  /// Renames the scene [sceneId]. Editing roles only.
+  _ida.Future<_iolb456x.SceneInfo> rename(
+    _isc.UuidValue circleSpace,
+    int sceneId,
+    String name,
+  ) => caller.callServerEndpoint<_iolb456x.SceneInfo>(
+    'scene',
+    'rename',
+    {
+      'circleSpace': circleSpace,
+      'sceneId': sceneId,
+      'name': name,
+    },
+  );
+
+  /// Archives the scene [sceneId]: it leaves every device's list. Nothing
+  /// is deleted. Editing roles only. Returns false when it was already
+  /// archived.
+  _ida.Future<bool> archive(
+    _isc.UuidValue circleSpace,
+    int sceneId,
+  ) => caller.callServerEndpoint<bool>(
+    'scene',
+    'archive',
+    {
+      'circleSpace': circleSpace,
+      'sceneId': sceneId,
+    },
+  );
+
+  /// Replaces every spot of the scene [sceneId] with [spots], in that
+  /// order, all or nothing. Editing roles only.
+  ///
+  /// Each spot must lie on the photo with each side at least `minSpotSide`
+  /// and carry a word the tile rules accept; at most [maxSpotsPerScene].
+  _ida.Future<_iolb456x.SceneInfo> setSpots(
+    _isc.UuidValue circleSpace,
+    int sceneId,
+    List<_ipq9e2w5.SceneSpotInfo> spots,
+  ) => caller.callServerEndpoint<_iolb456x.SceneInfo>(
+    'scene',
+    'setSpots',
+    {
+      'circleSpace': circleSpace,
+      'sceneId': sceneId,
+      'spots': spots,
     },
   );
 }
@@ -676,6 +971,26 @@ class EndpointSharing extends _isc.EndpointRef {
       );
 }
 
+/// What sitters tapped, for the circle's "What changed".
+/// {@category Endpoint}
+class EndpointSitter extends _isc.EndpointRef {
+  EndpointSitter(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'sitter';
+
+  /// The words sitters tapped on [circleSpace]'s view-only pages in the
+  /// last week, newest first. Guardians and therapists only, as for the
+  /// word log's "This week".
+  _ida.Future<List<_ixcw47ye.SitterTapInfo>> recentTaps(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_ixcw47ye.SitterTapInfo>>(
+    'sitter',
+    'recentTaps',
+    {'circleSpace': circleSpace},
+  );
+}
+
 /// Optional help for adults: a word suggested for a photo.
 ///
 /// The suggestion is only returned to the adult who asked. Nothing reaches a
@@ -699,6 +1014,26 @@ class EndpointSuggest extends _isc.EndpointRef {
   ) => caller.callServerEndpoint<_igbppnkp.WordSuggestion>(
     'suggest',
     'fromPhoto',
+    {
+      'circleSpace': circleSpace,
+      'imageSha256': imageSha256,
+      'locale': locale,
+    },
+  );
+
+  /// Suggests 3 to 6 words across word types (things, actions, describing
+  /// words), each with a part-of-speech colour key, for the circle's
+  /// verified image [imageSha256]. Ideas for one photo are kept for a day.
+  /// Editing roles only. Nothing is placed: an adult confirms each word.
+  ///
+  /// Throws [SuggestException] as [fromPhoto] does.
+  _ida.Future<List<_igbppnkp.WordSuggestion>> ideasFromPhoto(
+    _isc.UuidValue circleSpace,
+    String imageSha256,
+    String locale,
+  ) => caller.callServerEndpoint<List<_igbppnkp.WordSuggestion>>(
+    'suggest',
+    'ideasFromPhoto',
     {
       'circleSpace': circleSpace,
       'imageSha256': imageSha256,
@@ -778,6 +1113,100 @@ class EndpointDeviceSeen extends _isc.EndpointRef {
   );
 }
 
+/// The voice, speed and pitch the child speaks with, the same on every
+/// device of the circle.
+/// {@category Endpoint}
+class EndpointVoice extends _isc.EndpointRef {
+  EndpointVoice(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'voice';
+
+  /// [circleSpace]'s voice: the defaults when nobody has chosen one. Any
+  /// member may read it.
+  _ida.Future<_iqh4kkre.VoiceSetting> getVoice(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<_iqh4kkre.VoiceSetting>(
+        'voice',
+        'getVoice',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Chooses [circleSpace]'s voice. [voiceName] null is each device's own
+  /// everyday voice; [rate] and [pitch] are kept within what every engine
+  /// accepts. Editors only: a read-only partner gets [CircleException]
+  /// with `notAllowed`.
+  _ida.Future<_iqh4kkre.VoiceSetting> setVoice(
+    _isc.UuidValue circleSpace,
+    String? voiceName,
+    double rate,
+    double pitch,
+  ) => caller.callServerEndpoint<_iqh4kkre.VoiceSetting>(
+    'voice',
+    'setVoice',
+    {
+      'circleSpace': circleSpace,
+      'voiceName': voiceName,
+      'rate': rate,
+      'pitch': pitch,
+    },
+  );
+}
+
+/// Words suggested for the board by anyone in the circle, read-only members
+/// included. A suggestion never reaches the board by itself: an editor adds
+/// it through the normal add path, then chooses its spot.
+/// {@category Endpoint}
+class EndpointWordSuggestion extends _isc.EndpointRef {
+  EndpointWordSuggestion(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'wordSuggestion';
+
+  /// Suggests [label] (with optional [speech] and part-of-speech
+  /// [colorKey]) for [circleSpace]'s board. Any member.
+  _ida.Future<_iov4dup2.SuggestedWordInfo> suggest(
+    _isc.UuidValue circleSpace,
+    String label,
+    String? speech,
+    String? colorKey,
+  ) => caller.callServerEndpoint<_iov4dup2.SuggestedWordInfo>(
+    'wordSuggestion',
+    'suggest',
+    {
+      'circleSpace': circleSpace,
+      'label': label,
+      'speech': speech,
+      'colorKey': colorKey,
+    },
+  );
+
+  /// The circle's open suggestions, oldest first. Editors only.
+  _ida.Future<List<_iov4dup2.SuggestedWordInfo>> list(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_iov4dup2.SuggestedWordInfo>>(
+    'wordSuggestion',
+    'list',
+    {'circleSpace': circleSpace},
+  );
+
+  /// Answers suggestion [id]: [added] when an editor put it on the board,
+  /// false when they said no. Editors only. Answering twice changes
+  /// nothing.
+  _ida.Future<void> resolve(
+    _isc.UuidValue circleSpace,
+    int id,
+    bool added,
+  ) => caller.callServerEndpoint<void>(
+    'wordSuggestion',
+    'resolve',
+    {
+      'circleSpace': circleSpace,
+      'id': id,
+      'added': added,
+    },
+  );
+}
+
 /// The opt-in word log: which tile the child's board spoke, and when.
 ///
 /// Off until a guardian turns it on for the circle. It holds tile ids,
@@ -838,6 +1267,23 @@ class EndpointWordLog extends _isc.EndpointRef {
   ) => caller.callServerEndpoint<int>(
     'wordLog',
     'record',
+    {
+      'circleSpace': circleSpace,
+      'uses': uses,
+    },
+  );
+
+  /// Adds words an adult tapped in "Show words on the board" (model mode)
+  /// as modelled, not said, and returns how many were new. The same rules
+  /// and failures as [record]: editing roles only, only while the log is
+  /// on, never words of tiles marked "never log". The device leaves them
+  /// out in private mode.
+  _ida.Future<int> recordModelled(
+    _isc.UuidValue circleSpace,
+    List<_iyisc6zi.WordUseEntry> uses,
+  ) => caller.callServerEndpoint<int>(
+    'wordLog',
+    'recordModelled',
     {
       'circleSpace': circleSpace,
       'uses': uses,
@@ -1006,16 +1452,24 @@ class Client extends _isc.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     circle = EndpointCircle(this);
     status = EndpointStatus(this);
+    boardCopy = EndpointBoardCopy(this);
     greeting = EndpointGreeting(this);
     live = EndpointLive(this);
     media = EndpointMedia(this);
+    members = EndpointMembers(this);
+    focus = EndpointFocus(this);
     practice = EndpointPractice(this);
     printing = EndpointPrinting(this);
+    progress = EndpointProgress(this);
     quickPhrase = EndpointQuickPhrase(this);
+    scene = EndpointScene(this);
     sharing = EndpointSharing(this);
+    sitter = EndpointSitter(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
     deviceSeen = EndpointDeviceSeen(this);
+    voice = EndpointVoice(this);
+    wordSuggestion = EndpointWordSuggestion(this);
     wordLog = EndpointWordLog(this);
     hiddenWords = EndpointHiddenWords(this);
     homeLanguage = EndpointHomeLanguage(this);
@@ -1030,25 +1484,41 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointStatus status;
 
+  late final EndpointBoardCopy boardCopy;
+
   late final EndpointGreeting greeting;
 
   late final EndpointLive live;
 
   late final EndpointMedia media;
 
+  late final EndpointMembers members;
+
+  late final EndpointFocus focus;
+
   late final EndpointPractice practice;
 
   late final EndpointPrinting printing;
 
+  late final EndpointProgress progress;
+
   late final EndpointQuickPhrase quickPhrase;
 
+  late final EndpointScene scene;
+
   late final EndpointSharing sharing;
+
+  late final EndpointSitter sitter;
 
   late final EndpointSuggest suggest;
 
   late final EndpointSummary summary;
 
   late final EndpointDeviceSeen deviceSeen;
+
+  late final EndpointVoice voice;
+
+  late final EndpointWordSuggestion wordSuggestion;
 
   late final EndpointWordLog wordLog;
 
@@ -1064,16 +1534,24 @@ class Client extends _isc.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'circle': circle,
     'status': status,
+    'boardCopy': boardCopy,
     'greeting': greeting,
     'live': live,
     'media': media,
+    'members': members,
+    'focus': focus,
     'practice': practice,
     'printing': printing,
+    'progress': progress,
     'quickPhrase': quickPhrase,
+    'scene': scene,
     'sharing': sharing,
+    'sitter': sitter,
     'suggest': suggest,
     'summary': summary,
     'deviceSeen': deviceSeen,
+    'voice': voice,
+    'wordSuggestion': wordSuggestion,
     'wordLog': wordLog,
     'hiddenWords': hiddenWords,
     'homeLanguage': homeLanguage,

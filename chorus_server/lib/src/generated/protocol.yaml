@@ -29,11 +29,24 @@ media:
   - requestUpload:
   - confirmUpload:
   - downloadUrls:
+members:
+  - list:
+  - remove:
+focus:
+  - words:
+  - setWords:
+  - nudge:
 practice:
   - partnerWord:
 printing:
   - publishBoard:
   - pageUrl:
+progress:
+  - makeReport:
+  - reportUrl:
+quickPhrase:
+  - list:
+  - set:
 scene:
   - list:
   - create:
@@ -44,17 +57,28 @@ sharing:
   - publishViewOnly:
   - withdraw:
   - exportUrl:
+sitter:
+  - recentTaps:
 suggest:
   - fromPhoto:
+  - ideasFromPhoto:
 summary:
   - week:
 deviceSeen:
   - heartbeat:
   - devices:
+voice:
+  - getVoice:
+  - setVoice:
+wordSuggestion:
+  - suggest:
+  - list:
+  - resolve:
 wordLog:
   - status:
   - setEnabled:
   - record:
+  - recordModelled:
   - deleteAll:
 hiddenWords:
   - list:
