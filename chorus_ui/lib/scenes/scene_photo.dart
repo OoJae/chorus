@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../brand/tokens.dart';
 import '../contracts_media.dart';
@@ -63,7 +64,19 @@ class _ScenePhotoState extends State<ScenePhoto> {
       final width = info.image.width, height = info.image.height;
       if (!mounted || width <= 0 || height <= 0) return;
       final aspect = width / height;
-      if (aspect != _aspect) setState(() => _aspect = aspect);
+      if (aspect == _aspect) return;
+      void apply() {
+        if (mounted && aspect != _aspect) setState(() => _aspect = aspect);
+      }
+
+      // A picture already in memory answers at once, while this is being
+      // built: take its shape after the frame.
+      if (SchedulerBinding.instance.schedulerPhase ==
+          SchedulerPhase.persistentCallbacks) {
+        SchedulerBinding.instance.addPostFrameCallback((_) => apply());
+      } else {
+        apply();
+      }
     });
     stream.addListener(listener);
     _stream = stream;

@@ -420,6 +420,8 @@ class _SceneEditorScreenState extends State<SceneEditorScreen> {
     } on Object {
       ChorusHaptics.failed();
       if (!mounted) return;
+      // Back to what is saved, so the photo shows what the child will see.
+      setState(() => _spots = null);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text(sceneNotSavedMessage)));

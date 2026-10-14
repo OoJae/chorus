@@ -266,6 +266,10 @@ void main() {
       expect(find.text(sceneNotSavedMessage), findsOneWidget);
       expect(sceneNotSavedMessage.toLowerCase(), isNot(contains('error')));
       expect(book.scenes.single.spots, hasLength(2));
+      // The photo shows what is saved: the dog is still there.
+      await tester.tapAt(onPhoto(tester, 0.75, 0.7));
+      await tester.pump();
+      expect(find.text(removeSpotLabel), findsOneWidget);
     });
 
     testWidgets('a read-only partner sees the scenes and cannot change them', (
