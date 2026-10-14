@@ -8,6 +8,7 @@ import 'package:chorus_ui/device/device_settings_screen.dart';
 import 'package:chorus_ui/device/keyguard_template_screen.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/fakes_device.dart';
+import 'package:chorus_ui/fakes_features.dart';
 import 'package:chorus_ui/fakes_live.dart';
 import 'package:chorus_ui/talker/keyguard_geometry.dart';
 import 'package:chorus_ui/talker/recent_sentences.dart';
@@ -360,6 +361,38 @@ void main() {
       await tester.tap(find.byTooltip(sayAgainLabel));
       await tester.pump();
       expect(speech.spoken.last, 'want more');
+      await _close(tester);
+    });
+
+    testWidgets('nothing is noted for Recent while the board is private', (
+      tester,
+    ) async {
+      final store = FakeBoardStore.seeded(withWordsBoard: false);
+      tester.view.physicalSize = _tablet;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        DeviceSettingsScope(
+          store: InMemoryDeviceSettings(),
+          child: MaterialApp(
+            theme: chorusTheme(),
+            home: TalkerScreen(
+              store: store,
+              speech: FakeSpeech(),
+              sync: FakeSyncStatus(),
+              wordLog: FakeWordLog(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(TalkerScreen.privateKey));
+      await tester.pump();
+      await tester.tap(_tile('go'));
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Speak'));
+      await tester.pump();
+      expect(RecentSentences.session.sentences, isEmpty);
       await _close(tester);
     });
 

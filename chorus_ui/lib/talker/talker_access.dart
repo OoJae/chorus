@@ -21,9 +21,14 @@ export 'touch_gate.dart' show TouchGate;
 bool keyguardOn(BuildContext context) =>
     keyguardEnabled && DeviceSettingsScope.of(context).keyguard;
 
-/// Notes the sentence on [strip] as just spoken, for "Recent".
-void noteSentenceSpoken(List<TileFacts> strip, {RecentSentences? recent}) {
-  if (!shareSentenceEnabled || strip.isEmpty) return;
+/// Notes the sentence on [strip] as just spoken, for "Recent". While the
+/// board is [private] nothing is noted.
+void noteSentenceSpoken(
+  List<TileFacts> strip, {
+  bool private = false,
+  RecentSentences? recent,
+}) {
+  if (!shareSentenceEnabled || private || strip.isEmpty) return;
   (recent ?? RecentSentences.session).add(sentenceOf(strip));
 }
 

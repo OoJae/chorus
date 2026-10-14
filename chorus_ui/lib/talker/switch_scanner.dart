@@ -116,7 +116,10 @@ class _SwitchScannerState extends State<SwitchScanner> {
     _timer?.cancel();
     _timer = null;
     if (_mode != ScanMode.oneSwitch) return;
-    _timer = Timer.periodic(_settings.scanStep, (_) => _move());
+    _timer = Timer.periodic(_settings.scanStep, (_) {
+      // Rests while a screen is over the board.
+      if (mounted && (ModalRoute.of(context)?.isCurrent ?? true)) _move();
+    });
   }
 
   void _move() {

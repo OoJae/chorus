@@ -203,7 +203,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
   /// Speaks the sentence; felt only when there is one to speak.
   void _speak() {
     if (_controller.strip.isNotEmpty) ChorusHaptics.sentenceSpoken();
-    noteSentenceSpoken(_controller.strip);
+    noteSentenceSpoken(_controller.strip, private: _controller.private);
     unawaited(_controller.speakStrip());
   }
 
