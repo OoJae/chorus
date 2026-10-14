@@ -62,6 +62,9 @@ class ChorusSession {
 
   UuidValue get userId => _replica.userId;
 
+  /// The replica, for read-only views such as "Under the hood".
+  ReplicaService get replica => _replica;
+
   /// Completes once a sync has delivered this circle's space to this device;
   /// if [seedIfEmpty] and the circle has no home board, seeds the starter
   /// board.

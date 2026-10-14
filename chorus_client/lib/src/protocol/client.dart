@@ -23,12 +23,16 @@ import 'package:chorus_client/src/protocol/live/live_event.dart' as _ij4123it;
 import 'package:chorus_client/src/protocol/media/media_kind.dart' as _i1n9e0sn;
 import 'package:chorus_client/src/protocol/media/upload_ticket.dart'
     as _i4yoz54l;
+import 'package:chorus_client/src/protocol/practice/practice_word.dart'
+    as _ijitwxif;
 import 'package:chorus_client/src/protocol/sharing/view_only_link.dart'
     as _i15qvapk;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
 import 'package:chorus_client/src/protocol/summary/week_report.dart'
     as _iqxiegs0;
+import 'package:chorus_client/src/protocol/trust/device_status.dart'
+    as _ilm3njl8;
 import 'package:chorus_client/src/protocol/wordlog/word_log_status.dart'
     as _izr7qg8x;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
@@ -488,6 +492,45 @@ class EndpointMedia extends _isc.EndpointRef {
   );
 }
 
+/// "Try a clash": a practice partner that puts a word into one cell of the
+/// circle's board, so one adult with one device can watch two offline
+/// claims on the same cell both survive.
+///
+/// The partner is a member of the circle's sync space and nothing else: it
+/// has no account and no [Membership], so it never appears in the circle's
+/// list of adults and can never sign in. Its id is derived from the circle,
+/// so every circle has exactly one partner and every word it writes carries
+/// the same author.
+/// {@category Endpoint}
+class EndpointPractice extends _isc.EndpointRef {
+  EndpointPractice(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'practice';
+
+  /// Has the practice partner put a word into [cellKey] of board [boardId]
+  /// in [circleSpace], on the server, as another adult's device would.
+  /// Editing roles only.
+  ///
+  /// Throws [PracticeException] with `cellTaken` when the server already
+  /// holds a word there (the caller picks another empty cell), `noSuchCell`
+  /// when the board or cell is not in the circle, and `tooMany` after
+  /// [hourlyLimit] words in the last hour.
+  _ida.Future<_ijitwxif.PracticeWord> partnerWord(
+    _isc.UuidValue circleSpace,
+    _isc.UuidValue boardId,
+    String cellKey,
+  ) => caller.callServerEndpoint<_ijitwxif.PracticeWord>(
+    'practice',
+    'partnerWord',
+    {
+      'circleSpace': circleSpace,
+      'boardId': boardId,
+      'cellKey': cellKey,
+    },
+  );
+}
+
 /// Paper backups of a board.
 /// {@category Endpoint}
 class EndpointPrinting extends _isc.EndpointRef {
@@ -652,6 +695,47 @@ class EndpointSummary extends _isc.EndpointRef {
   );
 }
 
+/// "Who is up to date": when each member's devices last synced a circle.
+///
+/// Each device reports itself after a successful sync with [heartbeat];
+/// any member may read the list with [devices]. Nothing here holds a word.
+/// {@category Endpoint}
+class EndpointDeviceSeen extends _isc.EndpointRef {
+  EndpointDeviceSeen(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'deviceSeen';
+
+  /// Records that the caller's device [deviceId], described as
+  /// [deviceLabel], finished a sync of [circleSpace] at [lastSyncAt]. Any
+  /// member, read-only partners included: their devices sync too.
+  _ida.Future<void> heartbeat(
+    _isc.UuidValue circleSpace,
+    String deviceId,
+    String deviceLabel,
+    DateTime lastSyncAt,
+  ) => caller.callServerEndpoint<void>(
+    'deviceSeen',
+    'heartbeat',
+    {
+      'circleSpace': circleSpace,
+      'deviceId': deviceId,
+      'deviceLabel': deviceLabel,
+      'lastSyncAt': lastSyncAt,
+    },
+  );
+
+  /// Every device that has reported a sync of [circleSpace], most recently
+  /// synced first. Any member.
+  _ida.Future<List<_ilm3njl8.DeviceStatus>> devices(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<List<_ilm3njl8.DeviceStatus>>(
+    'deviceSeen',
+    'devices',
+    {'circleSpace': circleSpace},
+  );
+}
+
 /// The opt-in word log: which tile the child's board spoke, and when.
 ///
 /// Off until a guardian turns it on for the circle. It holds tile ids,
@@ -780,10 +864,12 @@ class Client extends _isc.ServerpodClientShared {
     greeting = EndpointGreeting(this);
     live = EndpointLive(this);
     media = EndpointMedia(this);
+    practice = EndpointPractice(this);
     printing = EndpointPrinting(this);
     sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
+    deviceSeen = EndpointDeviceSeen(this);
     wordLog = EndpointWordLog(this);
     modules = Modules(this);
   }
@@ -802,6 +888,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointMedia media;
 
+  late final EndpointPractice practice;
+
   late final EndpointPrinting printing;
 
   late final EndpointSharing sharing;
@@ -809,6 +897,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointSuggest suggest;
 
   late final EndpointSummary summary;
+
+  late final EndpointDeviceSeen deviceSeen;
 
   late final EndpointWordLog wordLog;
 
@@ -823,10 +913,12 @@ class Client extends _isc.ServerpodClientShared {
     'greeting': greeting,
     'live': live,
     'media': media,
+    'practice': practice,
     'printing': printing,
     'sharing': sharing,
     'suggest': suggest,
     'summary': summary,
+    'deviceSeen': deviceSeen,
     'wordLog': wordLog,
   };
 

@@ -26,12 +26,16 @@ import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
 import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
 import 'package:chorus_server/src/generated/media/upload_ticket.dart'
     as _i1laibyz;
+import 'package:chorus_server/src/generated/practice/practice_word.dart'
+    as _ih4iigs8;
 import 'package:chorus_server/src/generated/sharing/view_only_link.dart'
     as _ienfv6p6;
 import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
     as _iknl7ub9;
 import 'package:chorus_server/src/generated/summary/week_report.dart'
     as _ih0fhglb;
+import 'package:chorus_server/src/generated/trust/device_status.dart'
+    as _iu25h168;
 import 'package:chorus_server/src/generated/wordlog/word_log_status.dart'
     as _i5jq7z5w;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
@@ -189,6 +193,8 @@ class TestEndpoints {
 
   late final _MediaEndpoint media;
 
+  late final _PracticeEndpoint practice;
+
   late final _PrintingEndpoint printing;
 
   late final _SharingEndpoint sharing;
@@ -196,6 +202,8 @@ class TestEndpoints {
   late final _SuggestEndpoint suggest;
 
   late final _SummaryEndpoint summary;
+
+  late final _DeviceSeenEndpoint deviceSeen;
 
   late final _WordLogEndpoint wordLog;
 }
@@ -235,6 +243,10 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    practice = _PracticeEndpoint(
+      endpoints,
+      serializationManager,
+    );
     printing = _PrintingEndpoint(
       endpoints,
       serializationManager,
@@ -248,6 +260,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     summary = _SummaryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    deviceSeen = _DeviceSeenEndpoint(
       endpoints,
       serializationManager,
     );
@@ -975,6 +991,54 @@ class _MediaEndpoint {
   }
 }
 
+class _PracticeEndpoint {
+  _PracticeEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_ih4iigs8.PracticeWord> partnerWord(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    _is.UuidValue boardId,
+    String cellKey,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'practice',
+            method: 'partnerWord',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'practice',
+          methodName: 'partnerWord',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'boardId': boardId,
+            'cellKey': cellKey,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ih4iigs8.PracticeWord>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _PrintingEndpoint {
   _PrintingEndpoint(
     this._endpointDispatch,
@@ -1250,6 +1314,87 @@ class _SummaryEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ih0fhglb.WeekReport>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _DeviceSeenEndpoint {
+  _DeviceSeenEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<void> heartbeat(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    String deviceId,
+    String deviceLabel,
+    DateTime lastSyncAt,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'deviceSeen',
+            method: 'heartbeat',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'deviceSeen',
+          methodName: 'heartbeat',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'deviceId': deviceId,
+            'deviceLabel': deviceLabel,
+            'lastSyncAt': lastSyncAt,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_iu25h168.DeviceStatus>> devices(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'deviceSeen',
+            method: 'devices',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'deviceSeen',
+          methodName: 'devices',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iu25h168.DeviceStatus>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

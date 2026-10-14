@@ -1,0 +1,9 @@
+### Why the practice partner could not put a word on the board.
+enum: PracticeFailure
+values:
+  ### The server already has a word in that cell; pick another empty one.
+  - cellTaken
+  ### The board or the cell is not in this circle.
+  - noSuchCell
+  ### The circle has had its practice words for this hour.
+  - tooMany

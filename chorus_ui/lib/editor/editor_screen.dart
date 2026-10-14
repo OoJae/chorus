@@ -12,9 +12,12 @@ import '../brand/motion.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_boards.dart';
+import '../contracts_clash.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
 import '../contracts_suggest.dart';
+import '../features/clash/clash_guide.dart';
+import '../features/trust/presence_line.dart';
 import '../widgets/board_tabs.dart';
 import '../widgets/sync_chip.dart';
 import 'add_word_sheet.dart';
@@ -74,6 +77,7 @@ class EditorScreen extends StatefulWidget {
     this.onPrint,
     this.pickObfFile,
     this.onExport,
+    this.clash,
   });
 
   final BoardStore store;
@@ -106,6 +110,10 @@ class EditorScreen extends StatefulWidget {
   /// Exports the given board (the one chosen with the tabs) as an Open
   /// Board Format file. Null hides the action.
   final ValueChanged<BoardFacts>? onExport;
+
+  /// The practice partner behind "Try a clash" in the board menu. Null
+  /// hides it.
+  final ClashPartner? clash;
 
   /// The column beside the board on a wide screen, for tests.
   @visibleForTesting
@@ -172,6 +180,9 @@ class _EditorScreenState extends State<EditorScreen>
   /// The height the phone's sheet is a share of.
   double _sheetRoom = 0;
 
+  /// "Try a clash", while its guide is open.
+  ClashGuide? _guide;
+
   /// The clashes seen so far, so each lifts the sheet only once. Those
   /// already waiting when the editor opens are not news.
   Set<String> _knownClashes = const {};
@@ -201,6 +212,7 @@ class _EditorScreenState extends State<EditorScreen>
     _sheetSpring.dispose();
     _sheet.dispose();
     _flights.dispose();
+    _leaveClash();
     super.dispose();
   }
 
@@ -300,6 +312,45 @@ class _EditorScreenState extends State<EditorScreen>
       pick: pick,
     );
     if (id != null && mounted) _select(id);
+  }
+
+  // ---- Try a clash -------------------------------------------------------
+
+  void _startClash(ClashPartner partner) {
+    final old = _guide;
+    final guide = ClashGuide(
+      store: _store,
+      sync: widget.sync,
+      partner: partner,
+      preferBoard: _currentBoard()?.id,
+    )..addListener(_followClash);
+    setState(() => _guide = guide);
+    old?.dispose();
+    guide.start();
+  }
+
+  /// Shows the board the guide's spot is on.
+  void _followClash() {
+    if (!mounted) return;
+    final board = _guide?.spot?.boardId;
+    if (board != null && board != _currentBoard()?.id) _select(board);
+  }
+
+  void _endClash() {
+    final guide = _guide;
+    if (guide == null) return;
+    setState(() => _guide = null);
+    guide.close().whenComplete(guide.dispose);
+  }
+
+  /// Leaving the editor part way puts the device back online, as closing
+  /// the guide does.
+  void _leaveClash() {
+    final guide = _guide;
+    if (guide == null) return;
+    _guide = null;
+    guide.removeListener(_followClash);
+    guide.close().whenComplete(guide.dispose);
   }
 
   // ---- Words -------------------------------------------------------------
@@ -449,6 +500,7 @@ class _EditorScreenState extends State<EditorScreen>
     final manager = _store.role.canEdit ? _manager : null;
     final picker = manager == null ? null : _picker;
     final board = _currentBoard();
+    final clash = offersClash(widget.clash, _store) ? widget.clash : null;
     return [
       if (onPrint != null)
         IconButton(
@@ -461,7 +513,8 @@ class _EditorScreenState extends State<EditorScreen>
             if (board != null) onPrint(board);
           },
         ),
-      if ((manager != null || onExport != null) && board != null)
+      if ((manager != null || onExport != null || clash != null) &&
+          board != null)
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),
           tooltip: boardMenuLabel,
@@ -489,6 +542,8 @@ class _EditorScreenState extends State<EditorScreen>
                   manager: manager,
                   board: current,
                 );
+              case 'clash' when clash != null:
+                _startClash(clash);
             }
           },
           itemBuilder: (context) => [
@@ -515,6 +570,10 @@ class _EditorScreenState extends State<EditorScreen>
                 value: 'export',
                 child: Text(exportBoardLabel),
               ),
+            if (clash != null) ...[
+              const PopupMenuDivider(),
+              const PopupMenuItem(value: 'clash', child: Text(tryAClashLabel)),
+            ],
           ],
         ),
     ];
@@ -568,10 +627,17 @@ class _EditorScreenState extends State<EditorScreen>
                 _store.tiles.where((tile) => tile.id == id).firstOrNull?.label,
           );
     return (
-      header: _Header(
-        sync: widget.sync,
-        canEdit: canEdit,
-        childName: _store.childName,
+      header: withClashGuide(
+        withPresenceLine(
+          _Header(
+            sync: widget.sync,
+            canEdit: canEdit,
+            childName: _store.childName,
+          ),
+          live: live,
+        ),
+        guide: _guide,
+        onClose: _endClash,
       ),
       modelBar: modelBar,
       tabs: BoardTabs(
@@ -589,7 +655,7 @@ class _EditorScreenState extends State<EditorScreen>
               ),
       ),
       hasTabs: BoardTabs.showFor(_store.boards, canAdd: manager != null),
-      grid: grid,
+      grid: withClashGlow(grid, guide: _guide, board: board),
       // Draws nothing for a store with no edit log or no overwrites.
       replaced: ReplacedChangesPanel(store: _store, boardId: board.id),
     );

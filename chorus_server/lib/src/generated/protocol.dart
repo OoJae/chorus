@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
+import 'package:chorus_server/src/generated/trust/device_status.dart'
+    as _iu25h168;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
 import 'package:serverpod/protocol.dart' as _isp;
@@ -41,6 +43,9 @@ import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/media_object.dart' as _i87lco0i;
 import 'media/upload_ticket.dart' as _illp1jkh;
+import 'practice/practice_exception.dart' as _ilvwtkyp;
+import 'practice/practice_failure.dart' as _iv6qijxa;
+import 'practice/practice_word.dart' as _iu9klhki;
 import 'printing/shared_snapshot.dart' as _if9s8td9;
 import 'printing/snapshot_kind.dart' as _iergzj3e;
 import 'sharing/view_only_link.dart' as _iveyennw;
@@ -51,6 +56,8 @@ import 'suggest/word_suggestion.dart' as _ifctwajg;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/weekly_summary.dart' as _ikaxfpae;
 import 'summary/word_tally.dart' as _i6roonjc;
+import 'trust/device_seen.dart' as _ittyvjrh;
+import 'trust/device_status.dart' as _i1bd2zm2;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_setting.dart' as _i8exouxb;
@@ -75,6 +82,9 @@ export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/media_object.dart';
 export 'media/upload_ticket.dart';
+export 'practice/practice_exception.dart';
+export 'practice/practice_failure.dart';
+export 'practice/practice_word.dart';
 export 'printing/shared_snapshot.dart';
 export 'printing/snapshot_kind.dart';
 export 'sharing/view_only_link.dart';
@@ -85,6 +95,8 @@ export 'suggest/word_suggestion.dart';
 export 'summary/week_report.dart';
 export 'summary/weekly_summary.dart';
 export 'summary/word_tally.dart';
+export 'trust/device_seen.dart';
+export 'trust/device_status.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_setting.dart';
@@ -293,6 +305,88 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'spaceUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'device_seen',
+      dartName: 'DeviceSeen',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'deviceId',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'deviceLabel',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lastSyncAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lastSeenAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'device_seen_circle_user_device_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'deviceId',
             ),
           ],
           type: 'btree',
@@ -1162,6 +1256,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _illp1jkh.UploadTicket) {
       return _illp1jkh.UploadTicket.fromJson(data) as T;
     }
+    if (t == _ilvwtkyp.PracticeException) {
+      return _ilvwtkyp.PracticeException.fromJson(data) as T;
+    }
+    if (t == _iv6qijxa.PracticeFailure) {
+      return _iv6qijxa.PracticeFailure.fromJson(data) as T;
+    }
+    if (t == _iu9klhki.PracticeWord) {
+      return _iu9klhki.PracticeWord.fromJson(data) as T;
+    }
     if (t == _if9s8td9.SharedSnapshot) {
       return _if9s8td9.SharedSnapshot.fromJson(data) as T;
     }
@@ -1191,6 +1294,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _i6roonjc.WordTally) {
       return _i6roonjc.WordTally.fromJson(data) as T;
+    }
+    if (t == _ittyvjrh.DeviceSeen) {
+      return _ittyvjrh.DeviceSeen.fromJson(data) as T;
+    }
+    if (t == _i1bd2zm2.DeviceStatus) {
+      return _i1bd2zm2.DeviceStatus.fromJson(data) as T;
     }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
@@ -1266,6 +1375,17 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_illp1jkh.UploadTicket?>()) {
       return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ilvwtkyp.PracticeException?>()) {
+      return (data != null ? _ilvwtkyp.PracticeException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iv6qijxa.PracticeFailure?>()) {
+      return (data != null ? _iv6qijxa.PracticeFailure.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iu9klhki.PracticeWord?>()) {
+      return (data != null ? _iu9klhki.PracticeWord.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_if9s8td9.SharedSnapshot?>()) {
       return (data != null ? _if9s8td9.SharedSnapshot.fromJson(data) : null)
           as T;
@@ -1300,6 +1420,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_i6roonjc.WordTally?>()) {
       return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ittyvjrh.DeviceSeen?>()) {
+      return (data != null ? _ittyvjrh.DeviceSeen.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i1bd2zm2.DeviceStatus?>()) {
+      return (data != null ? _i1bd2zm2.DeviceStatus.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
@@ -1354,6 +1480,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
+    if (t == List<_iu25h168.DeviceStatus>) {
+      return (data as List)
+              .map((e) => deserialize<_iu25h168.DeviceStatus>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_i1jjj2rd.WordUseEntry>) {
       return (data as List)
               .map((e) => deserialize<_i1jjj2rd.WordUseEntry>(e))
@@ -1395,6 +1527,9 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i8mjpd0r.MediaKind => 'MediaKind',
       _i87lco0i.MediaObject => 'MediaObject',
       _illp1jkh.UploadTicket => 'UploadTicket',
+      _ilvwtkyp.PracticeException => 'PracticeException',
+      _iv6qijxa.PracticeFailure => 'PracticeFailure',
+      _iu9klhki.PracticeWord => 'PracticeWord',
       _if9s8td9.SharedSnapshot => 'SharedSnapshot',
       _iergzj3e.SnapshotKind => 'SnapshotKind',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
@@ -1405,6 +1540,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iaf8iewd.WeekReport => 'WeekReport',
       _ikaxfpae.WeeklySummary => 'WeeklySummary',
       _i6roonjc.WordTally => 'WordTally',
+      _ittyvjrh.DeviceSeen => 'DeviceSeen',
+      _i1bd2zm2.DeviceStatus => 'DeviceStatus',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i8exouxb.WordLogSetting => 'WordLogSetting',
@@ -1461,6 +1598,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'MediaObject';
       case _illp1jkh.UploadTicket():
         return 'UploadTicket';
+      case _ilvwtkyp.PracticeException():
+        return 'PracticeException';
+      case _iv6qijxa.PracticeFailure():
+        return 'PracticeFailure';
+      case _iu9klhki.PracticeWord():
+        return 'PracticeWord';
       case _if9s8td9.SharedSnapshot():
         return 'SharedSnapshot';
       case _iergzj3e.SnapshotKind():
@@ -1481,6 +1624,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'WeeklySummary';
       case _i6roonjc.WordTally():
         return 'WordTally';
+      case _ittyvjrh.DeviceSeen():
+        return 'DeviceSeen';
+      case _i1bd2zm2.DeviceStatus():
+        return 'DeviceStatus';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -1579,6 +1726,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'UploadTicket') {
       return deserialize<_illp1jkh.UploadTicket>(data['data']);
     }
+    if (dataClassName == 'PracticeException') {
+      return deserialize<_ilvwtkyp.PracticeException>(data['data']);
+    }
+    if (dataClassName == 'PracticeFailure') {
+      return deserialize<_iv6qijxa.PracticeFailure>(data['data']);
+    }
+    if (dataClassName == 'PracticeWord') {
+      return deserialize<_iu9klhki.PracticeWord>(data['data']);
+    }
     if (dataClassName == 'SharedSnapshot') {
       return deserialize<_if9s8td9.SharedSnapshot>(data['data']);
     }
@@ -1608,6 +1764,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordTally') {
       return deserialize<_i6roonjc.WordTally>(data['data']);
+    }
+    if (dataClassName == 'DeviceSeen') {
+      return deserialize<_ittyvjrh.DeviceSeen>(data['data']);
+    }
+    if (dataClassName == 'DeviceStatus') {
+      return deserialize<_i1bd2zm2.DeviceStatus>(data['data']);
     }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);
@@ -1699,6 +1861,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _inv1atzh.AiUsage.t;
       case _ikaxfpae.WeeklySummary:
         return _ikaxfpae.WeeklySummary.t;
+      case _ittyvjrh.DeviceSeen:
+        return _ittyvjrh.DeviceSeen.t;
       case _i8exouxb.WordLogSetting:
         return _i8exouxb.WordLogSetting.t;
       case _iqz5pl6l.WordUseRecord:

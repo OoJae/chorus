@@ -8,6 +8,7 @@ import 'package:chorus_flutter/screens/services.dart';
 import 'package:chorus_flutter/src/live/chorus_live_session.dart';
 import 'package:chorus_flutter/screens/signed_in_shell.dart';
 import 'package:chorus_shared/chorus_shared.dart' show BoardFacts;
+import 'package:chorus_ui/features/trust/trust_words.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncState;
 import 'package:chorus_ui/brand/pressable_surface.dart';
 import 'package:chorus_ui/brand/tokens.dart';
@@ -447,7 +448,7 @@ void main() {
       expect(find.text(label), findsOneWidget, reason: label);
     }
     expect(find.byType(SyncChip), findsOneWidget);
-    expect(find.text('Up to date'), findsOneWidget);
+    expect(find.text(everyoneUpToDateLabel), findsOneWidget);
     // One circle: no switcher.
     expect(find.byType(ChoiceChip), findsNothing);
   });
