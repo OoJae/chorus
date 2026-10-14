@@ -212,7 +212,7 @@ class _EditorScreenState extends State<EditorScreen>
     _sheetSpring.dispose();
     _sheet.dispose();
     _flights.dispose();
-    _guide?.dispose();
+    _leaveClash();
     super.dispose();
   }
 
@@ -331,6 +331,7 @@ class _EditorScreenState extends State<EditorScreen>
 
   /// Shows the board the guide's spot is on.
   void _followClash() {
+    if (!mounted) return;
     final board = _guide?.spot?.boardId;
     if (board != null && board != _currentBoard()?.id) _select(board);
   }
@@ -339,6 +340,16 @@ class _EditorScreenState extends State<EditorScreen>
     final guide = _guide;
     if (guide == null) return;
     setState(() => _guide = null);
+    guide.close().whenComplete(guide.dispose);
+  }
+
+  /// Leaving the editor part way puts the device back online, as closing
+  /// the guide does.
+  void _leaveClash() {
+    final guide = _guide;
+    if (guide == null) return;
+    _guide = null;
+    guide.removeListener(_followClash);
     guide.close().whenComplete(guide.dispose);
   }
 

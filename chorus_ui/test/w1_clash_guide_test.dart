@@ -232,6 +232,23 @@ void main() {
     expect(sync.workingOffline, isFalse);
   });
 
+  testWidgets('leaving the editor part way puts the device back online', (
+    tester,
+  ) async {
+    final store = FakeBoardStore.seeded(leaveEmpty: {(2, 3)});
+    final sync = FakeSyncStatus();
+    await _pump(
+      tester,
+      EditorScreen(store: store, sync: sync, clash: FakeClashPartner()),
+    );
+    await _startClash(tester);
+    expect(sync.workingOffline, isTrue);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+    expect(sync.workingOffline, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a read-only partner, or an editor with no practice partner, '
       'gets no "Try a clash"', (tester) async {
     final viewer = FakeBoardStore.seeded(role: CircleRole.partner);
