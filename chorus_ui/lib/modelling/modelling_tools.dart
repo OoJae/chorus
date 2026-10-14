@@ -55,6 +55,9 @@ class ModellingTools extends StatefulWidget {
   final ModellingSource? modelling;
   final SpeechListener? speech;
 
+  /// The word finder's field in the bar, for tests.
+  static const Key findFieldKey = ValueKey('ModellingTools.findField');
+
   @override
   State<ModellingTools> createState() => _ModellingToolsState();
 }
@@ -77,6 +80,13 @@ class _ModellingToolsState extends State<ModellingTools> {
     }
     _glows.clear();
   }
+
+  void _find(String query) => openWordFinder(
+    context,
+    store: widget.store,
+    live: widget.live,
+    query: query,
+  );
 
   void _toggleListening() {
     final speech = widget.speech;
@@ -149,20 +159,27 @@ class _ModellingToolsState extends State<ModellingTools> {
               ),
               const SizedBox(height: 8),
             ],
+            if (wordFinderEnabled) ...[
+              TextField(
+                key: ModellingTools.findFieldKey,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: findWordLabel,
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: IconButton(
+                    tooltip: findWordLabel,
+                    icon: const Icon(Icons.arrow_forward_rounded),
+                    onPressed: () => _find(''),
+                  ),
+                ),
+                onSubmitted: _find,
+              ),
+              const SizedBox(height: 8),
+            ],
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                if (wordFinderEnabled)
-                  OutlinedButton.icon(
-                    onPressed: () => openWordFinder(
-                      context,
-                      store: widget.store,
-                      live: widget.live,
-                    ),
-                    icon: const Icon(Icons.search_rounded),
-                    label: const Text(findWordLabel),
-                  ),
                 if (canListen)
                   listening
                       ? FilledButton.icon(

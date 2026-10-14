@@ -168,7 +168,18 @@ void main() {
     ) async {
       await openEditor(tester, speech: FakeSpeechListener(available: false));
       expect(find.text(listenLabel), findsNothing);
-      expect(find.text(findWordLabel), findsOneWidget);
+      expect(find.byKey(ModellingTools.findFieldKey), findsOneWidget);
+    });
+
+    testWidgets("the bar's search field opens the finder with the word", (
+      tester,
+    ) async {
+      await openEditor(tester);
+      await tester.enterText(find.byKey(ModellingTools.findFieldKey), 'help');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+      expect(find.byType(WordFinderScreen), findsOneWidget);
+      expect(find.textContaining('row 2, column 5'), findsOneWidget);
     });
 
     testWidgets('the bar works as before without modelling', (tester) async {

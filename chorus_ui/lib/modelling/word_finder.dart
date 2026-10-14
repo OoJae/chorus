@@ -40,11 +40,13 @@ void openWordFinder(
   BuildContext context, {
   required BoardStore store,
   LiveSession? live,
+  String query = '',
 }) {
   if (!wordFinderEnabled) return;
   Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => WordFinderScreen(store: store, live: live),
+      builder: (_) =>
+          WordFinderScreen(store: store, live: live, initialQuery: query),
     ),
   );
 }
@@ -53,17 +55,27 @@ void openWordFinder(
 /// and a small map of its grid with the word's cell lit. With [live], each
 /// result offers "Show on the child's board", the same glow model mode sends.
 class WordFinderScreen extends StatefulWidget {
-  const WordFinderScreen({super.key, required this.store, this.live});
+  const WordFinderScreen({
+    super.key,
+    required this.store,
+    this.live,
+    this.initialQuery = '',
+  });
 
   final BoardStore store;
   final LiveSession? live;
+
+  /// What the search field starts with.
+  final String initialQuery;
 
   @override
   State<WordFinderScreen> createState() => _WordFinderScreenState();
 }
 
 class _WordFinderScreenState extends State<WordFinderScreen> {
-  final TextEditingController _query = TextEditingController();
+  late final TextEditingController _query = TextEditingController(
+    text: widget.initialQuery,
+  );
 
   @override
   void dispose() {
