@@ -17,6 +17,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/services.dart';
 import 'screens/signed_in_shell.dart';
 import 'screens/support/circle_cache.dart';
+import 'src/activity/w2_parts.dart';
 import 'src/features/feature_wiring.dart';
 import 'src/live/chorus_live_session.dart';
 import 'src/live/live_settings.dart';
@@ -82,6 +83,8 @@ class _ChorusAppState extends State<ChorusApp> {
   @override
   void initState() {
     super.initState();
+    // Suggested words and the circle's members, on this app's client.
+    w2RemoteFor = (circle, userId) => serverW2Remote(client, circle, userId);
     client.auth.authInfoListenable.addListener(_noteSignedIn);
     _noteSignedIn();
   }

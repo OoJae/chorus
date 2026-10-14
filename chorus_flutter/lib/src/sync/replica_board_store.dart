@@ -18,6 +18,7 @@ import 'package:chorus_ui/contracts_media.dart';
 import 'package:flutter/foundation.dart';
 import 'package:serverpod_database/serverpod_database.dart';
 
+import '../activity/activity_undo_store.dart';
 import 'adapters.dart';
 import 'edit_log_store.dart';
 import 'replica_service.dart';
@@ -34,7 +35,7 @@ abstract final class EditReason {
 /// The [BoardStore] of one circle on this device. Boards are added,
 /// renamed, archived and imported through it too ([BoardManager]).
 class ReplicaBoardStore extends BoardStore
-    with EditLogStore
+    with EditLogStore, ActivityUndoStore
     implements TileMediaWriter, BoardManager {
   /// [circleId] is the UUID of the circle's sync space; every row of the
   /// circle carries it. [revision] is listened to and each change triggers a
@@ -100,6 +101,7 @@ class ReplicaBoardStore extends BoardStore
   /// Re-reads the circle's rows and notifies listeners if they differ from
   /// what is held. Completes after a read that started no earlier than this
   /// call. Never throws: a failed read leaves the held rows as they are.
+  @override
   Future<void> refresh() {
     _stale = true;
     return _refreshing ??= _drain();
