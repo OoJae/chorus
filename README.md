@@ -45,7 +45,7 @@ The password is in the submission text, never in this repository. TODO(owner): p
 
 - All three share one circle, so other judges' words may already be on it. Use any empty spot.
 - The demo board is made by the demo parent's first sign-in, which we do before submitting. If the therapist or partner sign-in shows "There is no board here yet", sign in once as `demo.parent@chorus.example` (in another window, or after signing out), then click "Retry".
-- The demo sign-ins have automated tests, but nobody had signed in with them on Cloud when this was written. If one fails, sign up with your own email address instead.
+- The demo parent's sign-in was checked on Cloud on 14 October at 17:45 UTC: "Maya's board" opened and reached "Everyone's up to date", which made the shared demo board. The therapist and partner sign-ins have automated tests only. If one fails, sign up with your own email address instead.
 
 ## What it demonstrates
 
@@ -176,7 +176,7 @@ Every check below was made against the Serverpod Cloud deployment. The devices w
 Not yet checked on any device (built and tested only):
 
 - Two different accounts on two devices. Every check used one account. Joining with an invitation code is covered by endpoint tests and sync test T8 only.
-- The demo sign-ins on Cloud.
+- The demo therapist and partner sign-ins on Cloud (the demo parent's was checked).
 - An offline word uploading after a real loss of network. That was checked only with "Work offline".
 - Other devices in "Who is up to date", recorded voices, and "Replaced changes" with restore.
 - On the phone: hiding a word, a second language, the word tools, scanning and scenes (each was checked in Edge; the phone's new status row was seen).
