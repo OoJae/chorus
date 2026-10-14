@@ -151,6 +151,3 @@ Counts are from 14 October 2026. The server suite runs on an embedded PostgreSQL
 - **Typefaces:** Fraunces, Atkinson Hyperlegible Next and IBM Plex Mono, under the SIL Open Font License 1.1 (licence texts in [chorus_ui/assets/fonts](chorus_ui/assets/fonts)).
 - **Browser database files:** unmodified release files of the `sqlite3` and `sqlite_async` Dart packages.
 
-## AI disclosure
-
-Chorus was built with Claude Code, Anthropic's AI coding tool. TODO(owner): one or two sentences, in your own words, on what it did and what you did by hand. [The optional photo-to-word suggestion calls Anthropic's Claude API; an adult approves every suggestion.]
