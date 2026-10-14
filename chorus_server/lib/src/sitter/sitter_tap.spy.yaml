@@ -1,0 +1,13 @@
+### A word a sitter tapped on the view-only page, reported back to the
+### circle. Kept only while the circle's word log is on, and never more
+### than the word and the time. Server-only and not synced.
+class: SitterTap
+table: sitter_tap
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  label: String
+  tappedAt: DateTime
+indexes:
+  sitter_tap_circle_idx:
+    fields: circleSpace, tappedAt

@@ -7,6 +7,8 @@ import '../obf/obf_export.dart';
 import '../printing/print_page.dart';
 import '../printing/print_routes.dart';
 import '../printing/snapshots.dart';
+import '../sitter/sitter_taps.dart';
+import '../wordlog/word_log_endpoint.dart' show isWordLogOn;
 import 'view_only_page.dart';
 
 /// Status for a token that never existed.
@@ -20,6 +22,7 @@ const int sharedGoneStatus = 410;
 /// server starts.
 void registerSharingRoutes(Serverpod pod) {
   pod.webServer.addRoute(ViewOnlyRoute(), '/b/:token');
+  pod.webServer.addRoute(SitterTapRoute(), '/b/:token/tap');
   pod.webServer.addRoute(ObfExportRoute(), '/export/:token');
 }
 
@@ -52,12 +55,18 @@ Future<Response> viewOnlyResponse(Session session, String token) async {
     // Checked when it was published, so this means the row was damaged.
     return sharedPageUnknown();
   }
+  final reportTaps =
+      sitterTapsEnabled && await isWordLogOn(session, snapshot.circleSpace);
   return Response.ok(
     body: Body.fromString(
-      renderViewOnlyPage(board, expiresAt: snapshot.expiresAt),
+      renderViewOnlyPage(
+        board,
+        expiresAt: snapshot.expiresAt,
+        reportTaps: reportTaps,
+      ),
       mimeType: MimeType.html,
     ),
-    headers: viewOnlyHeaders,
+    headers: reportTaps ? viewOnlyReportingHeaders : viewOnlyHeaders,
   );
 }
 
@@ -81,4 +90,12 @@ final Headers viewOnlyHeaders = boardPageHeaders(
   "default-src 'none'; style-src 'unsafe-inline'; "
   "script-src 'unsafe-inline'; img-src data:; base-uri 'none'; "
   "form-action 'none'; frame-ancestors 'none'",
+);
+
+/// [viewOnlyHeaders] for a page that reports taps (the circle keeps a word
+/// log): the one request it may make is to its own `/tap`, on this server.
+final Headers viewOnlyReportingHeaders = boardPageHeaders(
+  "default-src 'none'; style-src 'unsafe-inline'; "
+  "script-src 'unsafe-inline'; img-src data:; connect-src 'self'; "
+  "base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
 );

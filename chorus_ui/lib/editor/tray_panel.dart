@@ -12,9 +12,12 @@ import '../brand/motion.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_media.dart';
+import '../features/flags/w2.dart' as w2;
 import '../widgets/label_fit.dart';
 import '../widgets/tile_view.dart';
+import 'contested_tray_card.dart';
 import 'tile_flight.dart';
+import 'word_suggestions_tray.dart';
 
 /// Where every cell of a board drawn [size] big sits: the same equal cells
 /// the grid lays out, with the widest gap between them, up to 8dp, that
@@ -410,6 +413,15 @@ class TrayPanel extends StatelessWidget {
             ? const <(int, int)>[]
             : emptyCells(board, tiles, boards);
         final canEdit = store.role.canEdit;
+        final suggestions = WordSuggestionsScope.maybeOf(context);
+        // Words two adults put in one spot offline, shown side by side.
+        final plain = [
+          for (final entry in entries)
+            if (w2.plainTrayEnabled &&
+                entry.reason == TrayReason.contested &&
+                entry.wanted != null)
+              entry,
+        ];
         final note = entries.isEmpty
             ? 'No words are waiting.'
             : free.isEmpty
@@ -426,12 +438,33 @@ class TrayPanel extends StatelessWidget {
               onTap: onHeadingTap,
               expanded: expanded,
             ),
+            if (w2.suggestWordEnabled && canEdit && suggestions != null)
+              SuggestionsTray(
+                suggestions: suggestions,
+                store: store,
+                boardId: boardId,
+                media: media,
+              ),
             if (note != null)
               Text(
                 note,
                 style: ChorusType.body.copyWith(color: colors.inkMuted),
               ),
-            for (final entry in entries)
+            for (final entry in plain)
+              ContestedTrayCard(
+                key: ValueKey(entry.tile.id),
+                waiting: entry.tile,
+                holder: cells[(entry.wanted!.row, entry.wanted!.col)],
+                media: media,
+                onPlaceNext: canEdit && free.isNotEmpty
+                    ? (from) => _place(context, entry.tile, free.first, from)
+                    : null,
+                onChoose: canEdit && free.isNotEmpty && board != null
+                    ? (from) => _choose(context, board, entry.tile, from)
+                    : null,
+                onRemove: canEdit ? () => _remove(context, entry.tile) : null,
+              ),
+            for (final entry in entries.where((e) => !plain.contains(e)))
               _TrayCard(
                 key: ValueKey(entry.tile.id),
                 entry: entry,

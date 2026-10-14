@@ -281,14 +281,18 @@ Map<String, Object?> buildSuggestRequest({
   required String mediaType,
   required String locale,
   bool plain = false,
+  bool ideas = false,
 }) => {
   'model': model,
   'max_tokens': 4096,
-  'system': _instructions,
+  'system': ideas ? ideasInstructions : _instructions,
   if (!plain)
     'output_config': {
       'effort': 'low',
-      'format': {'type': 'json_schema', 'schema': _schema},
+      'format': {
+        'type': 'json_schema',
+        'schema': ideas ? _ideasSchema : _schema,
+      },
     },
   if (!plain && _fallbackModels.contains(model)) 'fallbacks': 'default',
   'messages': [
@@ -324,8 +328,9 @@ Future<String> _ask(
   SuggestSettings s,
   String apiKey,
   _Image image,
-  String locale,
-) async {
+  String locale, {
+  bool ideas = false,
+}) async {
   var plain = !isAnthropicBaseUrl(s.baseUrl);
   var retried = false;
   while (true) {
@@ -335,6 +340,7 @@ Future<String> _ask(
       mediaType: image.mediaType,
       locale: locale,
       plain: plain,
+      ideas: ideas,
     );
     final VisionReply reply;
     try {
@@ -468,4 +474,195 @@ String _tidy(String raw, int max) {
   var value = raw.replaceAll(_whitespace, ' ').replaceAll(_edgeNoise, '');
   if (value.length > max) value = value.substring(0, max).trimRight();
   return value;
+}
+
+// ---- Several ideas ---------------------------------------------------------
+
+/// How long the ideas for one photo are kept.
+const ideasCacheLifetime = Duration(days: 1);
+
+/// Fewest and most ideas asked for one photo. A reply with fewer than
+/// [minIdeas] usable words is still shown, as long as it has one: the
+/// adult is better served by one good word than by none.
+const minIdeas = 3;
+const maxIdeas = 6;
+
+/// What the model is asked for when an adult wants several ideas.
+const ideasInstructions = '''
+You help an adult add words to a child's picture communication board (AAC).
+Look at the photo and suggest between 3 and 6 everyday words a young child
+could use to talk about it, across word types: things (nouns), actions
+(verbs) and describing words (descriptors). Short, concrete words a family
+would say at home, best first.
+
+Answer with one JSON object and nothing else:
+{"ideas": [{"label": string, "speech": string, "colorKey": string, "properName": boolean}]}
+
+- label: the word shown on the tile, in the requested language, lower case
+  unless it is a proper name.
+- speech: what the tile says aloud. Usually the same as label.
+- colorKey: the word's part of speech, one of verb, pronoun, question,
+  descriptor, determiner, negation, noun.
+- properName: true only when label is a proper name.
+
+Never name or describe a person in the photo; for a person use a general
+word such as "person", "baby" or "friend". If you cannot tell what the
+photo shows, answer with an empty list.''';
+
+const _ideasSchema = <String, Object?>{
+  'type': 'object',
+  'properties': {
+    'ideas': {
+      'type': 'array',
+      'items': {
+        'type': 'object',
+        'properties': {
+          'label': {'type': 'string'},
+          'speech': {'type': 'string'},
+          'colorKey': {'type': 'string'},
+          'properName': {'type': 'boolean'},
+        },
+        'required': ['label', 'speech', 'colorKey', 'properName'],
+        'additionalProperties': false,
+      },
+    },
+  },
+  'required': ['ideas'],
+  'additionalProperties': false,
+};
+
+/// Suggests 3 to 6 words across word types for the circle's verified image
+/// [imageSha256]. The caller has already been checked as an editing member
+/// of [circleSpace]. Ideas for the same photo and language are kept for
+/// [ideasCacheLifetime]: asking again within it costs no call.
+///
+/// Throws [SuggestException] for every way this can fail.
+Future<List<WordSuggestion>> suggestIdeasFromPhoto(
+  Session session,
+  UuidValue circleSpace,
+  String imageSha256,
+  String locale, {
+  SuggestSettings? settings,
+}) async {
+  final s =
+      settings ??
+      suggestSettingsOverride ??
+      SuggestSettings.fromPasswords(session);
+  final apiKey = s.apiKey?.trim() ?? '';
+  if (apiKey.isEmpty) throw _fail(SuggestFailure.notConfigured);
+
+  final hash = imageSha256.trim().toLowerCase();
+  final language = cleanLocale(locale);
+  final now = (s.now ?? DateTime.now)().toUtc();
+  final cached = await PhotoIdeaCache.db.findFirstRow(
+    session,
+    where: (t) =>
+        t.circleSpace.equals(circleSpace) &
+        t.imageSha256.equals(hash) &
+        t.locale.equals(language),
+  );
+  if (cached != null && now.difference(cached.createdAt) < ideasCacheLifetime) {
+    final ideas = _cachedIdeas(cached.ideasJson);
+    if (ideas.isNotEmpty) return ideas;
+  }
+
+  final image = await _loadImage(session, circleSpace, hash);
+  if (!await _reserveCall(session, circleSpace, _day(now), s.dailyBudget)) {
+    throw _fail(SuggestFailure.overBudget);
+  }
+  final reply = await _ask(session, s, apiKey, image, language, ideas: true);
+  final ideas = parseIdeas(reply);
+
+  final json = jsonEncode([for (final idea in ideas) idea.toJson()]);
+  if (cached != null) {
+    await PhotoIdeaCache.db.updateRow(
+      session,
+      cached.copyWith(ideasJson: json, createdAt: now),
+      columns: (t) => [t.ideasJson, t.createdAt],
+    );
+  } else {
+    try {
+      await PhotoIdeaCache.db.insertRow(
+        session,
+        PhotoIdeaCache(
+          circleSpace: circleSpace,
+          imageSha256: hash,
+          locale: language,
+          ideasJson: json,
+          createdAt: now,
+        ),
+      );
+    } on DatabaseException {
+      // Another adult's ask for the same photo cached it first.
+    }
+  }
+  return ideas;
+}
+
+List<WordSuggestion> _cachedIdeas(String json) {
+  try {
+    final list = jsonDecode(json);
+    if (list is! List) return const [];
+    return [
+      for (final item in list)
+        if (item is Map<String, dynamic>) WordSuggestion.fromJson(item),
+    ];
+  } catch (_) {
+    return const [];
+  }
+}
+
+/// Reads the model's reply [body] into 3 to 6 ideas, each with a colour key
+/// from [suggestColorKeys] and no duplicates.
+///
+/// Throws `unreadable` when the model declined or gave no usable word.
+List<WordSuggestion> parseIdeas(String body) {
+  final unreadable = _fail(SuggestFailure.unreadable);
+  final Object? message;
+  try {
+    message = jsonDecode(body);
+  } on FormatException {
+    throw unreadable;
+  }
+  if (message is! Map || message['stop_reason'] == 'refusal') throw unreadable;
+  final content = message['content'];
+  if (content is! List) throw unreadable;
+  final text = content
+      .whereType<Map>()
+      .where((block) => block['type'] == 'text' && block['text'] is String)
+      .map((block) => block['text'] as String)
+      .join('\n');
+  final answer = _jsonObjectIn(text);
+  final raw = answer?['ideas'];
+  if (raw is! List) throw unreadable;
+
+  final ideas = <WordSuggestion>[];
+  for (final item in raw) {
+    if (item is! Map) continue;
+    final proper = item['properName'] == true;
+    final rawLabel = item['label'];
+    if (rawLabel is! String) continue;
+    final tidy = _tidy(rawLabel, maxLabelLength);
+    final label = proper ? tidy : tidy.toLowerCase();
+    if (label.isEmpty ||
+        ideas.any((i) => i.label.toLowerCase() == label.toLowerCase())) {
+      continue;
+    }
+    final rawSpeech = item['speech'];
+    var speech = rawSpeech is String ? _tidy(rawSpeech, maxSpeechLength) : '';
+    if (speech.isEmpty) speech = label;
+    final rawKey = item['colorKey'];
+    final key = rawKey is String ? rawKey.trim().toLowerCase() : '';
+    ideas.add(
+      WordSuggestion(
+        label: label,
+        speech: speech,
+        colorKey: suggestColorKeys.contains(key) ? key : 'noun',
+        alternatives: const [],
+      ),
+    );
+    if (ideas.length == maxIdeas) break;
+  }
+  if (ideas.isEmpty) throw unreadable;
+  return ideas;
 }

@@ -22,6 +22,7 @@ import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../src/activity/w2_home.dart';
 import '../src/live/live_scope.dart';
 import '../src/sharing/share_link.dart';
 import '../src/sync/replica_board_store.dart';
@@ -107,7 +108,15 @@ class HomeScreen extends StatelessWidget {
   void _open(BuildContext context, Widget screen) {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute<void>(builder: (_) => screen));
+    ).push(
+      MaterialPageRoute<void>(
+        builder: (_) => w2Scope(
+          selected: selected,
+          userId: services?.userId,
+          screen: screen,
+        ),
+      ),
+    );
   }
 
   /// The child's board, flying in from the hero: see [BoardRoute].
@@ -324,6 +333,12 @@ class HomeScreen extends StatelessWidget {
           ),
           notes: [
             ?readinessNote,
+            ?w2ActivityBanner(
+              selected: selected,
+              store: store,
+              userId: services?.userId,
+              open: (screen) => _open(context, screen),
+            ),
             if (noWords)
               HomeNote(
                 icon: const Icon(Icons.grid_view_rounded),
@@ -432,6 +447,13 @@ class HomeScreen extends StatelessWidget {
             onTap: () => _openWordLog(context),
           ),
         ...trustEntries(context, trust: services?.trust, sync: sync),
+        ...w2HomeEntries(
+          context: context,
+          selected: selected,
+          store: store,
+          userId: services?.userId,
+          open: (screen) => _open(context, screen),
+        ),
         // Sharing is a guardian's choice, made here and never on the
         // child's board, which can only turn it off.
         if (canInvite && services?.live != null)
