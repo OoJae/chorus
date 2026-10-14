@@ -1,0 +1,8 @@
+### A scene as the app sees it, with its spots.
+class: SceneInfo
+fields:
+  id: int
+  name: String
+  imageHash: String
+  createdAt: DateTime
+  spots: List<SceneSpotInfo>

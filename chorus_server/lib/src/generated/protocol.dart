@@ -13,6 +13,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
+import 'package:chorus_server/src/generated/copies/board_copy_info.dart'
+    as _iv6nrv5r;
+import 'package:chorus_server/src/generated/scenes/scene_info.dart'
+    as _i0srdpzw;
+import 'package:chorus_server/src/generated/scenes/scene_spot_info.dart'
+    as _ipw1gwuw;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
 import 'package:serverpod/protocol.dart' as _isp;
@@ -35,6 +41,9 @@ import 'circles/invitation.dart' as _ib6idedo;
 import 'circles/member_info.dart' as _i5nn4t9p;
 import 'circles/membership.dart' as _i5ll2qlc;
 import 'circles/server_info.dart' as _iqe7186e;
+import 'copies/board_copy.dart' as _ijs3emu0;
+import 'copies/board_copy_info.dart' as _icohyzn9;
+import 'copies/board_copy_word.dart' as _i2osxjs3;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'live/live_event.dart' as _ixdzvre4;
 import 'live/live_kind.dart' as _il8wtxvt;
@@ -43,6 +52,10 @@ import 'media/media_object.dart' as _i87lco0i;
 import 'media/upload_ticket.dart' as _illp1jkh;
 import 'printing/shared_snapshot.dart' as _if9s8td9;
 import 'printing/snapshot_kind.dart' as _iergzj3e;
+import 'scenes/scene.dart' as _id3ymnod;
+import 'scenes/scene_info.dart' as _idpmi5ts;
+import 'scenes/scene_spot.dart' as _ikzlvz57;
+import 'scenes/scene_spot_info.dart' as _iex9guyq;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/ai_usage.dart' as _inv1atzh;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
@@ -69,6 +82,9 @@ export 'circles/invitation.dart';
 export 'circles/member_info.dart';
 export 'circles/membership.dart';
 export 'circles/server_info.dart';
+export 'copies/board_copy.dart';
+export 'copies/board_copy_info.dart';
+export 'copies/board_copy_word.dart';
 export 'greetings/greeting.dart';
 export 'live/live_event.dart';
 export 'live/live_kind.dart';
@@ -77,6 +93,10 @@ export 'media/media_object.dart';
 export 'media/upload_ticket.dart';
 export 'printing/shared_snapshot.dart';
 export 'printing/snapshot_kind.dart';
+export 'scenes/scene.dart';
+export 'scenes/scene_info.dart';
+export 'scenes/scene_spot.dart';
+export 'scenes/scene_spot_info.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/ai_usage.dart';
 export 'suggest/suggest_exception.dart';
@@ -237,6 +257,102 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'circleId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'board_copy',
+      dartName: 'BoardCopy',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'boardId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'boardName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'rows',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'cols',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'takenBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'takenByName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'takenAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'words',
+          columnType: _isp.ColumnType.json,
+          isNullable: false,
+          dartType: 'List<protocol:BoardCopyWord>',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'board_copy_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'takenAt',
             ),
           ],
           type: 'btree',
@@ -524,6 +640,154 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'scene',
+      dartName: 'Scene',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'imageHash',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'archivedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'scene_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'scene_spot',
+      dartName: 'SceneSpot',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'sceneId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'x',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'y',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'width',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'height',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'label',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'speech',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'position',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'scene_spot_scene_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'sceneId',
             ),
           ],
           type: 'btree',
@@ -1144,6 +1408,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iqe7186e.ServerInfo) {
       return _iqe7186e.ServerInfo.fromJson(data) as T;
     }
+    if (t == _ijs3emu0.BoardCopy) {
+      return _ijs3emu0.BoardCopy.fromJson(data) as T;
+    }
+    if (t == _icohyzn9.BoardCopyInfo) {
+      return _icohyzn9.BoardCopyInfo.fromJson(data) as T;
+    }
+    if (t == _i2osxjs3.BoardCopyWord) {
+      return _i2osxjs3.BoardCopyWord.fromJson(data) as T;
+    }
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
@@ -1167,6 +1440,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _iergzj3e.SnapshotKind) {
       return _iergzj3e.SnapshotKind.fromJson(data) as T;
+    }
+    if (t == _id3ymnod.Scene) {
+      return _id3ymnod.Scene.fromJson(data) as T;
+    }
+    if (t == _idpmi5ts.SceneInfo) {
+      return _idpmi5ts.SceneInfo.fromJson(data) as T;
+    }
+    if (t == _ikzlvz57.SceneSpot) {
+      return _ikzlvz57.SceneSpot.fromJson(data) as T;
+    }
+    if (t == _iex9guyq.SceneSpotInfo) {
+      return _iex9guyq.SceneSpotInfo.fromJson(data) as T;
     }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
@@ -1248,6 +1533,17 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iqe7186e.ServerInfo?>()) {
       return (data != null ? _iqe7186e.ServerInfo.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ijs3emu0.BoardCopy?>()) {
+      return (data != null ? _ijs3emu0.BoardCopy.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_icohyzn9.BoardCopyInfo?>()) {
+      return (data != null ? _icohyzn9.BoardCopyInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i2osxjs3.BoardCopyWord?>()) {
+      return (data != null ? _i2osxjs3.BoardCopyWord.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
@@ -1272,6 +1568,19 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_iergzj3e.SnapshotKind?>()) {
       return (data != null ? _iergzj3e.SnapshotKind.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_id3ymnod.Scene?>()) {
+      return (data != null ? _id3ymnod.Scene.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_idpmi5ts.SceneInfo?>()) {
+      return (data != null ? _idpmi5ts.SceneInfo.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ikzlvz57.SceneSpot?>()) {
+      return (data != null ? _ikzlvz57.SceneSpot.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iex9guyq.SceneSpotInfo?>()) {
+      return (data != null ? _iex9guyq.SceneSpotInfo.fromJson(data) : null)
+          as T;
     }
     if (t == _is.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
@@ -1330,6 +1639,18 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_i2osxjs3.BoardCopyWord>) {
+      return (data as List)
+              .map((e) => deserialize<_i2osxjs3.BoardCopyWord>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iex9guyq.SceneSpotInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iex9guyq.SceneSpotInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
@@ -1345,6 +1666,12 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_iv6nrv5r.BoardCopyInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iv6nrv5r.BoardCopyInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == Map<String, String>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
@@ -1353,6 +1680,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_i0srdpzw.SceneInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_i0srdpzw.SceneInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ipw1gwuw.SceneSpotInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ipw1gwuw.SceneSpotInfo>(e))
+              .toList()
+          as T;
     }
     if (t == List<_i1jjj2rd.WordUseEntry>) {
       return (data as List)
@@ -1389,6 +1728,9 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i5nn4t9p.MemberInfo => 'MemberInfo',
       _i5ll2qlc.Membership => 'Membership',
       _iqe7186e.ServerInfo => 'ServerInfo',
+      _ijs3emu0.BoardCopy => 'BoardCopy',
+      _icohyzn9.BoardCopyInfo => 'BoardCopyInfo',
+      _i2osxjs3.BoardCopyWord => 'BoardCopyWord',
       _izw8z7ou.Greeting => 'Greeting',
       _ixdzvre4.LiveEvent => 'LiveEvent',
       _il8wtxvt.LiveKind => 'LiveKind',
@@ -1397,6 +1739,10 @@ class Protocol extends _is.DatabaseSerializationManager {
       _illp1jkh.UploadTicket => 'UploadTicket',
       _if9s8td9.SharedSnapshot => 'SharedSnapshot',
       _iergzj3e.SnapshotKind => 'SnapshotKind',
+      _id3ymnod.Scene => 'Scene',
+      _idpmi5ts.SceneInfo => 'SceneInfo',
+      _ikzlvz57.SceneSpot => 'SceneSpot',
+      _iex9guyq.SceneSpotInfo => 'SceneSpotInfo',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _inv1atzh.AiUsage => 'AiUsage',
       _iw5bueja.SuggestException => 'SuggestException',
@@ -1449,6 +1795,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Membership';
       case _iqe7186e.ServerInfo():
         return 'ServerInfo';
+      case _ijs3emu0.BoardCopy():
+        return 'BoardCopy';
+      case _icohyzn9.BoardCopyInfo():
+        return 'BoardCopyInfo';
+      case _i2osxjs3.BoardCopyWord():
+        return 'BoardCopyWord';
       case _izw8z7ou.Greeting():
         return 'Greeting';
       case _ixdzvre4.LiveEvent():
@@ -1465,6 +1817,14 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'SharedSnapshot';
       case _iergzj3e.SnapshotKind():
         return 'SnapshotKind';
+      case _id3ymnod.Scene():
+        return 'Scene';
+      case _idpmi5ts.SceneInfo():
+        return 'SceneInfo';
+      case _ikzlvz57.SceneSpot():
+        return 'SceneSpot';
+      case _iex9guyq.SceneSpotInfo():
+        return 'SceneSpotInfo';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
       case _inv1atzh.AiUsage():
@@ -1561,6 +1921,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'ServerInfo') {
       return deserialize<_iqe7186e.ServerInfo>(data['data']);
     }
+    if (dataClassName == 'BoardCopy') {
+      return deserialize<_ijs3emu0.BoardCopy>(data['data']);
+    }
+    if (dataClassName == 'BoardCopyInfo') {
+      return deserialize<_icohyzn9.BoardCopyInfo>(data['data']);
+    }
+    if (dataClassName == 'BoardCopyWord') {
+      return deserialize<_i2osxjs3.BoardCopyWord>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
@@ -1584,6 +1953,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'SnapshotKind') {
       return deserialize<_iergzj3e.SnapshotKind>(data['data']);
+    }
+    if (dataClassName == 'Scene') {
+      return deserialize<_id3ymnod.Scene>(data['data']);
+    }
+    if (dataClassName == 'SceneInfo') {
+      return deserialize<_idpmi5ts.SceneInfo>(data['data']);
+    }
+    if (dataClassName == 'SceneSpot') {
+      return deserialize<_ikzlvz57.SceneSpot>(data['data']);
+    }
+    if (dataClassName == 'SceneSpotInfo') {
+      return deserialize<_iex9guyq.SceneSpotInfo>(data['data']);
     }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
@@ -1691,10 +2072,16 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _ib6idedo.Invitation.t;
       case _i5ll2qlc.Membership:
         return _i5ll2qlc.Membership.t;
+      case _ijs3emu0.BoardCopy:
+        return _ijs3emu0.BoardCopy.t;
       case _i87lco0i.MediaObject:
         return _i87lco0i.MediaObject.t;
       case _if9s8td9.SharedSnapshot:
         return _if9s8td9.SharedSnapshot.t;
+      case _id3ymnod.Scene:
+        return _id3ymnod.Scene.t;
+      case _ikzlvz57.SceneSpot:
+        return _ikzlvz57.SceneSpot.t;
       case _inv1atzh.AiUsage:
         return _inv1atzh.AiUsage.t;
       case _ikaxfpae.WeeklySummary:

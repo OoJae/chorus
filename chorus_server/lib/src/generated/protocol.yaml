@@ -16,6 +16,11 @@ circle:
   - acceptInvite:
 status:
   - info:
+boardCopy:
+  - take:
+  - list:
+  - get:
+  - delete:
 greeting:
   - hello:
 live:
@@ -27,6 +32,12 @@ media:
 printing:
   - publishBoard:
   - pageUrl:
+scene:
+  - list:
+  - create:
+  - rename:
+  - archive:
+  - setSpots:
 sharing:
   - publishViewOnly:
   - withdraw:

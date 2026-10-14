@@ -1,0 +1,9 @@
+### One word of a board copy, as its tile was when the copy was taken.
+class: BoardCopyWord
+fields:
+  label: String
+  speech: String?
+  colorKey: String?
+  imageHash: String?
+  ### The cell it held: `<boardId>:<row>:<col>`.
+  cellKey: String

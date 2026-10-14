@@ -1,0 +1,14 @@
+### A board copy as the app sees it. [words] is empty in a list and filled
+### by `get`.
+class: BoardCopyInfo
+fields:
+  id: int
+  boardId: UuidValue
+  boardName: String
+  rows: int
+  cols: int
+  name: String
+  takenByName: String
+  takenAt: DateTime
+  wordCount: int
+  words: List<BoardCopyWord>

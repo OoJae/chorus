@@ -13,6 +13,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
+import 'package:chorus_client/src/protocol/copies/board_copy_info.dart'
+    as _if69lgi4;
+import 'package:chorus_client/src/protocol/scenes/scene_info.dart' as _iolb456x;
+import 'package:chorus_client/src/protocol/scenes/scene_spot_info.dart'
+    as _ipq9e2w5;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -32,11 +37,15 @@ import 'circles/circle_info.dart' as _i5j3z7cn;
 import 'circles/circle_role.dart' as _il0wc3z7;
 import 'circles/member_info.dart' as _i5nn4t9p;
 import 'circles/server_info.dart' as _iqe7186e;
+import 'copies/board_copy_info.dart' as _icohyzn9;
+import 'copies/board_copy_word.dart' as _i2osxjs3;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'live/live_event.dart' as _ixdzvre4;
 import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/upload_ticket.dart' as _illp1jkh;
+import 'scenes/scene_info.dart' as _idpmi5ts;
+import 'scenes/scene_spot_info.dart' as _iex9guyq;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
@@ -56,11 +65,15 @@ export 'circles/circle_info.dart';
 export 'circles/circle_role.dart';
 export 'circles/member_info.dart';
 export 'circles/server_info.dart';
+export 'copies/board_copy_info.dart';
+export 'copies/board_copy_word.dart';
 export 'greetings/greeting.dart';
 export 'live/live_event.dart';
 export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/upload_ticket.dart';
+export 'scenes/scene_info.dart';
+export 'scenes/scene_spot_info.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
@@ -528,6 +541,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _iqe7186e.ServerInfo) {
       return _iqe7186e.ServerInfo.fromJson(data) as T;
     }
+    if (t == _icohyzn9.BoardCopyInfo) {
+      return _icohyzn9.BoardCopyInfo.fromJson(data) as T;
+    }
+    if (t == _i2osxjs3.BoardCopyWord) {
+      return _i2osxjs3.BoardCopyWord.fromJson(data) as T;
+    }
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
@@ -542,6 +561,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _illp1jkh.UploadTicket) {
       return _illp1jkh.UploadTicket.fromJson(data) as T;
+    }
+    if (t == _idpmi5ts.SceneInfo) {
+      return _idpmi5ts.SceneInfo.fromJson(data) as T;
+    }
+    if (t == _iex9guyq.SceneSpotInfo) {
+      return _iex9guyq.SceneSpotInfo.fromJson(data) as T;
     }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
@@ -602,6 +627,14 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_iqe7186e.ServerInfo?>()) {
       return (data != null ? _iqe7186e.ServerInfo.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_icohyzn9.BoardCopyInfo?>()) {
+      return (data != null ? _icohyzn9.BoardCopyInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i2osxjs3.BoardCopyWord?>()) {
+      return (data != null ? _i2osxjs3.BoardCopyWord.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
@@ -616,6 +649,13 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _isc.getType<_illp1jkh.UploadTicket?>()) {
       return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_idpmi5ts.SceneInfo?>()) {
+      return (data != null ? _idpmi5ts.SceneInfo.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_iex9guyq.SceneSpotInfo?>()) {
+      return (data != null ? _iex9guyq.SceneSpotInfo.fromJson(data) : null)
+          as T;
     }
     if (t == _isc.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
@@ -659,6 +699,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_i2osxjs3.BoardCopyWord>) {
+      return (data as List)
+              .map((e) => deserialize<_i2osxjs3.BoardCopyWord>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iex9guyq.SceneSpotInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iex9guyq.SceneSpotInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
@@ -674,6 +726,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_if69lgi4.BoardCopyInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_if69lgi4.BoardCopyInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == Map<String, String>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
@@ -682,6 +740,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_iolb456x.SceneInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iolb456x.SceneInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ipq9e2w5.SceneSpotInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_ipq9e2w5.SceneSpotInfo>(e))
+              .toList()
+          as T;
     }
     if (t == List<_iyisc6zi.WordUseEntry>) {
       return (data as List)
@@ -712,11 +782,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _il0wc3z7.CircleRole => 'CircleRole',
       _i5nn4t9p.MemberInfo => 'MemberInfo',
       _iqe7186e.ServerInfo => 'ServerInfo',
+      _icohyzn9.BoardCopyInfo => 'BoardCopyInfo',
+      _i2osxjs3.BoardCopyWord => 'BoardCopyWord',
       _izw8z7ou.Greeting => 'Greeting',
       _ixdzvre4.LiveEvent => 'LiveEvent',
       _il8wtxvt.LiveKind => 'LiveKind',
       _i8mjpd0r.MediaKind => 'MediaKind',
       _illp1jkh.UploadTicket => 'UploadTicket',
+      _idpmi5ts.SceneInfo => 'SceneInfo',
+      _iex9guyq.SceneSpotInfo => 'SceneSpotInfo',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
@@ -759,6 +833,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'MemberInfo';
       case _iqe7186e.ServerInfo():
         return 'ServerInfo';
+      case _icohyzn9.BoardCopyInfo():
+        return 'BoardCopyInfo';
+      case _i2osxjs3.BoardCopyWord():
+        return 'BoardCopyWord';
       case _izw8z7ou.Greeting():
         return 'Greeting';
       case _ixdzvre4.LiveEvent():
@@ -769,6 +847,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'MediaKind';
       case _illp1jkh.UploadTicket():
         return 'UploadTicket';
+      case _idpmi5ts.SceneInfo():
+        return 'SceneInfo';
+      case _iex9guyq.SceneSpotInfo():
+        return 'SceneSpotInfo';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
       case _iw5bueja.SuggestException():
@@ -844,6 +926,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'ServerInfo') {
       return deserialize<_iqe7186e.ServerInfo>(data['data']);
     }
+    if (dataClassName == 'BoardCopyInfo') {
+      return deserialize<_icohyzn9.BoardCopyInfo>(data['data']);
+    }
+    if (dataClassName == 'BoardCopyWord') {
+      return deserialize<_i2osxjs3.BoardCopyWord>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
@@ -858,6 +946,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'UploadTicket') {
       return deserialize<_illp1jkh.UploadTicket>(data['data']);
+    }
+    if (dataClassName == 'SceneInfo') {
+      return deserialize<_idpmi5ts.SceneInfo>(data['data']);
+    }
+    if (dataClassName == 'SceneSpotInfo') {
+      return deserialize<_iex9guyq.SceneSpotInfo>(data['data']);
     }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);

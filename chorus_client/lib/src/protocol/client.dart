@@ -17,12 +17,17 @@ import 'package:chorus_client/src/protocol/circles/circle_role.dart'
     as _ixctvk32;
 import 'package:chorus_client/src/protocol/circles/server_info.dart'
     as _i01ishb8;
+import 'package:chorus_client/src/protocol/copies/board_copy_info.dart'
+    as _if69lgi4;
 import 'package:chorus_client/src/protocol/greetings/greeting.dart'
     as _ix52s3dn;
 import 'package:chorus_client/src/protocol/live/live_event.dart' as _ij4123it;
 import 'package:chorus_client/src/protocol/media/media_kind.dart' as _i1n9e0sn;
 import 'package:chorus_client/src/protocol/media/upload_ticket.dart'
     as _i4yoz54l;
+import 'package:chorus_client/src/protocol/scenes/scene_info.dart' as _iolb456x;
+import 'package:chorus_client/src/protocol/scenes/scene_spot_info.dart'
+    as _ipq9e2w5;
 import 'package:chorus_client/src/protocol/sharing/view_only_link.dart'
     as _i15qvapk;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
@@ -356,6 +361,78 @@ class EndpointStatus extends _isc.EndpointRef {
       );
 }
 
+/// Named copies of a board, such as "Before the school trip".
+///
+/// A copy keeps the board's placed words as the server holds them when it
+/// is taken. Taking, reading or deleting one never touches the board: a
+/// word is put back on the adult's own device, through "Needs a home".
+///
+/// Each method throws [CircleException] with `notAMember` for someone
+/// outside the circle, and with `notAllowed` for a read-only partner who
+/// takes or deletes a copy, or for a name or board the rules refuse.
+/// {@category Endpoint}
+class EndpointBoardCopy extends _isc.EndpointRef {
+  EndpointBoardCopy(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'boardCopy';
+
+  /// Takes a copy of the board [boardId] called [name]. Editing roles
+  /// only. Refused for a board the circle does not have in use, a name
+  /// `copyNameProblem` refuses, and a circle that already keeps
+  /// [maxCopiesPerCircle] copies.
+  _ida.Future<_if69lgi4.BoardCopyInfo> take(
+    _isc.UuidValue circleSpace,
+    _isc.UuidValue boardId,
+    String name,
+  ) => caller.callServerEndpoint<_if69lgi4.BoardCopyInfo>(
+    'boardCopy',
+    'take',
+    {
+      'circleSpace': circleSpace,
+      'boardId': boardId,
+      'name': name,
+    },
+  );
+
+  /// The circle's copies, newest first, without their words. Members
+  /// only.
+  _ida.Future<List<_if69lgi4.BoardCopyInfo>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_if69lgi4.BoardCopyInfo>>(
+        'boardCopy',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// The copy [copyId] with its words, or null when the circle has no such
+  /// copy. Members only.
+  _ida.Future<_if69lgi4.BoardCopyInfo?> get(
+    _isc.UuidValue circleSpace,
+    int copyId,
+  ) => caller.callServerEndpoint<_if69lgi4.BoardCopyInfo?>(
+    'boardCopy',
+    'get',
+    {
+      'circleSpace': circleSpace,
+      'copyId': copyId,
+    },
+  );
+
+  /// Deletes the copy [copyId]. The board is not touched. Editing roles
+  /// only. Returns false when the circle has no such copy.
+  _ida.Future<bool> delete(
+    _isc.UuidValue circleSpace,
+    int copyId,
+  ) => caller.callServerEndpoint<bool>(
+    'boardCopy',
+    'delete',
+    {
+      'circleSpace': circleSpace,
+      'copyId': copyId,
+    },
+  );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -528,6 +605,98 @@ class EndpointPrinting extends _isc.EndpointRef {
         'pageUrl',
         {'token': token},
       );
+}
+
+/// Picture scenes: a family photo with spots that speak when the child taps
+/// them. Every member may list them; editing roles make and change them.
+///
+/// Each method throws [CircleException] with `notAMember` for someone
+/// outside the circle, and with `notAllowed` for a read-only partner who
+/// tries to change something, for a scene that is not one of the circle's
+/// scenes in use, and for a name, photo or spot the rules refuse.
+/// {@category Endpoint}
+class EndpointScene extends _isc.EndpointRef {
+  EndpointScene(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'scene';
+
+  /// The circle's scenes in use, oldest first, each with its spots in the
+  /// order they were drawn. Members only.
+  _ida.Future<List<_iolb456x.SceneInfo>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_iolb456x.SceneInfo>>(
+        'scene',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Makes a scene called [name] from the photo with hash [imageHash], with
+  /// no spots yet. Editing roles only.
+  ///
+  /// The photo may still be on its way from the adult's device: like a
+  /// tile's picture, it is shown wherever it has arrived.
+  _ida.Future<_iolb456x.SceneInfo> create(
+    _isc.UuidValue circleSpace,
+    String name,
+    String imageHash,
+  ) => caller.callServerEndpoint<_iolb456x.SceneInfo>(
+    'scene',
+    'create',
+    {
+      'circleSpace': circleSpace,
+      'name': name,
+      'imageHash': imageHash,
+    },
+  );
+
+  /// Renames the scene [sceneId]. Editing roles only.
+  _ida.Future<_iolb456x.SceneInfo> rename(
+    _isc.UuidValue circleSpace,
+    int sceneId,
+    String name,
+  ) => caller.callServerEndpoint<_iolb456x.SceneInfo>(
+    'scene',
+    'rename',
+    {
+      'circleSpace': circleSpace,
+      'sceneId': sceneId,
+      'name': name,
+    },
+  );
+
+  /// Archives the scene [sceneId]: it leaves every device's list. Nothing
+  /// is deleted. Editing roles only. Returns false when it was already
+  /// archived.
+  _ida.Future<bool> archive(
+    _isc.UuidValue circleSpace,
+    int sceneId,
+  ) => caller.callServerEndpoint<bool>(
+    'scene',
+    'archive',
+    {
+      'circleSpace': circleSpace,
+      'sceneId': sceneId,
+    },
+  );
+
+  /// Replaces every spot of the scene [sceneId] with [spots], in that
+  /// order, all or nothing. Editing roles only.
+  ///
+  /// Each spot must lie on the photo with each side at least `minSpotSide`
+  /// and carry a word the tile rules accept; at most [maxSpotsPerScene].
+  _ida.Future<_iolb456x.SceneInfo> setSpots(
+    _isc.UuidValue circleSpace,
+    int sceneId,
+    List<_ipq9e2w5.SceneSpotInfo> spots,
+  ) => caller.callServerEndpoint<_iolb456x.SceneInfo>(
+    'scene',
+    'setSpots',
+    {
+      'circleSpace': circleSpace,
+      'sceneId': sceneId,
+      'spots': spots,
+    },
+  );
 }
 
 /// Sharing a board with someone outside the circle, such as a babysitter:
@@ -777,10 +946,12 @@ class Client extends _isc.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     circle = EndpointCircle(this);
     status = EndpointStatus(this);
+    boardCopy = EndpointBoardCopy(this);
     greeting = EndpointGreeting(this);
     live = EndpointLive(this);
     media = EndpointMedia(this);
     printing = EndpointPrinting(this);
+    scene = EndpointScene(this);
     sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
@@ -796,6 +967,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointStatus status;
 
+  late final EndpointBoardCopy boardCopy;
+
   late final EndpointGreeting greeting;
 
   late final EndpointLive live;
@@ -803,6 +976,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointMedia media;
 
   late final EndpointPrinting printing;
+
+  late final EndpointScene scene;
 
   late final EndpointSharing sharing;
 
@@ -820,10 +995,12 @@ class Client extends _isc.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'circle': circle,
     'status': status,
+    'boardCopy': boardCopy,
     'greeting': greeting,
     'live': live,
     'media': media,
     'printing': printing,
+    'scene': scene,
     'sharing': sharing,
     'suggest': suggest,
     'summary': summary,
