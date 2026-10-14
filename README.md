@@ -28,7 +28,7 @@ To see the child's side, go back home and click "Open Maya's board". Tap words t
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
 - Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`; debug-signed, Android 7.0 or later).
-- Video (1:35, with a voice-over): https://youtu.be/JDv5pPvsrA8. The narration is in [docs/voiceover.md](docs/voiceover.md).
+- Video (1:35, with a voice-over): https://youtu.be/JDv5pPvsrA8.
 - Code: https://github.com/OoJae/chorus
 - A longer walkthrough, with two adults in two windows: [docs/TRY-IT.md](docs/TRY-IT.md)
 - What was checked on real devices: [docs/device-log.md](docs/device-log.md)
