@@ -283,12 +283,17 @@ class TtsSpeechService implements SpeechService, QuietSpeech {
     await warmUp();
     final tts = _tts;
     if (tts == null) return const [];
-    return _voice.deviceVoiceNames(
+    Future<List<String>> read() => _voice.deviceVoiceNames(
       tts,
       language: language,
       web: _web,
       online: _onlineVoices,
     );
+    final names = await read();
+    if (names.isNotEmpty || !_web) return names;
+    // A browser lists its voices a moment after the page first asks.
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return read();
   }
 
   /// Says [text] at a lower volume: the spoken preview while scanning.
