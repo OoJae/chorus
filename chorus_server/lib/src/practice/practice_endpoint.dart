@@ -68,12 +68,18 @@ class PracticeEndpoint extends Endpoint {
       throw StateError('The sync engine is not set up on this server.');
     }
 
+    // transactionForUser checks only the sync space's membership row, so
+    // that is all the partner is given: no account, no circle membership.
     final partner = partnerOf(circleSpace);
-    await session.offlineSync.spaces.grant(
-      space: circleSpace,
-      user: partner,
-      role: OfflineSyncSpaceRole.readWrite,
-    );
+    final spaces = session.offlineSync.spaces;
+    final role = await spaces.roleOf(user: partner, space: circleSpace);
+    if (role != OfflineSyncSpaceRole.readWrite) {
+      await spaces.grant(
+        space: circleSpace,
+        user: partner,
+        role: OfflineSyncSpaceRole.readWrite,
+      );
+    }
 
     try {
       return await db.transactionForUser(partner, (tx) async {
