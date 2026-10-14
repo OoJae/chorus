@@ -92,11 +92,26 @@ const List<ReadyBoard> readyBoards = [
 
 /// Reads [board]'s file. The app bundles this package's files under
 /// `packages/chorus_ui/`; this package's own tests and `main_fake.dart` run
-/// it as the app, under its own path, so both are tried.
+/// it as the app, under its own path. The asset list says which; without
+/// one, both are tried. (On the web a missing file can come back as the
+/// start page rather than an error, so the list is asked first.)
 Future<String> loadReadyBoard(ReadyBoard board, {AssetBundle? bundle}) async {
   final from = bundle ?? rootBundle;
+  final packaged = 'packages/chorus_ui/${board.asset}';
+  List<String>? listed;
   try {
-    return await from.loadString('packages/chorus_ui/${board.asset}');
+    listed = (await AssetManifest.loadFromAssetBundle(from)).listAssets();
+  } on Object {
+    listed = null;
+  }
+  if (listed != null && listed.contains(packaged)) {
+    return from.loadString(packaged);
+  }
+  if (listed != null && listed.contains(board.asset)) {
+    return from.loadString(board.asset);
+  }
+  try {
+    return await from.loadString(packaged);
   } on Object {
     return from.loadString(board.asset);
   }
