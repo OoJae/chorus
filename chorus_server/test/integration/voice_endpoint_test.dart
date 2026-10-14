@@ -2,7 +2,10 @@
 /// limits it is kept within, and the view-only page speaking with it.
 library;
 
+import 'dart:convert';
+
 import 'package:chorus_server/src/generated/protocol.dart';
+import 'package:chorus_server/src/sharing/sharing_routes.dart';
 import 'package:chorus_server/src/sharing/view_only_page.dart';
 import 'package:chorus_server/src/voice/circle_voices.dart';
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart';
@@ -126,6 +129,41 @@ void main() {
             ),
             refusedWith(CircleFailure.notAMember),
           );
+        },
+      );
+
+      test(
+        'the view-only page speaks with the circle\'s speed and pitch',
+        () async {
+          final circle = await circles.create();
+          final board = jsonEncode({
+            'childName': 'Maya',
+            'name': 'Home',
+            'rows': 1,
+            'cols': 1,
+            'tiles': [
+              {'row': 0, 'col': 0, 'label': 'go', 'colorKey': 'verb'},
+            ],
+          });
+          final link = await endpoints.sharing.publishViewOnly(
+            circle.guardian.session,
+            circle.space,
+            board,
+          );
+          Future<String> page() async => (await viewOnlyResponse(
+            circles.session,
+            link.token,
+          )).readAsString();
+          expect(await page(), contains('{rate: 0.9, pitch: 1.0}'));
+          await endpoints.voice.setVoice(
+            circle.guardian.session,
+            circle.space,
+            'Samantha',
+            1.2,
+            0.8,
+          );
+          final html = await page();
+          expect(html, contains('{rate: 1.2, pitch: 0.8}'));
         },
       );
 
