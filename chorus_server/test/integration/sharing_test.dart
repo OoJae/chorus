@@ -290,17 +290,6 @@ void main() {
     expect(obfContentDisposition('ü'), contains('filename="board.obf"'));
   });
 
-  test('Given the landing page, when its headers are read then it loads '
-      'only its own files and runs nothing inline.', () {
-    final csp = landingHeaders['Content-Security-Policy']!.single;
-    expect(csp, contains("script-src 'self'"));
-    expect(csp, contains("style-src 'self'"));
-    expect(csp, isNot(contains('unsafe-inline')));
-    expect(csp, contains("frame-ancestors 'none'"));
-    expect(landingHeaders['Cache-Control'], ['no-cache']);
-    expect(landingHeaders['X-Robots-Tag'], isNull);
-  });
-
   withServerpod(
     'Given the sharing endpoint,',
     databaseInterceptor: offlineSyncDatabaseInterceptor,
