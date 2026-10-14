@@ -11,7 +11,7 @@ phone checks of the new features are logged tonight, they may join "What is
 real", and "the newest features on the phone" leaves the last sentence.
 
 TODO(owner) marks what only you can supply:
-- Video: paste the link to the 1:50 film.
+- Video: paste the link to the 1:35 film.
 - Demo password: say how judges get it, in the submission text only. Never
   write it in this file or anywhere in the repository. Sign in once as
   demo.parent before submitting, or the demo board does not exist.

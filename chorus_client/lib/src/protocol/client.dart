@@ -603,11 +603,15 @@ class EndpointMembers extends _isc.EndpointRef {
 
   /// Removes [userId] from [circleSpace]: their sync access is revoked,
   /// their membership deleted, and a live stream of theirs closes at once.
-  /// The words they added stay. Guardians only, and never themselves.
+  /// The words they added stay. Codes they made that nobody used stop
+  /// working, and the code they joined with does not let them back in
+  /// (see `CircleEndpoint.acceptInvite`): coming back takes a new invite.
+  /// Guardians only, and never themselves.
   ///
   /// Throws [CircleException] with `notAllowed` for a caller who is not a
-  /// guardian or who names themselves, and `notAMember` when [userId] is
-  /// not in the circle.
+  /// guardian or who names themselves, or when the demo needs [userId]
+  /// where they are (see [isDemoProtected]), and `notAMember` when [userId]
+  /// is not in the circle.
   _ida.Future<void> remove(
     _isc.UuidValue circleSpace,
     _isc.UuidValue userId,
@@ -1163,7 +1167,12 @@ class EndpointWordSuggestion extends _isc.EndpointRef {
   String get name => 'wordSuggestion';
 
   /// Suggests [label] (with optional [speech] and part-of-speech
-  /// [colorKey]) for [circleSpace]'s board. Any member.
+  /// [colorKey]) for [circleSpace]'s board. Any member. Each text is cut to
+  /// [maxSuggestedLabelLength] characters.
+  ///
+  /// Throws [CircleException] with `notAllowed` while the caller already
+  /// has [maxOpenSuggestionsPerMember] suggestions waiting, or the circle
+  /// [maxOpenSuggestionsPerCircle], so nobody can bury the others' words.
   _ida.Future<_iov4dup2.SuggestedWordInfo> suggest(
     _isc.UuidValue circleSpace,
     String label,
@@ -1291,7 +1300,8 @@ class EndpointWordLog extends _isc.EndpointRef {
   );
 
   /// Removes the circle's whole word log for good, with the weeks worked
-  /// out from it. Guardians only. Returns how many words went.
+  /// out from it, the words sitters tapped and every progress report link.
+  /// Guardians only. Returns how many words went.
   ///
   /// It also moves the log's start to now, so words a device still holds
   /// from before the delete are not taken when it sends them (see
