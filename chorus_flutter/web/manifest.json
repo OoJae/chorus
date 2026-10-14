@@ -1,7 +1,9 @@
 {
     "name": "Chorus",
     "short_name": "Chorus",
-    "start_url": ".",
+    "id": "/app/",
+    "scope": "./",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#F6F2EA",
     "theme_color": "#15171A",

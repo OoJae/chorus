@@ -290,26 +290,15 @@ void main() {
     expect(obfContentDisposition('ü'), contains('filename="board.obf"'));
   });
 
-  test('Given a path, when the app fallback looks at it then only the '
-      "server's own pages keep their 404.", () {
-    for (final own in [
-      '/b/${'A' * 43}',
-      '/print/x',
-      '/export/${'A' * 43}',
-    ]) {
-      expect(isOwnPagePath(own), isTrue, reason: own);
-    }
-    for (final app in [
-      '/',
-      '/b',
-      '/b/',
-      '/b/x/y',
-      '/home',
-      '/bb/x',
-      '/main.dart.js',
-    ]) {
-      expect(isOwnPagePath(app), isFalse, reason: app);
-    }
+  test('Given the landing page, when its headers are read then it loads '
+      'only its own files and runs nothing inline.', () {
+    final csp = landingHeaders['Content-Security-Policy']!.single;
+    expect(csp, contains("script-src 'self'"));
+    expect(csp, contains("style-src 'self'"));
+    expect(csp, isNot(contains('unsafe-inline')));
+    expect(csp, contains("frame-ancestors 'none'"));
+    expect(landingHeaders['Cache-Control'], ['no-cache']);
+    expect(landingHeaders['X-Robots-Tag'], isNull);
   });
 
   withServerpod(
@@ -668,83 +657,165 @@ void main() {
         );
       });
 
-      test('when the web server serves the app beside these pages then a '
-          "page's 404 and 410 reach the browser, and the app's own routes "
-          'still open the app.', () async {
-        final app = await Directory.systemTemp.createTemp('chorus_app');
-        addTearDown(() => app.delete(recursive: true));
-        await File('${app.path}/index.html').writeAsString('the chorus app');
-        await File('${app.path}/main.dart.js').writeAsString('// js');
-
-        final pod = session.serverpod;
-        final web = pod.webServer;
-        registerPrintRoutes(pod);
-        registerSharingRoutes(pod);
-        web.addRoute(AppRoute(app, enableWasmHeaders: false), '/');
-        expect(await web.start(), isTrue);
-        addTearDown(web.stop);
-        final client = HttpClient();
-        addTearDown(() => client.close(force: true));
-        Future<(int, String, HttpHeaders)> fetch(String path) async {
-          final request = await client.get('localhost', web.port!, path);
-          final response = await request.close();
-          return (
-            response.statusCode,
-            await utf8.decodeStream(response),
-            response.headers,
+      test(
+        'when the web server serves the landing page and the app beside '
+        "these pages then each address reaches its own page, a page's 404 "
+        'and 410 reach the browser, and the app opens under /app/.',
+        () async {
+          final app = await Directory.systemTemp.createTemp('chorus_app');
+          addTearDown(() => app.delete(recursive: true));
+          await File('${app.path}/index.html').writeAsString('the chorus app');
+          await File('${app.path}/main.dart.js').writeAsString('// js');
+          await Directory('${app.path}/assets/assets').create(recursive: true);
+          await File(
+            '${app.path}/assets/assets/config.json',
+          ).writeAsString('{"apiUrl": "http://localhost:8080"}');
+          final landing = await Directory.systemTemp.createTemp(
+            'chorus_landing',
           );
-        }
+          addTearDown(() => landing.delete(recursive: true));
+          await File(
+            '${landing.path}/index.html',
+          ).writeAsString('<h1>the landing page</h1>');
+          await File('${landing.path}/landing.css').writeAsString('h1{}');
 
-        final circle = await circles.create();
-        final live = await sharing.publishViewOnly(
-          circle.guardian.session,
-          circle.space,
-          snapshot(),
-        );
-        final gone = await sharing.publishViewOnly(
-          circle.guardian.session,
-          circle.space,
-          snapshot(),
-        );
-        await sharing.withdraw(
-          circle.guardian.session,
-          circle.space,
-          gone.token,
-        );
+          final pod = session.serverpod;
+          final web = pod.webServer;
+          registerPrintRoutes(pod);
+          registerSharingRoutes(pod);
+          registerSiteRoutes(pod, landingDir: landing, appDir: app);
+          expect(await web.start(), isTrue);
+          addTearDown(web.stop);
+          final client = HttpClient();
+          addTearDown(() => client.close(force: true));
+          Future<(int, String, HttpHeaders)> fetch(
+            String path, {
+            String method = 'GET',
+          }) async {
+            final request = await client.open(
+              method,
+              'localhost',
+              web.port!,
+              path,
+            );
+            request.followRedirects = false;
+            final response = await request.close();
+            return (
+              response.statusCode,
+              await utf8.decodeStream(response),
+              response.headers,
+            );
+          }
 
-        final page = await fetch('/b/${live.token}');
-        expect(page.$1, 200);
-        expect(page.$2, contains('class="tile'));
-        expect(
-          page.$3.value('content-security-policy'),
-          contains('script-src'),
-        );
+          final circle = await circles.create();
+          final live = await sharing.publishViewOnly(
+            circle.guardian.session,
+            circle.space,
+            snapshot(),
+          );
+          final gone = await sharing.publishViewOnly(
+            circle.guardian.session,
+            circle.space,
+            snapshot(),
+          );
+          await sharing.withdraw(
+            circle.guardian.session,
+            circle.space,
+            gone.token,
+          );
 
-        final unknown = await fetch('/b/${'A' * 43}');
-        expect(unknown.$1, 404);
-        expect(unknown.$2, contains('This board is not here'));
-        expect(unknown.$2, isNot(contains('the chorus app')));
+          // The landing page, with its own headers.
+          final home = await fetch('/');
+          expect(home.$1, 200);
+          expect(home.$2, contains('the landing page'));
+          expect(home.$3.contentType?.mimeType, 'text/html');
+          expect(
+            home.$3.value('content-security-policy'),
+            landingContentSecurityPolicy,
+          );
+          expect(home.$3.value('cache-control'), 'no-cache');
+          expect(home.$3.value('x-content-type-options'), 'nosniff');
+          expect(
+            home.$3.value('referrer-policy'),
+            'strict-origin-when-cross-origin',
+          );
+          expect((await fetch('/', method: 'HEAD')).$1, 200);
+          final css = await fetch('/landing/landing.css');
+          expect(css.$1, 200);
+          expect(css.$2, 'h1{}');
+          expect(css.$3.value('cache-control'), contains('max-age=300'));
+          expect((await fetch('/landing/nope.css')).$1, 404);
 
-        final withdrawn = await fetch('/b/${gone.token}');
-        expect(withdrawn.$1, 410);
-        expect(withdrawn.$2, contains('no longer shared'));
+          // Nothing of the app is left at the root.
+          for (final path in ['/main.dart.js', '/some/app/route', '/b/x/y']) {
+            final old = await fetch(path);
+            expect(old.$1, 404, reason: path);
+            expect(old.$2, isNot(contains('the chorus app')), reason: path);
+          }
 
-        final file = await fetch('/export/${live.token}');
-        expect(file.$1, 200);
-        expect(file.$3.contentType?.mimeType, 'application/json');
-        expect(parseObf(file.$2).name, 'Home');
-        expect((await fetch('/export/${'A' * 43}')).$1, 404);
+          // The app, under /app/.
+          final slash = await fetch('/app/');
+          expect(slash.$1, 200);
+          expect(slash.$2, 'the chorus app');
+          final route = await fetch('/app/some/route');
+          expect(route.$1, 200);
+          expect(route.$2, 'the chorus app');
+          expect((await fetch('/app/main.dart.js')).$2, '// js');
+          expect((await fetch('/app/', method: 'HEAD')).$1, 200);
+          final bare = await fetch('/app');
+          expect(bare.$1, 301);
+          expect(bare.$3.value('location'), '/app/');
+          final bareQuery = await fetch('/app?x=1');
+          expect(bareQuery.$1, 301);
+          expect(bareQuery.$3.value('location'), '/app/?x=1');
+          final config = await fetch('/app/assets/assets/config.json');
+          expect(config.$1, 200);
+          final api = pod.config.apiServer;
+          expect(
+            jsonDecode(config.$2),
+            {
+              'apiUrl': Uri(
+                scheme: api.publicScheme,
+                host: api.publicHost,
+                port: api.publicPort,
+              ).toString(),
+            },
+          );
 
-        expect((await fetch('/print/${'A' * 43}')).$1, printMissingStatus);
+          // The server's own pages keep their own answers.
+          final page = await fetch('/b/${live.token}');
+          expect(page.$1, 200);
+          expect(page.$2, contains('class="tile'));
+          expect(
+            page.$3.value('content-security-policy'),
+            contains('script-src'),
+          );
 
-        expect(await fetch('/'), isA<(int, String, HttpHeaders)>());
-        expect((await fetch('/')).$2, 'the chorus app');
-        expect((await fetch('/main.dart.js')).$2, '// js');
-        final route = await fetch('/some/app/route');
-        expect(route.$1, 200);
-        expect(route.$2, 'the chorus app');
-        expect((await fetch('/b/x/y')).$2, 'the chorus app');
-      });
+          final unknown = await fetch('/b/${'A' * 43}');
+          expect(unknown.$1, 404);
+          expect(unknown.$2, contains('This board is not here'));
+          expect(unknown.$2, isNot(contains('the chorus app')));
+          expect(unknown.$2, isNot(contains('the landing page')));
+
+          final withdrawn = await fetch('/b/${gone.token}');
+          expect(withdrawn.$1, 410);
+          expect(withdrawn.$2, contains('no longer shared'));
+
+          final file = await fetch('/export/${live.token}');
+          expect(file.$1, 200);
+          expect(file.$3.contentType?.mimeType, 'application/json');
+          expect(parseObf(file.$2).name, 'Home');
+          final noExport = await fetch('/export/${'A' * 43}');
+          expect(noExport.$1, 404);
+          expect(noExport.$2, isNot(contains('the chorus app')));
+          expect(noExport.$2, isNot(contains('the landing page')));
+
+          final noPrint = await fetch('/print/${'A' * 43}');
+          expect(noPrint.$1, printMissingStatus);
+          expect(noPrint.$2, isNot(contains('the chorus app')));
+          expect(noPrint.$2, isNot(contains('the landing page')));
+        },
+      );
     },
   );
 }
