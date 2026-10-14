@@ -51,6 +51,13 @@ const String languageSpeechLabel = 'Says something different (optional)';
 const String languageWordHelper =
     'Leave empty to show the word in the first language.';
 
+/// Under the language picker while the circle has no second language.
+const String languageFirstHelper = 'One second language for the whole board.';
+
+/// Under the language picker once the circle has one.
+const String languageChangeHelper =
+    'Changing the language changes it for every word.';
+
 /// Label of the save button.
 const String languageSaveLabel = 'Save';
 
@@ -331,8 +338,9 @@ class _SecondLanguageFormState extends State<SecondLanguageForm> {
                 decoration: InputDecoration(
                   labelText: languagePickerLabel,
                   helperText: current == null
-                      ? 'One second language for the whole board.'
-                      : null,
+                      ? languageFirstHelper
+                      : languageChangeHelper,
+                  helperMaxLines: 3,
                 ),
                 items: [
                   for (final choice in _choices)

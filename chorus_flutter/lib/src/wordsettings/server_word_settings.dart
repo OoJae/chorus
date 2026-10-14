@@ -232,6 +232,11 @@ class ServerHiddenWords extends HiddenWords with _Cached {
       if (_disposed) return;
       try {
         await _set(entry.key, entry.value).timeout(callTimeout);
+      } on FormatException {
+        // Not a tile id the server could ever take.
+        _pending.remove(entry.key);
+        _save();
+        continue;
       } on CircleException {
         // No longer an editor: what waits will never be taken.
         _canChange = false;

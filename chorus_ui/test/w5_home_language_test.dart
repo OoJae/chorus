@@ -173,6 +173,62 @@ void main() {
     });
   });
 
+  group('the chrome', () {
+    for (final size in const [
+      Size(360, 800),
+      Size(800, 400),
+      Size(1280, 800),
+    ]) {
+      testWidgets('at $size the switches never move the grid', (tester) async {
+        final store = FakeBoardStore.seeded();
+        final words = _homeWords(store);
+        final word = words[0];
+        final other = words[1];
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        Future<Rect> place(Widget screen) async {
+          await tester.pumpWidget(
+            MaterialApp(theme: chorusTheme(), home: screen),
+          );
+          await tester.pump();
+          return tester.getRect(_tile(other.label));
+        }
+
+        final plain = await place(
+          TalkerScreen(
+            store: store,
+            speech: FakeSpeech(),
+            sync: FakeSyncStatus(),
+          ),
+        );
+        final withExtras = await place(
+          TalkerScreen(
+            store: store,
+            speech: FakeSpeech(),
+            sync: FakeSyncStatus(),
+            hiddenWords: FakeHiddenWords(hidden: {word.id}),
+            languages: FakeHomeLanguages(
+              language: _yoruba,
+              words: {other.id: WordInLanguage(tileId: other.id, label: 'lọ')},
+            ),
+          ),
+        );
+        expect(withExtras, plain);
+        expect(tester.takeException(), isNull);
+
+        await tester.tap(find.byKey(TalkerChromeToggle.showEverythingKey));
+        await tester.pump();
+        expect(tester.getRect(_tile(other.label)), plain);
+        await tester.tap(find.byKey(TalkerChromeToggle.languageKey));
+        await tester.pump();
+        expect(tester.getRect(_tile('lọ')), plain);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+  });
+
   group('the editor', () {
     testWidgets('"Second language" sets the language and the word', (
       tester,
@@ -194,6 +250,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(secondLanguageTitle(word.label)), findsOneWidget);
+      expect(find.text(languageFirstHelper), findsOneWidget);
       // Yoruba is first when the circle has none yet.
       expect(find.text('Yoruba'), findsOneWidget);
       await tester.enterText(find.byKey(SecondLanguageForm.wordKey), 'omi');
@@ -269,6 +326,8 @@ void main() {
       languageWordLabel,
       languageSpeechLabel,
       languageWordHelper,
+      languageFirstHelper,
+      languageChangeHelper,
       languageOnMessage('Yoruba'),
       languageOffMessage('Yoruba'),
     ]) {
