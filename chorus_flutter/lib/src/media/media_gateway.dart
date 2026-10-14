@@ -26,7 +26,7 @@ abstract class MediaGateway {
 /// [MediaGateway] over the generated client, for one circle.
 class ServerMediaGateway implements MediaGateway {
   ServerMediaGateway(this._client, this.circleSpace, {http.Client? httpClient})
-      : _http = httpClient;
+    : _http = httpClient;
 
   final Client _client;
 
@@ -53,16 +53,19 @@ class ServerMediaGateway implements MediaGateway {
     final description = ticket.uploadDescription;
     // No description: the circle already holds verified bytes for the hash.
     if (description == null) return;
-    final uploaded = await FileUploader(description)
-        .uploadByteData(ByteData.sublistView(bytes));
+    final uploaded = await FileUploader(
+      description,
+    ).uploadByteData(ByteData.sublistView(bytes));
     // Asked even when the upload was refused: the storage refuses a second
     // copy of bytes it already holds (another editor sent the same file, or
     // this is a retry), and the server then verifies what is there.
     final verified = await _client.media.confirmUpload(circleSpace, hash);
     if (!verified) {
-      throw StateError(uploaded
-          ? 'The server could not verify the upload.'
-          : 'The upload did not go through.');
+      throw StateError(
+        uploaded
+            ? 'The server could not verify the upload.'
+            : 'The upload did not go through.',
+      );
     }
   }
 

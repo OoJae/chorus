@@ -120,8 +120,8 @@ class FakeMediaCapture implements MediaCapture {
     Uint8List? photo,
     Uint8List? clip,
     this.microphoneAllowed = true,
-  })  : photo = photo ?? tinyPng,
-        clip = clip ?? Uint8List.fromList(const [1, 2, 3, 4, 5]);
+  }) : photo = photo ?? tinyPng,
+       clip = clip ?? Uint8List.fromList(const [1, 2, 3, 4, 5]);
 
   @override
   final bool hasCamera;
@@ -226,34 +226,39 @@ class FakeMediaBoardStore extends FakeBoardStore implements TileMediaWriter {
 
   @override
   List<TileFacts> get tiles => List.unmodifiable([
-        for (final tile in super.tiles)
-          if (_imageOf.containsKey(tile.id) || _audioOf.containsKey(tile.id))
-            _withMedia(tile)
-          else
-            tile,
-      ]);
+    for (final tile in super.tiles)
+      if (_imageOf.containsKey(tile.id) || _audioOf.containsKey(tile.id))
+        _withMedia(tile)
+      else
+        tile,
+  ]);
 
   // Rebuilt by hand: copyWith cannot set a property back to null.
   TileFacts _withMedia(TileFacts tile) => TileFacts(
-        id: tile.id,
-        boardId: tile.boardId,
-        cellKey: tile.cellKey,
-        label: tile.label,
-        speech: tile.speech,
-        imageHash:
-            _imageOf.containsKey(tile.id) ? _imageOf[tile.id] : tile.imageHash,
-        audioHash:
-            _audioOf.containsKey(tile.id) ? _audioOf[tile.id] : tile.audioHash,
-        colorKey: tile.colorKey,
-        archived: tile.archived,
-        createdBy: tile.createdBy,
-        createdByName: tile.createdByName,
-        createdAt: tile.createdAt,
-      );
+    id: tile.id,
+    boardId: tile.boardId,
+    cellKey: tile.cellKey,
+    label: tile.label,
+    speech: tile.speech,
+    imageHash: _imageOf.containsKey(tile.id)
+        ? _imageOf[tile.id]
+        : tile.imageHash,
+    audioHash: _audioOf.containsKey(tile.id)
+        ? _audioOf[tile.id]
+        : tile.audioHash,
+    colorKey: tile.colorKey,
+    archived: tile.archived,
+    createdBy: tile.createdBy,
+    createdByName: tile.createdByName,
+    createdAt: tile.createdAt,
+  );
 
   @override
-  Future<void> setTileMedia(String tileId,
-      {String? imageHash, String? audioHash}) async {
+  Future<void> setTileMedia(
+    String tileId, {
+    String? imageHash,
+    String? audioHash,
+  }) async {
     if (!role.canEdit) {
       throw StateError('A partner can view this board but not change it.');
     }

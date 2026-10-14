@@ -67,8 +67,10 @@ class DeviceClipPlayer implements ClipPlayer {
         } else {
           // Not every platform plays from memory, and some choose the
           // decoder by file extension: go through a scratch file.
-          final scratch =
-              await writeScratch('chorus_preview.${format.extension}', bytes);
+          final scratch = await writeScratch(
+            'chorus_preview.${format.extension}',
+            bytes,
+          );
           if (scratch == null) return false;
           source = DeviceFileSource(scratch, mimeType: format.mimeType);
         }

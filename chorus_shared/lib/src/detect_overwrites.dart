@@ -40,18 +40,19 @@ class Overwrite {
   int get hashCode => Object.hash(lost, kept, tile);
 
   @override
-  String toString() => 'Overwrite(${lost.prop} of ${tile.id}: '
+  String toString() =>
+      'Overwrite(${lost.prop} of ${tile.id}: '
       '"${lost.newValue}" lost to "${kept.newValue}")';
 }
 
 /// What [tile] holds for [prop], or null for a property not in
 /// [restorableProps]. An empty value reads as null, as the store writes it.
 String? currentValueOf(TileFacts tile, String prop) => _norm(switch (prop) {
-      'label' => tile.label,
-      'speech' => tile.speech,
-      'colorKey' => tile.colorKey,
-      _ => null,
-    });
+  'label' => tile.label,
+  'speech' => tile.speech,
+  'colorKey' => tile.colorKey,
+  _ => null,
+});
 
 /// Every edit in [edits] that was replaced by one made without sight of it,
 /// newest first.

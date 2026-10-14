@@ -130,6 +130,7 @@ class EditorScreen extends StatefulWidget {
   /// The practice partner behind "Try a clash" in the board menu. Null
   /// hides it.
   final ClashPartner? clash;
+
   /// Modelled taps, focus words and the word finder's extras; null leaves
   /// them out.
   final ModellingSource? modelling;
@@ -137,9 +138,11 @@ class EditorScreen extends StatefulWidget {
   /// The browser's speech recognition for "Listen" in model mode; null, or
   /// one that is not available, hides it.
   final SpeechListener? speech;
+
   /// The circle's named board copies: "Save a copy" and "Copies" in the
   /// board menu. Null hides both.
   final BoardCopies? copies;
+
   /// Words hidden for now: dimmed with a mark, and "Hide for now" or "Show
   /// on the board again" in a word's sheet. Null offers neither.
   final HiddenWords? hiddenWords;

@@ -73,7 +73,10 @@ class IoMediaFiles implements MediaFiles {
     }
     if (_names.containsKey(hash)) return;
     final name = '$hash.${sniffFormat(bytes).extension}';
-    await _writeWhole(p.join(_dir.path, name), (file) => file.writeAsBytes(bytes, flush: true));
+    await _writeWhole(
+      p.join(_dir.path, name),
+      (file) => file.writeAsBytes(bytes, flush: true),
+    );
     _names[hash] = name;
   }
 
@@ -89,9 +92,9 @@ class IoMediaFiles implements MediaFiles {
 
   @override
   Future<void> writeNote(String name, String text) => _writeWhole(
-        p.join(_dir.path, _noteName(name)),
-        (file) => file.writeAsString(text, flush: true),
-      );
+    p.join(_dir.path, _noteName(name)),
+    (file) => file.writeAsString(text, flush: true),
+  );
 
   /// Writes beside [path] and renames, so a crash never leaves half a file
   /// under a name that claims to be whole.

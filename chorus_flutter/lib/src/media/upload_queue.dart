@@ -12,7 +12,11 @@ import 'package:chorus_shared/chorus_shared.dart';
 
 /// One file waiting to be sent.
 class QueuedUpload {
-  QueuedUpload({required this.hash, required this.isAudio, required this.bytes});
+  QueuedUpload({
+    required this.hash,
+    required this.isAudio,
+    required this.bytes,
+  });
 
   /// SHA-256 of the file, lowercase hex.
   final String hash;
@@ -26,8 +30,11 @@ class QueuedUpload {
   /// Failed tries since the app started. Not saved.
   int attempts = 0;
 
-  Map<String, Object> toJson() =>
-      {'hash': hash, 'audio': isAudio, 'bytes': bytes};
+  Map<String, Object> toJson() => {
+    'hash': hash,
+    'audio': isAudio,
+    'bytes': bytes,
+  };
 
   /// Null for an entry that is not understood, which is then dropped.
   static QueuedUpload? fromJson(Object? json) {
@@ -150,8 +157,7 @@ class MediaUploadQueue {
     try {
       while (!_disposed) {
         // Looked up again each time round: files may be added mid-pass.
-        final next =
-            _waiting.where((u) => !tried.contains(u.hash)).firstOrNull;
+        final next = _waiting.where((u) => !tried.contains(u.hash)).firstOrNull;
         if (next == null) break;
         tried.add(next.hash);
         UploadOutcome outcome;
@@ -177,8 +183,7 @@ class MediaUploadQueue {
       _failedPasses = 0;
       return;
     }
-    final delay =
-        backoffDelay(_failedPasses++, base: retryBase, max: retryMax);
+    final delay = backoffDelay(_failedPasses++, base: retryBase, max: retryMax);
     _lastDelay = delay;
     _retry?.cancel();
     _retry = Timer(delay, () {

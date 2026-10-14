@@ -89,7 +89,8 @@ class TileFacts {
   final String createdByName;
   final DateTime? createdAt;
 
-  String get spokenText => (speech == null || speech!.isEmpty) ? label : speech!;
+  String get spokenText =>
+      (speech == null || speech!.isEmpty) ? label : speech!;
 
   TileFacts copyWith({
     String? cellKey,
@@ -99,21 +100,20 @@ class TileFacts {
     String? audioHash,
     String? colorKey,
     bool? archived,
-  }) =>
-      TileFacts(
-        id: id,
-        boardId: boardId,
-        cellKey: cellKey ?? this.cellKey,
-        label: label ?? this.label,
-        speech: speech ?? this.speech,
-        imageHash: imageHash ?? this.imageHash,
-        audioHash: audioHash ?? this.audioHash,
-        colorKey: colorKey ?? this.colorKey,
-        archived: archived ?? this.archived,
-        createdBy: createdBy,
-        createdByName: createdByName,
-        createdAt: createdAt,
-      );
+  }) => TileFacts(
+    id: id,
+    boardId: boardId,
+    cellKey: cellKey ?? this.cellKey,
+    label: label ?? this.label,
+    speech: speech ?? this.speech,
+    imageHash: imageHash ?? this.imageHash,
+    audioHash: audioHash ?? this.audioHash,
+    colorKey: colorKey ?? this.colorKey,
+    archived: archived ?? this.archived,
+    createdBy: createdBy,
+    createdByName: createdByName,
+    createdAt: createdAt,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -132,8 +132,20 @@ class TileFacts {
       other.createdAt == createdAt;
 
   @override
-  int get hashCode => Object.hash(id, boardId, cellKey, label, speech,
-      imageHash, audioHash, colorKey, archived, createdBy, createdByName, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    boardId,
+    cellKey,
+    label,
+    speech,
+    imageHash,
+    audioHash,
+    colorKey,
+    archived,
+    createdBy,
+    createdByName,
+    createdAt,
+  );
 
   @override
   String toString() => 'TileFacts($id, "$label", $cellKey)';

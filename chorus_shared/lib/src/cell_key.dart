@@ -13,7 +13,11 @@ const String conflictMarker = '__conflict__';
 const String trayPrefix = 'tray:';
 
 /// Markers only the sync engine may write into a unique column.
-const List<String> _reservedMarkers = [conflictMarker, '__hidden__', '__park__'];
+const List<String> _reservedMarkers = [
+  conflictMarker,
+  '__hidden__',
+  '__park__',
+];
 
 /// Canonical non-negative integer: no sign, no leading zeros.
 final RegExp _index = RegExp(r'^(0|[1-9][0-9]*)$');
@@ -184,7 +188,10 @@ String assertAuthorable(String value) {
   for (final marker in _reservedMarkers) {
     if (value.contains(marker)) {
       throw ArgumentError.value(
-          value, 'value', 'Contains the reserved engine marker $marker');
+        value,
+        'value',
+        'Contains the reserved engine marker $marker',
+      );
     }
   }
   return value;

@@ -66,6 +66,7 @@ class CircleFeatures {
   /// Named board copies. Every role may look; only an editor takes or
   /// deletes one.
   final BoardCopies? copies;
+
   /// Words hidden for now and the second language. Null when both are off.
   final WordSettings? wordSettings;
 

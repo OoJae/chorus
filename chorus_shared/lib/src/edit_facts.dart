@@ -65,8 +65,18 @@ class EditFacts {
       other.editedAt == editedAt;
 
   @override
-  int get hashCode => Object.hash(id, tileId, prop, oldValue, newValue,
-      baseEditId, reason, actorId, actorName, editedAt);
+  int get hashCode => Object.hash(
+    id,
+    tileId,
+    prop,
+    oldValue,
+    newValue,
+    baseEditId,
+    reason,
+    actorId,
+    actorName,
+    editedAt,
+  );
 
   @override
   String toString() =>

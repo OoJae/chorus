@@ -330,6 +330,7 @@ const String _reportScript = r'''
   }
 })();
 ''';
+
 /// The line the script reads its speed and pitch from: the circle's chosen
 /// voice. Both are numbers, kept between 0.5 and 2 (1 where one is not a
 /// number), so nothing else can reach the script.

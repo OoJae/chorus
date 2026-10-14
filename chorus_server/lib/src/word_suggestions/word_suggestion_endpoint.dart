@@ -66,7 +66,8 @@ class WordSuggestionEndpoint extends Endpoint {
     await requireMember(session, circleSpace, editing: true);
     final rows = await SuggestedWord.db.find(
       session,
-      where: (t) => t.circleSpace.equals(circleSpace) & t.resolvedAt.equals(null),
+      where: (t) =>
+          t.circleSpace.equals(circleSpace) & t.resolvedAt.equals(null),
       orderBy: (t) => t.createdAt,
       limit: maxOpenSuggestions,
     );

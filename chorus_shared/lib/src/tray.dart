@@ -47,7 +47,8 @@ class TrayEntry {
   int get hashCode => Object.hash(tile, reason, wanted);
 
   @override
-  String toString() => 'TrayEntry(${tile.id}, ${reason.name}'
+  String toString() =>
+      'TrayEntry(${tile.id}, ${reason.name}'
       '${wanted == null ? '' : ', wanted $wanted'})';
 }
 
@@ -67,7 +68,9 @@ int _byAge(TileFacts a, TileFacts b) {
 
 /// Sorts every non-archived tile into the cell it holds or a tray entry.
 ({Map<PlacedCell, TileFacts> held, List<TrayEntry> tray}) _sortTiles(
-    Iterable<TileFacts> tiles, Iterable<BoardFacts> boards) {
+  Iterable<TileFacts> tiles,
+  Iterable<BoardFacts> boards,
+) {
   final boardById = {for (final b in boards) b.id: b};
   final held = <PlacedCell, TileFacts>{};
   final tray = <TrayEntry>[];
@@ -102,8 +105,10 @@ int _byAge(TileFacts a, TileFacts b) {
 /// creation time (tiles without one last), then id.
 ///
 /// The position is read from each tile's `cellKey` alone.
-List<TrayEntry> trayOf(Iterable<TileFacts> tiles, Iterable<BoardFacts> boards) =>
-    _sortTiles(tiles, boards).tray;
+List<TrayEntry> trayOf(
+  Iterable<TileFacts> tiles,
+  Iterable<BoardFacts> boards,
+) => _sortTiles(tiles, boards).tray;
 
 /// The tiles occupying cells of one board, keyed by (row, col).
 ///
@@ -112,8 +117,11 @@ List<TrayEntry> trayOf(Iterable<TileFacts> tiles, Iterable<BoardFacts> boards) =
 /// one created first (no creation time counts as last), then the smallest
 /// id, holds the cell; the other is in [trayOf] as
 /// [TrayReason.duplicateCell].
-Map<(int, int), TileFacts> gridOf(String boardId, Iterable<TileFacts> tiles,
-    Iterable<BoardFacts> boards) {
+Map<(int, int), TileFacts> gridOf(
+  String boardId,
+  Iterable<TileFacts> tiles,
+  Iterable<BoardFacts> boards,
+) {
   final held = _sortTiles(tiles, boards).held;
   return {
     for (final MapEntry(key: cell, value: tile) in held.entries)
@@ -131,8 +139,11 @@ Map<(int, int), TileFacts> gridOf(String boardId, Iterable<TileFacts> tiles,
 /// An archived tile that still carries a placed key is not counted here but
 /// still holds its key in the replica, so placing into such a cell can be
 /// refused; callers must be ready to fall back to the tray key.
-List<(int, int)> emptyCells(BoardFacts board, Iterable<TileFacts> tiles,
-    Iterable<BoardFacts> boards) {
+List<(int, int)> emptyCells(
+  BoardFacts board,
+  Iterable<TileFacts> tiles,
+  Iterable<BoardFacts> boards,
+) {
   final live = boards.where((b) => b.id == board.id).lastOrNull;
   if (live == null || live.archived) return const [];
   final grid = gridOf(live.id, tiles, boards);

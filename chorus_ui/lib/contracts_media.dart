@@ -55,8 +55,11 @@ abstract class MediaStore extends ChangeNotifier {
 abstract class TileMediaWriter {
   /// A null argument leaves that property alone; an empty string clears it.
   /// Never changes the tile's cell. Throws if the store refuses the write.
-  Future<void> setTileMedia(String tileId,
-      {String? imageHash, String? audioHash});
+  Future<void> setTileMedia(
+    String tileId, {
+    String? imageHash,
+    String? audioHash,
+  });
 }
 
 /// Camera, photo library, microphone and clip playback, as the add-word

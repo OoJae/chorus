@@ -16,8 +16,7 @@ import 'contracts_copies.dart' show TrayWordAdder;
 /// A [BoardStore] held in memory, seeded with the starter board and the
 /// empty "My words" board, as a guardian's device seeds a circle. Boards
 /// can be added, renamed, archived and imported ([BoardManager]).
-class FakeBoardStore extends BoardStore
-    implements BoardManager, TrayWordAdder {
+class FakeBoardStore extends BoardStore implements BoardManager, TrayWordAdder {
   /// Starts from `starterBoard` / `starterTiles` and `wordsBoard`. The
   /// starter board fills every cell, so [leaveEmpty] names (row, col) cells
   /// to leave out when a demo or test needs free spots on it.
@@ -100,17 +99,21 @@ class FakeBoardStore extends BoardStore
     final text = _requireLabel(label);
     final id = _nextId();
     final free = _isFree(boardId, row, col);
-    _tiles.add(TileFacts(
-      id: id,
-      boardId: boardId,
-      cellKey: free ? placedKey(boardId, row, col) : trayKey(id),
-      label: text,
-      speech: (speech == null || speech.trim().isEmpty) ? null : speech.trim(),
-      colorKey: colorKey,
-      createdBy: _userId(myName),
-      createdByName: myName,
-      createdAt: _tick(),
-    ));
+    _tiles.add(
+      TileFacts(
+        id: id,
+        boardId: boardId,
+        cellKey: free ? placedKey(boardId, row, col) : trayKey(id),
+        label: text,
+        speech: (speech == null || speech.trim().isEmpty)
+            ? null
+            : speech.trim(),
+        colorKey: colorKey,
+        createdBy: _userId(myName),
+        createdByName: myName,
+        createdAt: _tick(),
+      ),
+    );
     notifyListeners();
     return free;
   }
@@ -118,15 +121,19 @@ class FakeBoardStore extends BoardStore
   /// Throws [StateError] for a tile that already holds a cell or is
   /// archived: only a tile waiting in the tray may be placed.
   @override
-  Future<bool> placeTile(String tileId,
-      {required int row, required int col}) async {
+  Future<bool> placeTile(
+    String tileId, {
+    required int row,
+    required int col,
+  }) async {
     _requireEditor();
     final index = _indexOf(tileId);
     final tile = _tiles[index];
     if (!trayOf(_tiles, _boards).any((entry) => entry.tile.id == tileId)) {
       throw StateError(
-          'Only a word waiting in the tray can be placed; "${tile.label}" '
-          'is not waiting.');
+        'Only a word waiting in the tray can be placed; "${tile.label}" '
+        'is not waiting.',
+      );
     }
     _requireCell(_board(tile.boardId), row, col);
     if (!_isFree(tile.boardId, row, col)) return false;
@@ -137,8 +144,12 @@ class FakeBoardStore extends BoardStore
 
   /// Pass an empty [speech] to go back to speaking the label.
   @override
-  Future<void> updateTile(String tileId,
-      {String? label, String? speech, String? colorKey}) async {
+  Future<void> updateTile(
+    String tileId, {
+    String? label,
+    String? speech,
+    String? colorKey,
+  }) async {
     _requireEditor();
     final index = _indexOf(tileId);
     _tiles[index] = _tiles[index].copyWith(
@@ -222,17 +233,19 @@ class FakeBoardStore extends BoardStore
       cols: starterCols,
     );
     for (final word in fitted) {
-      _tiles.add(TileFacts(
-        id: _nextId(),
-        boardId: boardId,
-        cellKey: placedKey(boardId, word.row, word.col),
-        label: word.label,
-        speech: word.speech,
-        colorKey: word.colorKey,
-        createdBy: _userId(myName),
-        createdByName: myName,
-        createdAt: _tick(),
-      ));
+      _tiles.add(
+        TileFacts(
+          id: _nextId(),
+          boardId: boardId,
+          cellKey: placedKey(boardId, word.row, word.col),
+          label: word.label,
+          speech: word.speech,
+          colorKey: word.colorKey,
+          createdBy: _userId(myName),
+          createdByName: myName,
+          createdAt: _tick(),
+        ),
+      );
     }
     notifyListeners();
     return BoardImport(boardId: boardId, leftOut: leftOver);
@@ -252,18 +265,22 @@ class FakeBoardStore extends BoardStore
     _board(boardId);
     final text = _requireLabel(label);
     final id = _nextId();
-    _tiles.add(TileFacts(
-      id: id,
-      boardId: boardId,
-      cellKey: trayKey(id),
-      label: text,
-      speech: (speech == null || speech.trim().isEmpty) ? null : speech.trim(),
-      colorKey: colorKey,
-      imageHash: imageHash,
-      createdBy: _userId(myName),
-      createdByName: myName,
-      createdAt: _tick(),
-    ));
+    _tiles.add(
+      TileFacts(
+        id: id,
+        boardId: boardId,
+        cellKey: trayKey(id),
+        label: text,
+        speech: (speech == null || speech.trim().isEmpty)
+            ? null
+            : speech.trim(),
+        colorKey: colorKey,
+        imageHash: imageHash,
+        createdBy: _userId(myName),
+        createdByName: myName,
+        createdAt: _tick(),
+      ),
+    );
     notifyListeners();
     return id;
   }
@@ -271,12 +288,9 @@ class FakeBoardStore extends BoardStore
   /// Adds an empty board the size of the starter board; returns its id.
   String _newBoard(String name) {
     final id = deterministicId(circleId, 'fake-board:${_boardSequence++}');
-    _boards.add(BoardFacts(
-      id: id,
-      name: name,
-      rows: starterRows,
-      cols: starterCols,
-    ));
+    _boards.add(
+      BoardFacts(id: id, name: name, rows: starterRows, cols: starterCols),
+    );
     return id;
   }
 
@@ -321,8 +335,13 @@ class FakeBoardStore extends BoardStore
     required String label,
     String byName = 'Ms Lee',
   }) {
-    _remote(row, col, label, byName,
-        contested: !_isFree(homeBoardId, row, col));
+    _remote(
+      row,
+      col,
+      label,
+      byName,
+      contested: !_isFree(homeBoardId, row, col),
+    );
   }
 
   /// Simulates the engine's verdict on two offline inserts of one cell: adds
@@ -336,23 +355,30 @@ class FakeBoardStore extends BoardStore
     _remote(row, col, label, byName, contested: true);
   }
 
-  void _remote(int row, int col, String label, String byName,
-      {required bool contested}) {
+  void _remote(
+    int row,
+    int col,
+    String label,
+    String byName, {
+    required bool contested,
+  }) {
     final boardId = homeBoardId;
     _requireCell(_board(boardId), row, col);
     final id = _nextId();
     final placed = placedKey(boardId, row, col);
-    _tiles.add(TileFacts(
-      id: id,
-      boardId: boardId,
-      // Only the engine writes this form, so it is concatenated here and
-      // never built through placedKey.
-      cellKey: contested ? '$placed$conflictMarker$id' : placed,
-      label: _requireLabel(label),
-      createdBy: _userId(byName),
-      createdByName: byName,
-      createdAt: _tick(),
-    ));
+    _tiles.add(
+      TileFacts(
+        id: id,
+        boardId: boardId,
+        // Only the engine writes this form, so it is concatenated here and
+        // never built through placedKey.
+        cellKey: contested ? '$placed$conflictMarker$id' : placed,
+        label: _requireLabel(label),
+        createdBy: _userId(byName),
+        createdByName: byName,
+        createdAt: _tick(),
+      ),
+    );
     notifyListeners();
   }
 
@@ -363,13 +389,16 @@ class FakeBoardStore extends BoardStore
   }
 
   BoardFacts _board(String boardId) => _boards.firstWhere(
-        (board) => board.id == boardId && !board.archived,
-        orElse: () => throw ArgumentError.value(boardId, 'boardId', 'No such board'),
-      );
+    (board) => board.id == boardId && !board.archived,
+    orElse: () =>
+        throw ArgumentError.value(boardId, 'boardId', 'No such board'),
+  );
 
   void _requireCell(BoardFacts board, int row, int col) {
     if (!board.contains(row, col)) {
-      throw ArgumentError('Cell $row:$col is outside ${board.rows}x${board.cols}');
+      throw ArgumentError(
+        'Cell $row:$col is outside ${board.rows}x${board.cols}',
+      );
     }
   }
 
@@ -401,7 +430,7 @@ class FakeSpeech implements SpeechService {
   /// With the default [speakFor] of zero, [speak] never reports speaking and
   /// starts no timer. A longer value keeps [speaking] true for that long.
   FakeSpeech({this.speakFor = Duration.zero, bool offlineVoice = true})
-      : offlineVoiceReady = ValueNotifier(offlineVoice);
+    : offlineVoiceReady = ValueNotifier(offlineVoice);
 
   /// Every text passed to [speak], oldest first.
   final List<String> spoken = [];
@@ -503,14 +532,14 @@ class FakeSyncStatus extends SyncStatus {
     syncNowCalls++;
     switch (_state) {
       case SyncState.signedOut ||
-            SyncState.clockSkew ||
-            SyncState.needsUpdate ||
-            SyncState.accessLost:
+          SyncState.clockSkew ||
+          SyncState.needsUpdate ||
+          SyncState.accessLost:
         return;
       case SyncState.offline ||
-            SyncState.connecting ||
-            SyncState.live ||
-            SyncState.backoff:
+          SyncState.connecting ||
+          SyncState.live ||
+          SyncState.backoff:
         _state = SyncState.live;
         _hasUnsent = false;
         _lastMergeAt = DateTime.now();

@@ -162,6 +162,7 @@ class TalkerScreen extends StatefulWidget {
   /// The circle's picture scenes: a "Scenes" button in the status row while
   /// there is one. Null for none.
   final SceneBook? scenes;
+
   /// Words hidden for now: their cells are blank, and "Show everything"
   /// shows them until the board is left. Null hides nothing.
   final HiddenWords? hiddenWords;
@@ -1253,8 +1254,10 @@ class _StatusRow extends StatelessWidget {
 
   /// "Scenes", first of the marks on the right, so nothing after it moves.
   final Widget? scenes;
+
   /// Adds "Show everything" and the language switch; null adds nothing.
   final TalkerExtras? extras;
+
   /// Keyguard mode: sharing shows as a pill here, never as a bar over the
   /// grid.
   final bool keyguard;

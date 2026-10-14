@@ -22,8 +22,7 @@ class BoardSnapshot {
     BoardFacts board,
     Iterable<TileFacts> tiles,
     Iterable<BoardFacts> boards,
-  ) =>
-      BoardSnapshot(board, Map.unmodifiable(gridOf(board.id, tiles, boards)));
+  ) => BoardSnapshot(board, Map.unmodifiable(gridOf(board.id, tiles, boards)));
 
   @override
   bool operator ==(Object other) {
@@ -40,11 +39,11 @@ class BoardSnapshot {
 
   @override
   int get hashCode => Object.hash(
-        board,
-        Object.hashAllUnordered(
-          cells.entries.map((e) => Object.hash(e.key, e.value)),
-        ),
-      );
+    board,
+    Object.hashAllUnordered(
+      cells.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
+  );
 
   @override
   String toString() => 'BoardSnapshot(${board.id}, ${cells.length} tiles)';
@@ -75,7 +74,13 @@ enum ChangeKind {
 /// the tile would move into, which is empty in the held snapshot; [before]
 /// still carries the cell it is shown in.
 class SnapshotChange {
-  const SnapshotChange(this.kind, this.row, this.col, {this.before, this.after});
+  const SnapshotChange(
+    this.kind,
+    this.row,
+    this.col, {
+    this.before,
+    this.after,
+  });
 
   final ChangeKind kind;
   final int row;
@@ -144,8 +149,10 @@ SnapshotPlan reconcileSnapshot(BoardSnapshot current, BoardSnapshot fresh) {
     for (final entry in current.cells.entries) entry.value.id: entry.key,
   };
   final freshIds = <String>{for (final tile in fresh.cells.values) tile.id};
-  final cells = <(int, int)>{...current.cells.keys, ...fresh.cells.keys}.toList()
-    ..sort(_rowMajor);
+  final cells = <(int, int)>{
+    ...current.cells.keys,
+    ...fresh.cells.keys,
+  }.toList()..sort(_rowMajor);
 
   final next = Map<(int, int), TileFacts>.of(current.cells);
   final auto = <SnapshotChange>[];
@@ -163,13 +170,15 @@ SnapshotPlan reconcileSnapshot(BoardSnapshot current, BoardSnapshot fresh) {
         auto.add(SnapshotChange(ChangeKind.added, row, col, after: arriving));
         next[cell] = arriving;
       } else {
-        needsAdult.add(SnapshotChange(
-          ChangeKind.relocated,
-          row,
-          col,
-          before: current.cells[shown],
-          after: arriving,
-        ));
+        needsAdult.add(
+          SnapshotChange(
+            ChangeKind.relocated,
+            row,
+            col,
+            before: current.cells[shown],
+            after: arriving,
+          ),
+        );
       }
     } else if (after == null) {
       // A tile that only moved away stays put until an adult accepts the
@@ -180,27 +189,32 @@ SnapshotPlan reconcileSnapshot(BoardSnapshot current, BoardSnapshot fresh) {
       }
     } else if (after.id == before.id) {
       if (after != before) {
-        auto.add(SnapshotChange(
-          ChangeKind.updated,
+        auto.add(
+          SnapshotChange(
+            ChangeKind.updated,
+            row,
+            col,
+            before: before,
+            after: after,
+          ),
+        );
+        next[cell] = after;
+      }
+    } else {
+      needsAdult.add(
+        SnapshotChange(
+          ChangeKind.replaced,
           row,
           col,
           before: before,
           after: after,
-        ));
-        next[cell] = after;
-      }
-    } else {
-      needsAdult.add(SnapshotChange(
-        ChangeKind.replaced,
-        row,
-        col,
-        before: before,
-        after: after,
-      ));
+        ),
+      );
     }
   }
 
-  final sameGrid = current.board.rows == fresh.board.rows &&
+  final sameGrid =
+      current.board.rows == fresh.board.rows &&
       current.board.cols == fresh.board.cols;
   return SnapshotPlan(
     next: BoardSnapshot(

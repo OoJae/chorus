@@ -145,12 +145,14 @@ class CircleServices {
 
   /// "Try a clash", "Who is up to date" and "Under the hood".
   final TrustServices? trust;
+
   /// Modelled taps, focus words, the Thursday nudge and the progress
   /// report. Null leaves them out.
   final ModellingSource? modelling;
 
   /// The browser's speech recognition for "Listen" in model mode.
   final SpeechListener? speech;
+
   /// The circle's picture scenes, kept on this device. Null leaves
   /// "Scenes" out, on home and on the child's board.
   final SceneBook? scenes;
@@ -158,6 +160,7 @@ class CircleServices {
   /// Named board copies. Null leaves "Save a copy" and "Copies" out of the
   /// editor's board menu.
   final BoardCopies? copies;
+
   /// Words hidden from the child's board for now, kept on this device.
   final HiddenWords? hiddenWords;
 
@@ -166,9 +169,11 @@ class CircleServices {
 
   /// The device's voices for the second language.
   final LanguageVoice? languageVoice;
+
   /// The circle's voice, speed and pitch, kept on this device. Null leaves
   /// "Voice" out of "This device".
   final VoiceChoice? voice;
+
   /// The circle's quick phrases, kept on this device for use offline.
   /// Every role reads them; only editing roles change them.
   final QuickPhraseBook? quickPhrases;
