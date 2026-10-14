@@ -151,6 +151,29 @@ void main() {
     },
   );
 
+  test('while live, a merge asks again, at most every 30 seconds', () async {
+    var now = DateTime.utc(2026, 10, 14, 9);
+    final book = ServerSceneBook(
+      calls: server.calls,
+      cache: cache,
+      canEdit: true,
+      sync: sync,
+      now: () => now,
+    );
+    await settle();
+    expect(server.lists, 1);
+    sync.lastMergeAt = now;
+    await settle();
+    expect(server.lists, 1);
+    now = now.add(const Duration(seconds: 31));
+    server.scenes.add(info(4, 'Garden'));
+    sync.lastMergeAt = now;
+    await settle();
+    expect(server.lists, 2);
+    expect(book.scenes.single.name, 'Garden');
+    book.dispose();
+  });
+
   test('a read-only partner sees the scenes and changes none', () async {
     server.scenes.add(info(1, 'Park'));
     final book = open(canEdit: false);

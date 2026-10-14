@@ -73,8 +73,9 @@ Widget? talkerScenesButton(
 /// or the circle has no scene, so the row is as it was.
 ///
 /// While it shows, it asks [media] for each scene's photo, so the photos
-/// are on this device before the connection goes.
-class TalkerScenesButton extends StatelessWidget {
+/// are on this device before the connection goes. When the board opens it
+/// asks [book] for the latest scenes.
+class TalkerScenesButton extends StatefulWidget {
   const TalkerScenesButton({
     super.key,
     required this.book,
@@ -96,7 +97,20 @@ class TalkerScenesButton extends StatelessWidget {
   static const Key buttonKey = ValueKey('TalkerScenesButton');
 
   @override
+  State<TalkerScenesButton> createState() => _TalkerScenesButtonState();
+}
+
+class _TalkerScenesButtonState extends State<TalkerScenesButton> {
+  @override
+  void initState() {
+    super.initState();
+    unawaited(widget.book.refresh().catchError((Object _) {}));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final book = widget.book, media = widget.media, compact = widget.compact;
+    final onWord = widget.onWord;
     if (!pictureScenesEnabled) return const SizedBox.shrink();
     return ListenableBuilder(
       listenable: book,
@@ -112,7 +126,7 @@ class TalkerScenesButton extends StatelessWidget {
           child: SizedBox(
             height: ChorusSpace.minTarget,
             child: PressableSurface(
-              key: buttonKey,
+              key: TalkerScenesButton.buttonKey,
               onTap: () => openScenePicker(
                 context,
                 book: book,

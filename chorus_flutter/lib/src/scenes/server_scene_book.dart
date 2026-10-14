@@ -83,7 +83,9 @@ class ServerSceneBook extends SceneBook {
     required this.canEdit,
     this._sync,
     this.timeout = const Duration(seconds: 20),
-  }) {
+    this.askEvery = const Duration(seconds: 30),
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now {
     _sync?.addListener(_onSync);
     _wasLive = _live;
     unawaited(_start());
@@ -93,6 +95,13 @@ class ServerSceneBook extends SceneBook {
   final SceneCache _cache;
   final SyncStatus? _sync;
   final Duration timeout;
+
+  /// While sync is live, each merge asks for the scenes again, at most this
+  /// often: another adult's new scene then reaches the child's board soon
+  /// after any change to the boards.
+  final Duration askEvery;
+  final DateTime Function() _now;
+  DateTime? _askedAt;
 
   @override
   final bool canEdit;
@@ -121,7 +130,9 @@ class ServerSceneBook extends SceneBook {
 
   void _onSync() {
     final live = _live;
-    if (live && !_wasLive) unawaited(refresh());
+    final asked = _askedAt;
+    final due = asked == null || _now().difference(asked) >= askEvery;
+    if (live && (!_wasLive || due)) unawaited(refresh());
     _wasLive = live;
   }
 
@@ -140,6 +151,7 @@ class ServerSceneBook extends SceneBook {
   @override
   Future<void> refresh() async {
     if (_disposed || !_live) return;
+    _askedAt = _now();
     try {
       final listed = await _calls.list().timeout(timeout);
       _set([for (final info in listed) sceneOf(info)]);

@@ -126,13 +126,9 @@ void main() {
       tester,
     ) async {
       final log = FakeWordLog(enabled: true);
-      await pumpApp(
-        tester,
-        talker(
-          scenes: FakeSceneBook(scenes: [park()]),
-          log: log,
-        ),
-      );
+      final book = FakeSceneBook(scenes: [park()]);
+      await pumpApp(tester, talker(scenes: book, log: log));
+      expect(book.refreshes, 1);
       await tester.tap(find.byKey(TalkerScenesButton.buttonKey));
       await tester.pumpAndSettle();
       expect(find.text(chooseSceneTitle), findsOneWidget);

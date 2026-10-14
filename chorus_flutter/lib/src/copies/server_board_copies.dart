@@ -60,6 +60,7 @@ class ServerBoardCopies implements BoardCopies {
     if (sync.state != SyncState.live || sync.workingOffline) {
       throw const CopiesFailed(copiesOfflineMessage);
     }
+    if (sync.hasUnsent) throw const CopiesFailed(copiesWaitingMessage);
   }
 
   Future<T> _call<T>(Future<T> Function() call) async {

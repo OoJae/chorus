@@ -77,6 +77,12 @@ class CopiesFailed implements Exception {
 const String copiesOfflineMessage =
     'Copies are kept online. Check the connection and try again.';
 
+/// Shown when this device still has changes to send: a copy is taken of
+/// the words the server holds, so it would miss them.
+const String copiesWaitingMessage =
+    'Some changes on this device are still on their way. Try again in a '
+    'moment.';
+
 /// The circle's board copies, kept on the server. Each call needs the
 /// network and throws [CopiesFailed] without it.
 abstract class BoardCopies {

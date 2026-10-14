@@ -94,6 +94,18 @@ void main() {
       up = true;
       sync.state = SyncState.offline;
       await expectLater(copies.take(board, 'x'), throwsA(isA<CopiesFailed>()));
+      sync.state = SyncState.live;
+      sync.hasUnsent = true;
+      await expectLater(
+        copies.take(board, 'x'),
+        throwsA(
+          isA<CopiesFailed>().having(
+            (f) => f.message,
+            'message',
+            copiesWaitingMessage,
+          ),
+        ),
+      );
       expect(taken, isEmpty);
       expect(copiesOfflineMessage, isNot(contains('error')));
     },
