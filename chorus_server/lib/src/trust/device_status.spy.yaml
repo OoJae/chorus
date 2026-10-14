@@ -1,0 +1,9 @@
+### One member's device, as "Who is up to date" shows it.
+class: DeviceStatus
+fields:
+  userId: UuidValue
+  userName: String
+  deviceId: String
+  deviceLabel: String
+  lastSyncAt: DateTime
+  lastSeenAt: DateTime

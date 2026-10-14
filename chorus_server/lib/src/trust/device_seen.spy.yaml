@@ -1,0 +1,22 @@
+### When one device of one member last synced a circle. Server-only; holds
+### no words. Written by the app's heartbeat after a successful sync.
+class: DeviceSeen
+table: device_seen
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  userId: UuidValue
+  ### The member's name in the circle when the device last checked in.
+  userName: String
+  ### A random id the device keeps for itself.
+  deviceId: String
+  ### What the device is, in plain words: "Android phone", "Web browser".
+  deviceLabel: String
+  ### When the device last finished a sync, by its own report.
+  lastSyncAt: DateTime
+  ### When the server last heard from the device.
+  lastSeenAt: DateTime
+indexes:
+  device_seen_circle_user_device_idx:
+    fields: circleSpace, userId, deviceId
+    unique: true

@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
+import 'package:chorus_client/src/protocol/trust/device_status.dart'
+    as _ilm3njl8;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -37,12 +39,16 @@ import 'live/live_event.dart' as _ixdzvre4;
 import 'live/live_kind.dart' as _il8wtxvt;
 import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/upload_ticket.dart' as _illp1jkh;
+import 'practice/practice_exception.dart' as _ilvwtkyp;
+import 'practice/practice_failure.dart' as _iv6qijxa;
+import 'practice/practice_word.dart' as _iu9klhki;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
 import 'summary/week_report.dart' as _iaf8iewd;
 import 'summary/word_tally.dart' as _i6roonjc;
+import 'trust/device_status.dart' as _i1bd2zm2;
 import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_status.dart' as _i5lyi3mq;
@@ -61,12 +67,16 @@ export 'live/live_event.dart';
 export 'live/live_kind.dart';
 export 'media/media_kind.dart';
 export 'media/upload_ticket.dart';
+export 'practice/practice_exception.dart';
+export 'practice/practice_failure.dart';
+export 'practice/practice_word.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
 export 'summary/week_report.dart';
 export 'summary/word_tally.dart';
+export 'trust/device_status.dart';
 export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_status.dart';
@@ -543,6 +553,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _illp1jkh.UploadTicket) {
       return _illp1jkh.UploadTicket.fromJson(data) as T;
     }
+    if (t == _ilvwtkyp.PracticeException) {
+      return _ilvwtkyp.PracticeException.fromJson(data) as T;
+    }
+    if (t == _iv6qijxa.PracticeFailure) {
+      return _iv6qijxa.PracticeFailure.fromJson(data) as T;
+    }
+    if (t == _iu9klhki.PracticeWord) {
+      return _iu9klhki.PracticeWord.fromJson(data) as T;
+    }
     if (t == _iveyennw.ViewOnlyLink) {
       return _iveyennw.ViewOnlyLink.fromJson(data) as T;
     }
@@ -560,6 +579,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _i6roonjc.WordTally) {
       return _i6roonjc.WordTally.fromJson(data) as T;
+    }
+    if (t == _i1bd2zm2.DeviceStatus) {
+      return _i1bd2zm2.DeviceStatus.fromJson(data) as T;
     }
     if (t == _i163yf92.WordLogException) {
       return _i163yf92.WordLogException.fromJson(data) as T;
@@ -617,6 +639,17 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_illp1jkh.UploadTicket?>()) {
       return (data != null ? _illp1jkh.UploadTicket.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_ilvwtkyp.PracticeException?>()) {
+      return (data != null ? _ilvwtkyp.PracticeException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iv6qijxa.PracticeFailure?>()) {
+      return (data != null ? _iv6qijxa.PracticeFailure.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iu9klhki.PracticeWord?>()) {
+      return (data != null ? _iu9klhki.PracticeWord.fromJson(data) : null) as T;
+    }
     if (t == _isc.getType<_iveyennw.ViewOnlyLink?>()) {
       return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
     }
@@ -637,6 +670,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _isc.getType<_i6roonjc.WordTally?>()) {
       return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i1bd2zm2.DeviceStatus?>()) {
+      return (data != null ? _i1bd2zm2.DeviceStatus.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_i163yf92.WordLogException?>()) {
       return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
@@ -683,6 +719,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
+    if (t == List<_ilm3njl8.DeviceStatus>) {
+      return (data as List)
+              .map((e) => deserialize<_ilm3njl8.DeviceStatus>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_iyisc6zi.WordUseEntry>) {
       return (data as List)
               .map((e) => deserialize<_iyisc6zi.WordUseEntry>(e))
@@ -717,12 +759,16 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _il8wtxvt.LiveKind => 'LiveKind',
       _i8mjpd0r.MediaKind => 'MediaKind',
       _illp1jkh.UploadTicket => 'UploadTicket',
+      _ilvwtkyp.PracticeException => 'PracticeException',
+      _iv6qijxa.PracticeFailure => 'PracticeFailure',
+      _iu9klhki.PracticeWord => 'PracticeWord',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
       _iaf8iewd.WeekReport => 'WeekReport',
       _i6roonjc.WordTally => 'WordTally',
+      _i1bd2zm2.DeviceStatus => 'DeviceStatus',
       _i163yf92.WordLogException => 'WordLogException',
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i5lyi3mq.WordLogStatus => 'WordLogStatus',
@@ -769,6 +815,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'MediaKind';
       case _illp1jkh.UploadTicket():
         return 'UploadTicket';
+      case _ilvwtkyp.PracticeException():
+        return 'PracticeException';
+      case _iv6qijxa.PracticeFailure():
+        return 'PracticeFailure';
+      case _iu9klhki.PracticeWord():
+        return 'PracticeWord';
       case _iveyennw.ViewOnlyLink():
         return 'ViewOnlyLink';
       case _iw5bueja.SuggestException():
@@ -781,6 +833,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'WeekReport';
       case _i6roonjc.WordTally():
         return 'WordTally';
+      case _i1bd2zm2.DeviceStatus():
+        return 'DeviceStatus';
       case _i163yf92.WordLogException():
         return 'WordLogException';
       case _i352cmsp.WordLogFailure():
@@ -859,6 +913,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'UploadTicket') {
       return deserialize<_illp1jkh.UploadTicket>(data['data']);
     }
+    if (dataClassName == 'PracticeException') {
+      return deserialize<_ilvwtkyp.PracticeException>(data['data']);
+    }
+    if (dataClassName == 'PracticeFailure') {
+      return deserialize<_iv6qijxa.PracticeFailure>(data['data']);
+    }
+    if (dataClassName == 'PracticeWord') {
+      return deserialize<_iu9klhki.PracticeWord>(data['data']);
+    }
     if (dataClassName == 'ViewOnlyLink') {
       return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
     }
@@ -876,6 +939,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordTally') {
       return deserialize<_i6roonjc.WordTally>(data['data']);
+    }
+    if (dataClassName == 'DeviceStatus') {
+      return deserialize<_i1bd2zm2.DeviceStatus>(data['data']);
     }
     if (dataClassName == 'WordLogException') {
       return deserialize<_i163yf92.WordLogException>(data['data']);

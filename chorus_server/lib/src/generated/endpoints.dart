@@ -31,10 +31,12 @@ import '../circles/status_endpoint.dart' as _iy5k9ngi;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
+import '../practice/practice_endpoint.dart' as _i56xzqly;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
+import '../trust/device_seen_endpoint.dart' as _ixbcgbh7;
 import '../wordlog/word_log_endpoint.dart' as _ivqq1yo7;
 export 'future_calls.dart' show ServerpodFutureCallsGetter;
 
@@ -84,6 +86,12 @@ class Endpoints extends _is.EndpointDispatch {
           'media',
           null,
         ),
+      'practice': _i56xzqly.PracticeEndpoint()
+        ..initialize(
+          server,
+          'practice',
+          null,
+        ),
       'printing': _i0tflb56.PrintingEndpoint()
         ..initialize(
           server,
@@ -106,6 +114,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'summary',
+          null,
+        ),
+      'deviceSeen': _ixbcgbh7.DeviceSeenEndpoint()
+        ..initialize(
+          server,
+          'deviceSeen',
           null,
         ),
       'wordLog': _ivqq1yo7.WordLogEndpoint()
@@ -580,6 +594,43 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['practice'] = _is.EndpointConnector(
+      name: 'practice',
+      endpoint: endpoints['practice']!,
+      methodConnectors: {
+        'partnerWord': _is.MethodConnector(
+          name: 'partnerWord',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'boardId': _is.ParameterDescription(
+              name: 'boardId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'cellKey': _is.ParameterDescription(
+              name: 'cellKey',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['practice'] as _i56xzqly.PracticeEndpoint)
+                  .partnerWord(
+                    session,
+                    params['circleSpace'],
+                    params['boardId'],
+                    params['cellKey'],
+                  ),
+        ),
+      },
+    );
     connectors['printing'] = _is.EndpointConnector(
       name: 'printing',
       endpoint: endpoints['printing']!,
@@ -770,6 +821,70 @@ class Endpoints extends _is.EndpointDispatch {
                     params['circleSpace'],
                     params['weekStart'],
                   ),
+        ),
+      },
+    );
+    connectors['deviceSeen'] = _is.EndpointConnector(
+      name: 'deviceSeen',
+      endpoint: endpoints['deviceSeen']!,
+      methodConnectors: {
+        'heartbeat': _is.MethodConnector(
+          name: 'heartbeat',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'deviceId': _is.ParameterDescription(
+              name: 'deviceId',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'deviceLabel': _is.ParameterDescription(
+              name: 'deviceLabel',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'lastSyncAt': _is.ParameterDescription(
+              name: 'lastSyncAt',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceSeen'] as _ixbcgbh7.DeviceSeenEndpoint)
+                      .heartbeat(
+                        session,
+                        params['circleSpace'],
+                        params['deviceId'],
+                        params['deviceLabel'],
+                        params['lastSyncAt'],
+                      ),
+        ),
+        'devices': _is.MethodConnector(
+          name: 'devices',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceSeen'] as _ixbcgbh7.DeviceSeenEndpoint)
+                      .devices(
+                        session,
+                        params['circleSpace'],
+                      ),
         ),
       },
     );

@@ -1,0 +1,4 @@
+### Sent to the client when the practice partner cannot add its word.
+exception: PracticeException
+fields:
+  failure: PracticeFailure

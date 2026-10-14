@@ -24,6 +24,8 @@ media:
   - requestUpload:
   - confirmUpload:
   - downloadUrls:
+practice:
+  - partnerWord:
 printing:
   - publishBoard:
   - pageUrl:
@@ -35,6 +37,9 @@ suggest:
   - fromPhoto:
 summary:
   - week:
+deviceSeen:
+  - heartbeat:
+  - devices:
 wordLog:
   - status:
   - setEnabled:

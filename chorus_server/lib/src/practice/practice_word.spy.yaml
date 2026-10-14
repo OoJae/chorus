@@ -1,0 +1,10 @@
+### The word the practice partner put on the board, for "Try a clash".
+class: PracticeWord
+fields:
+  ### The partner's new tile.
+  tileId: UuidValue
+  label: String
+  ### The cell it was put in, as `<boardId>:<row>:<col>`.
+  cellKey: String
+  ### How the partner is named on every device.
+  partnerName: String
