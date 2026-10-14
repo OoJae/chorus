@@ -339,14 +339,15 @@ h1, h2, h3 { margin: 0; }
 .caption {
   display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; row-gap: 2px;
   padding: 12px 14px; border-radius: 16px;
-  opacity: .38; transition: opacity 300ms var(--toggle), background-color 300ms var(--toggle), box-shadow 300ms var(--toggle);
+  color: var(--muted);
+  transition: color 300ms var(--toggle), background-color 300ms var(--toggle), box-shadow 300ms var(--toggle);
 }
 .caption .meta { grid-row: span 2; padding-top: 4px; }
 .caption strong { font-weight: 700; font-size: 18px; }
 .caption span:last-child { color: var(--muted); }
 .story-stage[data-step="1"] .caption[data-for="1"],
 .story-stage[data-step="2"] .caption[data-for="2"],
-.story-stage[data-step="3"] .caption[data-for="3"] { opacity: 1; background: var(--surface); box-shadow: 0 3px 0 var(--surface-edge), inset 0 0 0 1px var(--line); }
+.story-stage[data-step="3"] .caption[data-for="3"] { color: var(--ink); background: var(--surface); box-shadow: 0 3px 0 var(--surface-edge), inset 0 0 0 1px var(--line); }
 @media (max-width: 999px) {
   .captions { margin-top: 14px; position: relative; min-height: 98px; }
   .caption { position: absolute; inset: 0 0 auto 0; opacity: 0; transform: translateY(10px); transition: opacity 300ms var(--toggle), transform 450ms var(--enter); background: var(--surface); box-shadow: 0 3px 0 var(--surface-edge), inset 0 0 0 1px var(--line); }
@@ -450,6 +451,8 @@ h1, h2, h3 { margin: 0; }
 @keyframes pulse-run { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
 @supports not (offset-path: path("M0 0")) { .pulse { display: none; } }
 .devices.no-links .links, .devices.no-links .pulse { display: none; }
+.story-stage:not([data-step="2"]):not([data-step="3"]) .link { opacity: .2; }
+.link { transition: opacity 300ms var(--toggle); }
 
 /* Step 1: offline, she talks. */
 .story-stage[data-step="1"] .mini-strip span,

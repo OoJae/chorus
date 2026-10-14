@@ -12,10 +12,13 @@
     location.replace(APP);
     return;
   }
-  if (location.hash.indexOf('#/') === 0) {
+  function oldAppAddress() {
+    if (location.hash.indexOf('#/') !== 0) return false;
     location.replace(APP + location.hash);
-    return;
+    return true;
   }
+  if (oldAppAddress()) return;
+  window.addEventListener('hashchange', oldAppAddress);
   if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
     navigator.serviceWorker.getRegistrations().then(function (regs) {
       var root = location.origin + '/';
