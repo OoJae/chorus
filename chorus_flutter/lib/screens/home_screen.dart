@@ -25,6 +25,7 @@ import 'package:flutter/services.dart';
 import '../src/live/live_scope.dart';
 import '../src/sharing/share_link.dart';
 import '../src/sync/replica_board_store.dart';
+import '../src/trust/trust_entries.dart';
 import 'invite_screen.dart';
 import 'messages.dart';
 import 'services.dart';
@@ -222,6 +223,7 @@ class HomeScreen extends StatelessWidget {
                 sync: sync,
               ),
             ),
+      clash: services?.trust?.clash,
     );
     _open(
       context,
@@ -429,6 +431,7 @@ class HomeScreen extends StatelessWidget {
             label: wordLogLabel,
             onTap: () => _openWordLog(context),
           ),
+        ...trustEntries(context, trust: services?.trust, sync: sync),
         // Sharing is a guardian's choice, made here and never on the
         // child's board, which can only turn it off.
         if (canInvite && services?.live != null)

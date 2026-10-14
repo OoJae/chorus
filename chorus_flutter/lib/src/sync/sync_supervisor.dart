@@ -259,6 +259,9 @@ class SyncSupervisor extends SyncStatus {
   int _writes = 0;
   bool _clearUnsentOnFlush = false;
 
+  /// Local writes since [hasUnsent] was last cleared; see [unsentChanges].
+  int _unsentWrites = 0;
+
   /// Bumped whenever the replica may hold different rows: after each merge
   /// burst and after each local write. Stores re-read on every change.
   ValueListenable<int> get revision => _revision;
@@ -274,6 +277,12 @@ class SyncSupervisor extends SyncStatus {
   /// after a restart the supervisor assumes there may be edits waiting.
   @override
   bool get hasUnsent => _hasUnsent;
+
+  /// Counted from the local writes since the last confirmed sync. Unknown
+  /// after a restart, when edits from before it may still be waiting.
+  @override
+  int? get unsentChanges =>
+      !_hasUnsent ? 0 : (_unsentWrites > 0 ? _unsentWrites : null);
 
   bool _workingOffline = false;
 
@@ -339,6 +348,7 @@ class SyncSupervisor extends SyncStatus {
     _lastWriteAt = _now();
     _clearUnsentOnFlush = false;
     _hasUnsent = true;
+    _unsentWrites++;
     _revision.value++;
     notifyListeners();
   }
@@ -462,6 +472,7 @@ class SyncSupervisor extends SyncStatus {
       if (_hasUnsent &&
           (lastWrite == null || lastWrite.isBefore(onceStarted))) {
         _hasUnsent = false;
+        _unsentWrites = 0;
         if (!_disposed) notifyListeners();
       }
       _settle(attempt, true);
@@ -636,6 +647,7 @@ class SyncSupervisor extends SyncStatus {
     if (_clearUnsentOnFlush) {
       _clearUnsentOnFlush = false;
       _hasUnsent = false;
+      _unsentWrites = 0;
     }
     _revision.value++;
     notifyListeners();
@@ -651,6 +663,7 @@ class SyncSupervisor extends SyncStatus {
       if (_disposed || writes != _writes || !_hasUnsent) return;
       if (_state != SyncState.live) return;
       _hasUnsent = false;
+      _unsentWrites = 0;
       notifyListeners();
     });
   }

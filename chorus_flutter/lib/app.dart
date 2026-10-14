@@ -32,6 +32,7 @@ import 'src/suggest/server_word_suggester.dart';
 import 'src/sync/chorus_session.dart';
 import 'src/tabs/one_tab_gate.dart';
 import 'src/tabs/tab_workspaces.dart';
+import 'src/trust/trust_services.dart';
 
 class ChorusApp extends StatefulWidget {
   const ChorusApp({super.key});
@@ -290,6 +291,11 @@ class SessionWorkspace implements Workspace {
       sync: sync,
       speech: _speech,
       clipPlayer: _clipPlayer,
+    )..trust = TrustParts.open(
+      _client,
+      space: space,
+      sync: sync,
+      replica: _session.replica,
     );
     return parts.services[circle.myRole] ??= _servicesFor(circle, parts);
   }
@@ -336,6 +342,7 @@ class SessionWorkspace implements Workspace {
       summary: features?.summary,
       sharing: features?.sharing,
       boards: features?.boards,
+      trust: parts.trust?.services(canEdit: canEdit),
     );
   }
 
@@ -409,6 +416,9 @@ class _CircleParts {
   final ClipTileSpeaker speaker;
   final ServerWordSuggester suggester;
 
+  /// "Try a clash", "Who is up to date" and "Under the hood".
+  TrustParts? trust;
+
   /// The services handed out, by the adult's role when they were asked for.
   final Map<CircleRole, CircleServices> services = {};
 
@@ -431,6 +441,7 @@ class _CircleParts {
   }
 
   void dispose() {
+    trust?.dispose();
     _features.dispose();
     suggester.dispose();
     media.dispose();

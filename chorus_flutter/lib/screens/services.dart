@@ -13,6 +13,7 @@ import 'package:chorus_ui/contracts_suggest.dart';
 import 'package:chorus_ui/contracts_wordlog.dart';
 
 import '../src/live/chorus_live_session.dart';
+import '../src/trust/trust_services.dart';
 
 /// The circle calls on the server, plus the circles remembered on this
 /// device for a start with no signal.
@@ -78,6 +79,7 @@ class CircleServices {
     this.summary,
     this.sharing,
     this.boards,
+    this.trust,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -123,6 +125,9 @@ class CircleServices {
   /// a screen holding the store may use that instead; both write the same
   /// replica.
   final BoardManager? boards;
+
+  /// "Try a clash", "Who is up to date" and "Under the hood".
+  final TrustServices? trust;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 
 import '../brand/tokens.dart';
 import '../contracts.dart';
+import '../features/trust/trust_words.dart';
 
 /// Plain-words description of [sync]'s state.
-String syncLabel(SyncStatus sync) => sync.workingOffline
+String syncLabel(SyncStatus sync) =>
+    trustSyncLabel(sync) ?? _plainSyncLabel(sync);
+
+String _plainSyncLabel(SyncStatus sync) => sync.workingOffline
     ? 'Working offline, saved on this device'
     : switch (sync.state) {
         SyncState.signedOut => 'Signed out, saved on this device',

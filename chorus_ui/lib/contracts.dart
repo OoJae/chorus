@@ -124,4 +124,8 @@ abstract class SyncStatus extends ChangeNotifier {
   /// Pauses or resumes sync on this device. Nothing is lost either way:
   /// changes made while paused are sent when sync resumes.
   Future<void> setWorkingOffline(bool value) async {}
+
+  /// How many changes made on this device wait to be sent, or null when
+  /// that is not known (after a restart, before the first sync).
+  int? get unsentChanges => null;
 }
