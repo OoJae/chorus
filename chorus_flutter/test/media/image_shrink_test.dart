@@ -76,14 +76,38 @@ void main() {
     expect(pixel.b, greaterThan(240));
   });
 
+  test('location and camera details in the original do not survive', () {
+    for (final (width, height) in [(1600, 900), (40, 30)]) {
+      final photo = _noise(width, height);
+      photo.exif.imageIfd['Make'] = 'TestCam';
+      photo.exif.gpsIfd['GPSLatitudeRef'] = 'N';
+      photo.exif.gpsIfd['GPSLatitude'] = [59, 20, 0];
+      final source = img.encodeJpg(photo);
+      // The fixture must really carry the details, or this proves nothing:
+      // the camera make and the pointer to a GPS block.
+      final original = img.decodeJpg(source)!.exif;
+      expect(original.imageIfd['Make'], isNotNull);
+      expect(original.imageIfd.sub.keys, contains('gps'));
+
+      final decoded = img.decodeJpg(shrinkToJpeg(source))!;
+
+      expect(decoded.exif.isEmpty, isTrue);
+      expect(decoded.exif.imageIfd.sub.keys, isNot(contains('gps')));
+    }
+  });
+
   test('bytes that are not a picture are refused', () {
-    expect(() => shrinkToJpeg(Uint8List.fromList(List.filled(64, 3))),
-        throwsFormatException);
+    expect(
+      () => shrinkToJpeg(Uint8List.fromList(List.filled(64, 3))),
+      throwsFormatException,
+    );
     expect(() => shrinkToJpeg(Uint8List(0)), throwsFormatException);
   });
 
   test('a picture that cannot fit is refused rather than stored too big', () {
-    expect(() => shrinkToJpeg(img.encodePng(_noise(512, 512)), maxBytes: 100),
-        throwsFormatException);
+    expect(
+      () => shrinkToJpeg(img.encodePng(_noise(512, 512)), maxBytes: 100),
+      throwsFormatException,
+    );
   });
 }

@@ -166,7 +166,7 @@ void main() {
       final chip = find.byType(SyncChip);
       expect(tester.getSize(chip).height, greaterThanOrEqualTo(48));
       expect(
-        find.bySemanticsLabel(RegExp('Offline, saved on this phone')),
+        find.bySemanticsLabel(RegExp('Offline, saved on this device')),
         findsOneWidget,
       );
       await tester.tap(chip);

@@ -48,16 +48,34 @@
     #loading .dots i:nth-child(3) { background: #AACCFF; animation-delay: .3s; }
     #loading .dots i:nth-child(4) { background: #CCAAFF; animation-delay: .45s; }
     @keyframes chorus-pulse { 0%, 100% { transform: scale(.8); opacity: .5; } 50% { transform: scale(1.15); opacity: 1; } }
-    @media (prefers-reduced-motion: reduce) { #loading .dots i { animation: none; } }
+    /* Filled in only when loading is slow. It takes no room of its own, so the
+       name and the dots do not jump when the words appear. */
+    #loading .slow {
+      height: 0; padding: 0 24px; text-align: center;
+      font: 400 16px system-ui, sans-serif;
+    }
+    #loading .slow.shown { animation: chorus-appear .4s ease-out; }
+    @keyframes chorus-appear { from { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { #loading .dots i, #loading .slow.shown { animation: none; } }
   </style>
 </head>
 <body>
   <div id="loading" role="status" aria-live="polite">
     <span>Chorus</span>
     <span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="slow"></span>
   </div>
   <script>
+    // A first visit on a slow connection can take many seconds. After four,
+    // say so in words, so the dots are not mistaken for a page that is stuck.
+    var slowTimer = setTimeout(function () {
+      var slow = document.querySelector('#loading .slow');
+      if (!slow) return;
+      slow.textContent = 'Loading. The first visit takes a little longer.';
+      slow.classList.add('shown');
+    }, 4000);
     window.addEventListener('flutter-first-frame', function () {
+      clearTimeout(slowTimer);
       var loading = document.getElementById('loading');
       if (loading) loading.remove();
     });

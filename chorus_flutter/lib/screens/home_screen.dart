@@ -185,15 +185,39 @@ class HomeScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final canInvite = selected.myRole == CircleRole.guardian;
     final canEdit = selected.myRole != CircleRole.partner;
+    final width = MediaQuery.sizeOf(context).width;
+    // On a phone the chip's longer words ("Working offline, saved on this
+    // device") would push the title out of the bar, so there the chip has a
+    // row of its own under the title.
+    final chipUnderTitle = width < 600;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chorus'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(child: SyncChip(sync: sync)),
-          ),
+          if (!chipUnderTitle)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Center(
+                // Room is kept for the title, even with large text.
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: width - 240),
+                  child: SyncChip(sync: sync),
+                ),
+              ),
+            ),
         ],
+        bottom: chipUnderTitle
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(56),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: SyncChip(sync: sync),
+                  ),
+                ),
+              )
+            : null,
       ),
       body: SafeArea(
         child: Center(

@@ -545,6 +545,9 @@ class SyncSupervisor extends SyncStatus {
     ClockDriftException() => SyncState.clockSkew,
     OfflineSyncTablesHashMismatchException() => SyncState.needsUpdate,
     ServerpodClientNetworkException() => SyncState.offline,
+    // The server ended the stream with an error of its own, so it was
+    // reached: this is a retry, not "offline".
+    ConnectionClosedException() => SyncState.backoff,
     MethodStreamException() => SyncState.offline,
     TimeoutException() => SyncState.offline,
     OfflineSyncStreamClosedException() => SyncState.offline,

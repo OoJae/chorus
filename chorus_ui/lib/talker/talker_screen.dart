@@ -17,7 +17,7 @@ import '../widgets/tile_view.dart';
 import 'talker_controller.dart';
 
 /// Shown to adults when speech would need a network.
-const String noOfflineVoiceMessage = 'No offline voice on this phone';
+const String noOfflineVoiceMessage = 'No offline voice on this device';
 
 /// Shown on the child's board for as long as spoken sentences are shared.
 const String sharingSaidMessage = 'Sharing what is said';
@@ -35,6 +35,10 @@ const String leaveLabel = 'Hold to leave';
 /// Shown when system back is pressed: back is blocked on purpose.
 const String howToLeaveMessage =
     'To leave the board, press and hold "Hold to leave" for 2 seconds.';
+
+/// What a screen reader adds to a control that is held, for the keyboard.
+const String holdWithKeyboardHint =
+    'With a keyboard, hold Enter or Space for 2 seconds, then let go';
 
 /// How the top of the child's screen is arranged for the room there is.
 enum TalkerLayout {
@@ -889,6 +893,9 @@ class _WaitingPill extends StatelessWidget {
 
 /// Fires [onHeld] after an unbroken 2-second press, showing progress.
 /// Lifting the finger early starts over.
+///
+/// The keyboard reaches it with Tab, and Enter or Space held for the same
+/// 2 seconds fills the same bar; that hold fires when the key is let go.
 class _HoldTarget extends StatefulWidget {
   const _HoldTarget({
     required this.semanticsLabel,
@@ -911,6 +918,13 @@ class _HoldTarget extends StatefulWidget {
 
 class _HoldTargetState extends State<_HoldTarget>
     with SingleTickerProviderStateMixin {
+  /// The keys that hold: the ones that press any other button.
+  static final Set<LogicalKeyboardKey> _holdKeys = {
+    LogicalKeyboardKey.enter,
+    LogicalKeyboardKey.numpadEnter,
+    LogicalKeyboardKey.space,
+  };
+
   /// Draws the progress only. The hold itself completes on [_timer], so it
   /// still works when the platform is not drawing frames (a background tab).
   late final AnimationController _hold = AnimationController(
@@ -919,8 +933,20 @@ class _HoldTargetState extends State<_HoldTarget>
   );
   Timer? _timer;
 
-  void _start() {
+  /// Whether the keyboard is on this control.
+  bool _focused = false;
+
+  /// The key that started the hold under way; null for a finger or a mouse.
+  LogicalKeyboardKey? _key;
+
+  /// A key hold that has lasted its 2 seconds and fires when the key is let
+  /// go.
+  bool _keyHeld = false;
+
+  void _start({LogicalKeyboardKey? key}) {
     _timer?.cancel();
+    _key = key;
+    _keyHeld = false;
     _hold.forward(from: 0);
     _timer = Timer(_holdToConfirm, _complete);
   }
@@ -928,9 +954,36 @@ class _HoldTargetState extends State<_HoldTarget>
   void _complete() {
     _timer = null;
     if (!mounted) return;
+    if (_key != null) {
+      // A key that is still down keeps repeating, and once this screen is
+      // gone the repeats go to whatever has the keyboard next: the button
+      // that opened the board, which would open it again. So a key hold
+      // fires when the key is let go, and the bar stays full until then.
+      _keyHeld = true;
+      _hold.value = 1;
+      return;
+    }
+    _fire();
+  }
+
+  void _fire() {
     _hold.value = 0;
     HapticFeedback.mediumImpact();
     widget.onHeld?.call();
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    final key = event.logicalKey;
+    if (!_holdKeys.contains(key)) return KeyEventResult.ignored;
+    if (event is KeyDownEvent) {
+      _start(key: key);
+    } else if (event is KeyUpEvent && key == _key) {
+      final held = _keyHeld;
+      _cancel();
+      if (held) _fire();
+    }
+    // The repeats of a held key change nothing.
+    return KeyEventResult.handled;
   }
 
   @override
@@ -942,64 +995,79 @@ class _HoldTargetState extends State<_HoldTarget>
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: widget.semanticsLabel,
-      button: true,
-      // A screen reader cannot deliver a timed raw press; its long-press
-      // action stands in for the hold.
-      onLongPress: widget.onHeld,
-      excludeSemantics: true,
-      child: Listener(
-        behavior: HitTestBehavior.opaque,
-        onPointerDown: (_) => _start(),
-        onPointerUp: (_) => _cancel(),
-        onPointerCancel: (_) => _cancel(),
-        child: AnimatedBuilder(
-          animation: _hold,
-          builder: (context, child) => widget.square
-              ? SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (_hold.value > 0)
-                        SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: CircularProgressIndicator(
-                            value: _hold.value,
-                            strokeWidth: 3,
-                            color: Colors.black,
-                          ),
-                        ),
-                      child!,
-                    ],
-                  ),
-                )
-              : ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  child: IntrinsicWidth(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+    // The Focus is outside the Semantics, which drops everything under it,
+    // so a screen reader is still told that this can take the keyboard.
+    return Focus(
+      onFocusChange: (focused) {
+        if (!focused) _cancel();
+        setState(() => _focused = focused);
+      },
+      onKeyEvent: _onKey,
+      child: Semantics(
+        label: widget.semanticsLabel,
+        hint: holdWithKeyboardHint,
+        button: true,
+        // A screen reader cannot deliver a timed raw press; its long-press
+        // action stands in for the hold.
+        onLongPress: widget.onHeld,
+        excludeSemantics: true,
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: (_) => _start(),
+          onPointerUp: (_) => _cancel(),
+          onPointerCancel: (_) => _cancel(),
+          child: AnimatedBuilder(
+            animation: _hold,
+            builder: (context, child) => widget.square
+                ? SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
+                        if (_hold.value > 0)
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: CircularProgressIndicator(
+                              value: _hold.value,
+                              strokeWidth: 3,
+                              color: Colors.black,
+                            ),
+                          ),
                         child!,
-                        SizedBox(
-                          height: 4,
-                          child: _hold.value > 0
-                              ? LinearProgressIndicator(
-                                  value: _hold.value,
-                                  color: Colors.black,
-                                  backgroundColor: Colors.white,
-                                )
-                              : null,
-                        ),
                       ],
                     ),
+                  )
+                : ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: IntrinsicWidth(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          child!,
+                          SizedBox(
+                            height: 4,
+                            child: _hold.value > 0
+                                ? LinearProgressIndicator(
+                                    value: _hold.value,
+                                    color: Colors.black,
+                                    backgroundColor: Colors.white,
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-          child: widget.child,
+            // Always in the tree, so the control keeps its shape and size
+            // whether or not the keyboard is on it.
+            child: CustomPaint(
+              foregroundPainter: _focused ? const _FocusRing() : null,
+              child: widget.child,
+            ),
+          ),
         ),
       ),
     );
@@ -1008,8 +1076,42 @@ class _HoldTargetState extends State<_HoldTarget>
   void _cancel() {
     _timer?.cancel();
     _timer = null;
+    _key = null;
+    _keyHeld = false;
     if (_hold.value > 0) _hold.value = 0;
   }
+}
+
+/// The mark on a hold control the keyboard is on: a thick black line round
+/// its edge and a thin white one just inside it, so it shows on the outlined
+/// leave pill and on the black waiting pill alike. It is painted over the
+/// control and takes no space.
+class _FocusRing extends CustomPainter {
+  const _FocusRing();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final edge = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(size.shortestSide / 2),
+    );
+    final line = Paint()..style = PaintingStyle.stroke;
+    canvas.drawRRect(
+      edge.deflate(2),
+      line
+        ..color = Colors.black
+        ..strokeWidth = 4,
+    );
+    canvas.drawRRect(
+      edge.deflate(4.75),
+      line
+        ..color = Colors.white
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_FocusRing oldDelegate) => false;
 }
 
 /// The visible way out of the talker: a labelled control an adult holds.

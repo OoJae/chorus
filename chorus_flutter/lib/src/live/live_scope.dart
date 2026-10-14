@@ -104,17 +104,51 @@ class _ShareSaidSwitchState extends State<ShareSaidSwitch> {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      value: _on,
-      onChanged: _loaded ? _set : null,
-      secondary: const Icon(Icons.podcasts),
-      title: const Text('Share what is said'),
-      subtitle: Text(
-        'While the talker is open on this device, each sentence '
-        '${widget.childName} speaks is shown to the adults in the circle who '
-        'are connected at that moment. Nothing is saved. The board shows a '
-        'bar while this is on, and a tap on it turns it off.',
-      ),
+    final theme = Theme.of(context);
+    final explanation = Text(
+      'While the talker is open on this device, each sentence '
+      '${widget.childName} speaks is shown to the adults in the circle who '
+      'are connected at that moment. Nothing is saved. The board shows a '
+      'bar while this is on, and a tap on it turns it off.',
+    );
+    return LayoutBuilder(
+      builder: (context, box) {
+        // Wide enough (the home list is 488 wide on a desktop): the
+        // explanation stays the switch's subtitle.
+        if (box.maxWidth >= 480) {
+          return SwitchListTile(
+            value: _on,
+            onChanged: _loaded ? _set : null,
+            secondary: const Icon(Icons.podcasts),
+            title: const Text('Share what is said'),
+            subtitle: explanation,
+          );
+        }
+        // On a phone it would be a narrow column between the icon and the
+        // switch, so it goes under them at the full width.
+        return MergeSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SwitchListTile(
+                value: _on,
+                onChanged: _loaded ? _set : null,
+                secondary: const Icon(Icons.podcasts),
+                title: const Text('Share what is said'),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 24, 12),
+                child: DefaultTextStyle.merge(
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  child: explanation,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

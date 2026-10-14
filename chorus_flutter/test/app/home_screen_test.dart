@@ -8,13 +8,14 @@ import 'package:chorus_flutter/screens/services.dart';
 import 'package:chorus_flutter/src/live/chorus_live_session.dart';
 import 'package:chorus_flutter/screens/signed_in_shell.dart';
 import 'package:chorus_shared/chorus_shared.dart' show BoardFacts;
-import 'package:chorus_ui/contracts.dart' show BoardStore;
+import 'package:chorus_ui/contracts.dart' show BoardStore, SyncState;
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/fakes_media.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes.dart';
@@ -175,7 +176,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(sync.workingOffline, isTrue);
       expect(tester.widget<SwitchListTile>(offline).value, isTrue);
-      expect(find.text('Working offline, saved on this phone'), findsOneWidget);
+      expect(
+        find.text('Working offline, saved on this device'),
+        findsOneWidget,
+      );
       expect(find.text('Sync now'), findsNothing);
 
       await tester.tap(find.text(printCopyLabel));
@@ -300,6 +304,102 @@ void main() {
       media.finishUploads();
       await tester.pump();
       expect(find.textContaining('waiting to be sent'), findsNothing);
+    });
+  });
+
+  group('the title and the chip', () {
+    /// The chip's widest words: one state with "Sync now", one without.
+    Future<FakeSyncStatus> widest(String which) async {
+      final sync = FakeSyncStatus(state: SyncState.offline);
+      if (which == 'working offline') await sync.setWorkingOffline(true);
+      return sync;
+    }
+
+    /// The title is given at least its own width, so none of it is cut.
+    void expectWholeTitle(WidgetTester tester) {
+      final title = tester.renderObject<RenderParagraph>(find.text('Chorus'));
+      expect(
+        title.size.width,
+        greaterThanOrEqualTo(title.getMaxIntrinsicWidth(double.infinity)),
+      );
+    }
+
+    for (final which in ['offline', 'working offline']) {
+      testWidgets('on a phone (360x820, $which) the chip has a row under the '
+          'title, and nothing overflows', (tester) async {
+        final sync = await widest(which);
+        await pumpHome(tester, circle(), sync: sync);
+        tester.view.physicalSize = const Size(360, 820);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        expect(find.text(syncLabel(sync)), findsOneWidget);
+        expectWholeTitle(tester);
+        final title = tester.getRect(find.text('Chorus'));
+        final chip = tester.getRect(find.byType(SyncChip));
+        expect(chip.top, greaterThanOrEqualTo(title.bottom));
+        expect(chip.left, 16);
+        expect(chip.right, lessThanOrEqualTo(360 - 16));
+        expect(
+          chip.bottom,
+          lessThanOrEqualTo(tester.getRect(find.byType(AppBar)).bottom),
+          reason: 'it is still part of the bar',
+        );
+        expect(
+          find.text('Sync now'),
+          which == 'offline' ? findsOneWidget : findsNothing,
+        );
+      });
+    }
+
+    testWidgets('on a wider screen the chip stays beside the title, which '
+        'stays whole', (tester) async {
+      final sync = await widest('offline');
+      await pumpHome(tester, circle(), sync: sync);
+      expect(tester.takeException(), isNull);
+      expectWholeTitle(tester);
+      final title = tester.getRect(find.text('Chorus'));
+      final chip = tester.getRect(find.byType(SyncChip));
+      expect(chip.left, greaterThan(title.right));
+      expect(chip.center.dy, moreOrLessEquals(title.center.dy, epsilon: 1));
+    });
+
+    testWidgets('on a phone the sharing switch and the rest of a guardian\'s '
+        'home lay out with no overflow', (tester) async {
+      ChorusLiveSession live({required bool forTalker}) => ChorusLiveSession(
+        join: (_, _) => const Stream.empty(),
+        circleSpace: mayaSpace,
+      );
+      await pumpHome(
+        tester,
+        circle(),
+        services: CircleServices(
+          userId: 'me',
+          live: live,
+          media: FakeMediaStore(),
+          publishBoard: (_) async => 'https://chorus.example/print/abc',
+        ),
+      );
+      tester.view.physicalSize = const Size(360, 820);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Sign out'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Share what is said'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      // The explanation is under the switch at the full width, not a
+      // narrow column between the icon and the switch.
+      final row = tester.getRect(
+        find.widgetWithText(SwitchListTile, 'Share what is said'),
+      );
+      final text = tester.getRect(
+        find.textContaining('While the talker is open'),
+      );
+      expect(text.top, greaterThanOrEqualTo(row.bottom));
+      expect(text.width, greaterThan(280));
     });
   });
 

@@ -241,6 +241,8 @@ void main() {
       ServerpodClientForbidden(): SyncState.accessLost,
       ServerpodClientInternalServerError(): SyncState.backoff,
       const WebSocketClosedException(): SyncState.offline,
+      // What the client sees when the server refuses a sync part-way.
+      const ConnectionClosedException(): SyncState.backoff,
       TimeoutException('slow'): SyncState.offline,
       const OfflineSyncStreamClosedException(phase: 'connect'):
           SyncState.offline,
@@ -280,6 +282,21 @@ void main() {
     await settle(tester);
     expect(sync.state, SyncState.offline);
     expect(link.cancels, 1);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(sync.state, SyncState.live);
+    expect(link.streamCalls, 2);
+  });
+
+  supervised('a stream the server ends with an error is reconnecting, not '
+      'offline', (tester) async {
+    sync.start();
+    await settle(tester);
+    expect(sync.state, SyncState.live);
+
+    link.stream!.completeError(const ConnectionClosedException());
+    await settle(tester);
+    expect(sync.state, SyncState.backoff);
 
     await tester.pump(const Duration(seconds: 1));
     expect(sync.state, SyncState.live);

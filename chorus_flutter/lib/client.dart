@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:chorus_client/chorus_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
@@ -36,11 +34,6 @@ Future<void> initializeClient() async {
   } catch (_) {
     // Unreadable storage: start signed out rather than not at all.
   }
-  // Then check it with the server in the background. An invalid sign-in
-  // signs the device out; a network failure changes nothing.
-  unawaited(
-    client.auth
-        .validateAuthentication(timeout: const Duration(seconds: 5))
-        .then<void>((_) {}, onError: (Object _) {}),
-  );
+  // The check with the server comes later, from the app, and only in the
+  // browser tab that runs it.
 }

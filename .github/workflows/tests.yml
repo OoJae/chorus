@@ -13,13 +13,19 @@ jobs:
       VERSION: '4.0.4'
       SERVERPOD_PASSWORD_database: '0eKmyKypkp3FxNDUUXo2u24DPYtmrhgY'
       SERVERPOD_PASSWORD_redis: 'KhITCMIuFtkuLJ_imJI292jqTwuaXAwC'
+      # Throwaway values for test runs only. The demo seed test signs accounts
+      # in for real, so the auth services need their secrets here, as
+      # config/passwords.yaml (not in git) gives them locally.
+      SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey: 'S_rUWDNXs0Voc_YTLbBHd2BFqNkgSn8U'
+      SERVERPOD_PASSWORD_jwtRefreshTokenHashPepper: 'IqWIRtiRA1QY8h-ppSzWqHMgh5KT3uLh'
+      SERVERPOD_PASSWORD_emailSecretHashPepper: 'W3-yjC5zLi__CLITnGuiAfzjBRU1jkc0'
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.4'
+          flutter-version: '3.47.7'
 
       # The test config sets `database.dataPath`, so the tests run against an
       # embedded PostgreSQL that Serverpod starts itself. No Docker needed.

@@ -13,6 +13,7 @@ import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _empty = (4, 5);
@@ -87,6 +88,17 @@ Future<void> _pumpTalker(WidgetTester tester, Widget talker) async {
   await tester.pumpWidget(MaterialApp(theme: chorusTheme(), home: talker));
 }
 
+/// Presses Tab until the keyboard is on "Hold to leave".
+Future<void> _tabToLeave(WidgetTester tester) async {
+  bool there() =>
+      Focus.of(tester.element(find.text(leaveLabel))).hasPrimaryFocus;
+  for (var presses = 0; !there(); presses++) {
+    expect(presses, lessThan(20), reason: 'Tab never gets there');
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+  }
+}
+
 void main() {
   group('Suggest a word from the photo', () {
     late FakeMediaBoardStore store;
@@ -125,7 +137,9 @@ void main() {
     });
 
     testWidgets('is not offered at all without a suggester', (tester) async {
-      await tester.pumpWidget(_sheetHost(store, media: media, capture: capture));
+      await tester.pumpWidget(
+        _sheetHost(store, media: media, capture: capture),
+      );
       await _openAndPick(tester);
       expect(find.byKey(const ValueKey('word-photo-preview')), findsOneWidget);
       expect(find.text(suggestFromPhotoLabel), findsNothing);
@@ -195,9 +209,9 @@ void main() {
       expect(tester.widget<TextField>(fields.at(0)).controller!.text, 'puppy');
       expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
       expect(
-        tester.widgetList<ChoiceChip>(find.byType(ChoiceChip)).any(
-          (chip) => chip.selected,
-        ),
+        tester
+            .widgetList<ChoiceChip>(find.byType(ChoiceChip))
+            .any((chip) => chip.selected),
         isFalse,
       );
     });
@@ -340,6 +354,157 @@ void main() {
       expect(left, 1);
       await gesture.up();
       await tester.pump(const Duration(seconds: 3));
+    });
+
+    for (final key in [LogicalKeyboardKey.enter, LogicalKeyboardKey.space]) {
+      testWidgets('the keyboard leaves too: Tab reaches "Hold to leave", and '
+          '${key.keyLabel.trim().isEmpty ? 'Space' : key.keyLabel} held for '
+          '2 seconds leaves when it is let go', (tester) async {
+        var left = 0;
+        await _pumpTalker(
+          tester,
+          TalkerScreen(
+            store: FakeBoardStore.seeded(),
+            speech: FakeSpeech(),
+            sync: FakeSyncStatus(),
+            onExit: () => left++,
+          ),
+        );
+        await _tabToLeave(tester);
+        final bar = find.byType(LinearProgressIndicator);
+
+        // Let go early: nothing happens and the bar empties.
+        await tester.sendKeyDownEvent(key);
+        // The bar starts filling from the next frame.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 1900));
+        expect(bar, findsOneWidget);
+        expect(tester.widget<LinearProgressIndicator>(bar).value, 0.95);
+        await tester.sendKeyUpEvent(key);
+        await tester.pump(const Duration(seconds: 3));
+        expect(left, 0);
+        expect(bar, findsNothing);
+
+        // Held for the 2 seconds: the bar is full, and letting go leaves.
+        await tester.sendKeyDownEvent(key);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 1900));
+        await tester.sendKeyRepeatEvent(key);
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(left, 0, reason: 'the key is still down');
+        expect(tester.widget<LinearProgressIndicator>(bar).value, 1);
+        await tester.sendKeyUpEvent(key);
+        expect(left, 1);
+        await tester.pump();
+        expect(bar, findsNothing);
+      });
+    }
+
+    testWidgets('a key still held after leaving does not open the board '
+        'again', (tester) async {
+      tester.view.physicalSize = const Size(1200, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      var opened = 0;
+      // A home with one button that opens the board, as the app's has.
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: chorusTheme(),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () {
+                    opened++;
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        fullscreenDialog: true,
+                        builder: (talkerContext) => TalkerScreen(
+                          store: FakeBoardStore.seeded(),
+                          speech: FakeSpeech(),
+                          sync: FakeSyncStatus(),
+                          onExit: () => Navigator.of(talkerContext).pop(),
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Talker'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.byType(TalkerScreen), findsOneWidget);
+
+      await _tabToLeave(tester);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
+      await tester.pump(const Duration(milliseconds: 2100));
+      // The key repeats for as long as it is down; "Talker" has the
+      // keyboard again as soon as the board is gone.
+      for (var i = 0; i < 5; i++) {
+        await tester.sendKeyRepeatEvent(LogicalKeyboardKey.enter);
+        await tester.pump(const Duration(milliseconds: 40));
+      }
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.byType(TalkerScreen), findsNothing);
+      expect(opened, 1);
+    });
+
+    testWidgets('"Hold to leave" is marked while the keyboard is on it, and '
+        'a screen reader is told how to hold it', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pumpTalker(
+        tester,
+        TalkerScreen(
+          store: FakeBoardStore.seeded(),
+          speech: FakeSpeech(),
+          sync: FakeSyncStatus(),
+          onExit: () {},
+        ),
+      );
+      // What is painted over the pill itself.
+      CustomPainter? mark() => tester
+          .widget<CustomPaint>(
+            find
+                .ancestor(
+                  of: find.text(leaveLabel),
+                  matching: find.byType(CustomPaint),
+                )
+                .first,
+          )
+          .foregroundPainter;
+      final control = find.bySemanticsLabel(
+        'Hold for 2 seconds to leave the board',
+      );
+      expect(mark(), isNull);
+      expect(
+        tester.getSemantics(control),
+        isSemantics(
+          hint: holdWithKeyboardHint,
+          isButton: true,
+          isFocusable: true,
+          isFocused: false,
+          hasLongPressAction: true,
+        ),
+      );
+      final before = tester.getRect(find.text(leaveLabel));
+
+      await _tabToLeave(tester);
+      expect(mark(), isNotNull);
+      expect(tester.getSemantics(control), isSemantics(isFocused: true));
+      // The mark is drawn over the control: nothing moves.
+      expect(tester.getRect(find.text(leaveLabel)), before);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(mark(), isNull);
+      semantics.dispose();
     });
   });
 

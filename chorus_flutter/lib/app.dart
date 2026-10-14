@@ -27,6 +27,8 @@ import 'src/speech/clip_tile_speaker.dart';
 import 'src/speech/tts_speech_service.dart';
 import 'src/suggest/server_word_suggester.dart';
 import 'src/sync/chorus_session.dart';
+import 'src/tabs/one_tab_gate.dart';
+import 'src/tabs/tab_workspaces.dart';
 
 class ChorusApp extends StatefulWidget {
   const ChorusApp({super.key});
@@ -40,6 +42,36 @@ class _ChorusAppState extends State<ChorusApp> {
   final SpeechService _speech = TtsSpeechService();
   late final CircleGateway _gateway = ServerCircleGateway(client);
 
+  // Kept here as well as in the shell, to stop this tab's sync the moment
+  // another tab takes over.
+  late final TabWorkspaces _workspaces = TabWorkspaces(
+    () => SessionWorkspace.open(client, speech: _speech),
+  );
+
+  /// The tab that had the seat refreshed the sign-in this browser keeps as
+  /// it went, and the server takes only the newest: an older one still in
+  /// this tab's memory would sign the adult out.
+  Future<void> _rereadSignIn() => client.auth.restore();
+
+  /// Whether a sign-in read from this device at start-up is still to be
+  /// checked with the server. One made since then is fresh from it.
+  bool _signInToCheck = client.auth.isAuthenticated;
+
+  /// Checks the sign-in read at start-up with the server, once, from the tab
+  /// that holds the seat. The check replaces the sign-in the browser keeps:
+  /// a tab without the seat that checked would leave the one with it on an
+  /// older copy, and its next refresh would sign out every tab. An invalid
+  /// sign-in signs the device out; a network failure changes nothing.
+  void _checkSignIn() {
+    if (!_signInToCheck) return;
+    _signInToCheck = false;
+    unawaited(
+      client.auth
+          .validateAuthentication(timeout: const Duration(seconds: 5))
+          .then<void>((_) {}, onError: (Object _) {}),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -50,13 +82,20 @@ class _ChorusAppState extends State<ChorusApp> {
         valueListenable: client.auth.authInfoListenable,
         builder: (context, authInfo, _) {
           if (authInfo == null) return const SignInScreen();
-          // Keyed by user: signing in as someone else starts from scratch,
-          // with that user's own database file.
-          return SignedInShell(
-            key: ValueKey(authInfo.authUserId),
-            gateway: _gateway,
-            openWorkspace: () => SessionWorkspace.open(client, speech: _speech),
-            speech: _speech,
+          // In a browser only one tab runs the signed-in app: every tab
+          // shares the one database on this device.
+          return OneTabGate(
+            onTaken: _workspaces.closeAll,
+            afterTakeOver: _rereadSignIn,
+            onHeld: _checkSignIn,
+            // Keyed by user: signing in as someone else starts from scratch,
+            // with that user's own database file.
+            child: SignedInShell(
+              key: ValueKey(authInfo.authUserId),
+              gateway: _gateway,
+              openWorkspace: _workspaces.open,
+              speech: _speech,
+            ),
           );
         },
       ),

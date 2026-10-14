@@ -36,10 +36,16 @@ Uint8List shrinkToJpeg(
   var picture = img.bakeOrientation(decoded);
   if (picture.width > maxSide || picture.height > maxSide) {
     picture = picture.width >= picture.height
-        ? img.copyResize(picture,
-            width: maxSide, interpolation: img.Interpolation.average)
-        : img.copyResize(picture,
-            height: maxSide, interpolation: img.Interpolation.average);
+        ? img.copyResize(
+            picture,
+            width: maxSide,
+            interpolation: img.Interpolation.average,
+          )
+        : img.copyResize(
+            picture,
+            height: maxSide,
+            interpolation: img.Interpolation.average,
+          );
   }
   // JPEG has no transparency: put see-through pixels on white, not black.
   if (picture.numChannels == 4 || picture.hasPalette) {
@@ -47,10 +53,20 @@ Uint8List shrinkToJpeg(
     img.fill(flat, color: img.ColorRgb8(255, 255, 255));
     picture = img.compositeImage(flat, picture.convert(numChannels: 4));
   }
+  // Turning and scaling carry the original's EXIF block along, and the
+  // encoder writes it back out, GPS position included. Drop it, and any
+  // text chunks a PNG brought, now that the orientation is in the pixels.
+  picture
+    ..exif = img.ExifData()
+    ..textData = null;
   // 512 pixels at quality 82 is far below the limit for any real photo;
   // the loop is the guarantee, not the usual path.
   Uint8List encoded = img.encodeJpg(picture, quality: 82);
-  for (var quality = 70; encoded.length > maxBytes && quality >= 30; quality -= 20) {
+  for (
+    var quality = 70;
+    encoded.length > maxBytes && quality >= 30;
+    quality -= 20
+  ) {
     encoded = img.encodeJpg(picture, quality: quality);
   }
   if (encoded.length > maxBytes) {

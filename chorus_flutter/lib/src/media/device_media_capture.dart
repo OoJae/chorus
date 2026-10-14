@@ -17,10 +17,17 @@ import 'scratch_none.dart' if (dart.library.io) 'scratch_io.dart';
 /// bytes; a recording lives in a scratch file (or, in a browser, in the
 /// page's memory) only until it is handed back, and is then deleted.
 class DeviceMediaCapture implements MediaCapture {
-  DeviceMediaCapture({ClipPlayer? player}) : _player = player ?? DeviceClipPlayer();
+  DeviceMediaCapture({ClipPlayer? player, ImagePicker? picker, bool? web})
+    : _player = player ?? DeviceClipPlayer(),
+      _picker = picker ?? ImagePicker(),
+      _web = web ?? kIsWeb;
 
   final ClipPlayer _player;
-  final ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker;
+
+  /// True in a browser. The app leaves it to the build; tests pass it to
+  /// walk the browser's path.
+  final bool _web;
 
   AudioRecorder? _recorder;
   Timer? _limit;
@@ -42,6 +49,25 @@ class DeviceMediaCapture implements MediaCapture {
 
   @override
   Future<Uint8List?> pickImage({required bool fromCamera}) async {
+    if (fromCamera &&
+        !_web &&
+        defaultTargetPlatform == TargetPlatform.android) {
+      // Android can close the app while its camera is in front. The photo
+      // taken then is kept by the picker instead of reaching the sheet, so
+      // the next "Take a photo" hands it back rather than open the camera
+      // for the same shot again. A browser keeps no such photo, and asking
+      // for one there throws.
+      try {
+        final lost = await _picker.retrieveLostData();
+        final kept = lost.file;
+        if (kept != null) {
+          final bytes = await kept.readAsBytes();
+          if (bytes.isNotEmpty) return bytes;
+        }
+      } catch (_) {
+        // Nothing kept that can be read: open the camera as usual.
+      }
+    }
     try {
       final file = await _picker.pickImage(
         source: fromCamera ? ImageSource.camera : ImageSource.gallery,
@@ -70,7 +96,8 @@ class DeviceMediaCapture implements MediaCapture {
       _stopping = null;
       final (encoder, extension) = await _encoderFor(recorder);
       final path = await scratchPath(
-          'chorus_clip_${DateTime.now().microsecondsSinceEpoch}.$extension');
+        'chorus_clip_${DateTime.now().microsecondsSinceEpoch}.$extension',
+      );
       await recorder.start(
         RecordConfig(
           encoder: encoder,
@@ -97,7 +124,7 @@ class DeviceMediaCapture implements MediaCapture {
   /// can record it. Most browsers cannot and record Opus instead; the last
   /// resort is uncompressed audio at a low sample rate.
   Future<(AudioEncoder, String)> _encoderFor(AudioRecorder recorder) async {
-    if (!kIsWeb) return (AudioEncoder.aacLc, 'm4a');
+    if (!_web) return (AudioEncoder.aacLc, 'm4a');
     if (await recorder.isEncoderSupported(AudioEncoder.aacLc)) {
       return (AudioEncoder.aacLc, 'm4a');
     }

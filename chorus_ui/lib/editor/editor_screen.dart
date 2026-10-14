@@ -1,6 +1,8 @@
 /// Where adults change the board.
 library;
 
+import 'dart:math' as math;
+
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
@@ -77,6 +79,15 @@ class EditorScreen extends StatefulWidget {
 }
 
 class _EditorScreenState extends State<EditorScreen> {
+  /// From this width the board and the tray sit side by side.
+  static const double _sideBySideFrom = 900;
+
+  /// Width of the column beside the board.
+  static const double _sideWidth = 360;
+
+  /// Space round the page.
+  static const double _pad = 16;
+
   BoardStore get _store => widget.store;
 
   /// While on, a tap on a word points at it instead of opening it.
@@ -164,6 +175,34 @@ class _EditorScreenState extends State<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // The width the body is laid out in: SafeArea takes the sides off.
+    final bodyWidth =
+        MediaQuery.sizeOf(context).width -
+        MediaQuery.paddingOf(context).horizontal;
+    final sideBySide = bodyWidth >= _sideBySideFrom;
+    return Theme(
+      // Side by side, the board reaches the bottom of the window, so a
+      // message ("... is on the board.") floats over the column beside it
+      // instead of covering the board's last row.
+      data: sideBySide
+          ? theme.copyWith(
+              snackBarTheme: theme.snackBarTheme.copyWith(
+                behavior: SnackBarBehavior.floating,
+                insetPadding: EdgeInsets.fromLTRB(
+                  bodyWidth - _pad - _sideWidth,
+                  0,
+                  _pad,
+                  _pad,
+                ),
+              ),
+            )
+          : theme,
+      child: _scaffold(sideBySide: sideBySide),
+    );
+  }
+
+  Widget _scaffold({required bool sideBySide}) {
     final onPrint = widget.onPrint;
     return Scaffold(
       appBar: AppBar(
@@ -242,74 +281,92 @@ class _EditorScreenState extends State<EditorScreen> {
               selectedId: board.id,
               onSelect: (id) => setState(() => _selectedBoardId = id),
             );
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 900) {
-                  return ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      header,
-                      if (modelBar != null) ...[
-                        const SizedBox(height: 12),
-                        modelBar,
-                      ],
-                      const SizedBox(height: 12),
-                      tabs,
-                      const SizedBox(height: 8),
-                      grid,
-                      const SizedBox(height: 24),
-                      tray,
-                      const SizedBox(height: 24),
-                      replaced,
-                    ],
-                  );
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            header,
-                            if (modelBar != null) ...[
-                              const SizedBox(height: 12),
-                              modelBar,
-                            ],
-                            const SizedBox(height: 12),
-                            tabs,
-                            const SizedBox(height: 8),
-                            // Align loosens the constraints so the grid keeps
-                            // its shape when the window is short.
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.topCenter,
-                                child: grid,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      SizedBox(
-                        width: 360,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              tray,
-                              const SizedBox(height: 24),
-                              replaced,
-                            ],
+            if (!sideBySide) {
+              return ListView(
+                padding: const EdgeInsets.all(_pad),
+                children: [
+                  header,
+                  if (modelBar != null) ...[
+                    const SizedBox(height: 12),
+                    modelBar,
+                  ],
+                  const SizedBox(height: 12),
+                  tabs,
+                  const SizedBox(height: 8),
+                  grid,
+                  const SizedBox(height: 24),
+                  tray,
+                  const SizedBox(height: 24),
+                  replaced,
+                ],
+              );
+            }
+            // Side by side, the board has the whole height under its tabs:
+            // the hint, the chip and model mode go in the column beside it,
+            // above the tray.
+            final hasTabs = BoardTabs.showFor(_store.boards);
+            return Padding(
+              padding: const EdgeInsets.all(_pad),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, room) {
+                        final tabsHeight = hasTabs ? BoardTabs.height + 8 : 0;
+                        // As wide as the board can be at its full height,
+                        // so the tabs above it are its width too.
+                        final width = math.max(
+                          0.0,
+                          math.min(
+                            room.maxWidth,
+                            (room.maxHeight - tabsHeight) *
+                                board.cols /
+                                board.rows,
                           ),
-                        ),
-                      ),
-                    ],
+                        );
+                        return Align(
+                          alignment: Alignment.topCenter,
+                          child: SizedBox(
+                            width: width,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (hasTabs) ...[
+                                  tabs,
+                                  const SizedBox(height: 8),
+                                ],
+                                Flexible(child: grid),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
+                  const SizedBox(width: 24),
+                  SizedBox(
+                    width: _sideWidth,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          header,
+                          if (modelBar != null) ...[
+                            const SizedBox(height: 12),
+                            modelBar,
+                          ],
+                          const SizedBox(height: 24),
+                          tray,
+                          const SizedBox(height: 24),
+                          replaced,
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),

@@ -34,6 +34,9 @@ class BoardTabs extends StatelessWidget {
   /// Colour of the ring, the same as the glow round a pointed-at tile.
   static const Color attentionColor = Color(0xFF1F4E9C);
 
+  /// Height of the horizontal row of tabs.
+  static const double height = 48;
+
   /// Every board of the circle; archived ones are left out here.
   final List<BoardFacts> boards;
   final String? selectedId;
@@ -47,10 +50,14 @@ class BoardTabs extends StatelessWidget {
   /// where a row of tabs would take height from the board.
   final Axis axis;
 
+  /// Whether tabs are drawn for [boards]: only when two or more are in use.
+  static bool showFor(Iterable<BoardFacts> boards) =>
+      liveBoards(boards).length > 1;
+
   @override
   Widget build(BuildContext context) {
     final live = liveBoards(boards);
-    if (live.length < 2) return const SizedBox.shrink();
+    if (!showFor(live)) return const SizedBox.shrink();
     final vertical = axis == Axis.vertical;
     final tabs = [
       for (final board in live)
@@ -75,7 +82,10 @@ class BoardTabs extends StatelessWidget {
         children: tabs,
       );
     }
-    return SizedBox(height: 48, child: Row(children: tabs));
+    return SizedBox(
+      height: height,
+      child: Row(children: tabs),
+    );
   }
 }
 

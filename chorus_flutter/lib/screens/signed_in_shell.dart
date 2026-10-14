@@ -7,6 +7,7 @@ import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
 import 'package:flutter/material.dart';
 
+import '../src/sync/replica_board_store.dart';
 import 'first_run_screen.dart';
 import 'home_screen.dart';
 import 'services.dart';
@@ -60,12 +61,34 @@ class _SignedInShellState extends State<SignedInShell> {
   String? _loading = 'Opening Chorus…';
   String? _error;
 
+  /// Whether another screen is open over this one.
+  bool _covered = false;
+
   @override
   void initState() {
     super.initState();
     // Never throws; makes the first spoken word quick.
     unawaited(widget.speech.warmUp());
     _start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The editor and the talker open over home and are handed the circle's
+    // one store, which only re-reads when it is told the replica changed.
+    // Ask again as anything opens, so a change it was never told about
+    // cannot leave a screen on old rows.
+    final covered = ModalRoute.isCurrentOf(context) == false;
+    if (covered && !_covered) _reread();
+    _covered = covered;
+  }
+
+  /// Asks the selected circle's store to read the replica again.
+  void _reread() {
+    final store = _stores[_selectedId];
+    if (store is! ReplicaBoardStore) return;
+    unawaited(store.refresh().then<void>((_) {}, onError: (Object _) {}));
   }
 
   @override
@@ -85,12 +108,18 @@ class _SignedInShellState extends State<SignedInShell> {
       _error = null;
     });
     try {
-      _workspace ??= await widget.openWorkspace();
+      final workspace = _workspace ?? await widget.openWorkspace();
+      if (!mounted) {
+        // Signed out while it opened: nobody else will close it, and its
+        // sync would start on its own.
+        unawaited(workspace.close().then<void>((_) {}, onError: (Object _) {}));
+        return;
+      }
+      _workspace = workspace;
     } catch (_) {
       _fail('Chorus could not open the boards saved on this device.');
       return;
     }
-    if (!mounted) return;
 
     final remembered = await widget.gateway.rememberedCircles();
     if (!mounted) return;
@@ -185,8 +214,9 @@ class _SignedInShellState extends State<SignedInShell> {
     if (now == CircleReadiness.failed && !retry) return;
     setState(() => _readiness[id] = CircleReadiness.preparing);
     var result = CircleReadiness.ready;
+    Future<void>? ready;
     try {
-      var ready = _readying[id];
+      ready = _readying[id];
       if (ready == null) {
         late final Future<void> call;
         call = workspace
@@ -200,6 +230,19 @@ class _SignedInShellState extends State<SignedInShell> {
         ready = _readying[id] = call;
       }
       await ready.timeout(_readyTimeout);
+    } on TimeoutException {
+      result = CircleReadiness.failed;
+      // Nobody is waiting any more, but the work goes on. When it finishes,
+      // the note must clear by itself: the chip will say "Up to date" and a
+      // note asking for Retry beside it would contradict it.
+      unawaited(
+        ready?.then<void>((_) {
+          if (!mounted || !identical(_workspace, workspace)) return;
+          // A Retry since then has a wait of its own; leave the state to it.
+          if (_readiness[id] != CircleReadiness.failed) return;
+          setState(() => _readiness[id] = CircleReadiness.ready);
+        }, onError: (Object _) {}),
+      );
     } catch (_) {
       result = CircleReadiness.failed;
     }

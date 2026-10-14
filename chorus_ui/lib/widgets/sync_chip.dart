@@ -7,11 +7,11 @@ import '../contracts.dart';
 
 /// Plain-words description of [sync]'s state.
 String syncLabel(SyncStatus sync) => sync.workingOffline
-    ? 'Working offline, saved on this phone'
+    ? 'Working offline, saved on this device'
     : switch (sync.state) {
-        SyncState.signedOut => 'Signed out, saved on this phone',
-        SyncState.offline => 'Offline, saved on this phone',
-        SyncState.clockSkew => "Check this phone's clock",
+        SyncState.signedOut => 'Signed out, saved on this device',
+        SyncState.offline => 'Offline, saved on this device',
+        SyncState.clockSkew => "Check this device's clock",
         SyncState.connecting => 'Connecting',
         SyncState.live => sync.hasUnsent ? 'Sending changes' : 'Up to date',
         SyncState.backoff => 'Reconnecting',
@@ -19,8 +19,27 @@ String syncLabel(SyncStatus sync) => sync.workingOffline
         SyncState.accessLost => 'No longer shared with you',
       };
 
-/// Says in plain words whether this phone is in step with the others, and
-/// offers "Sync now" whenever it is not live.
+/// Whether "Sync now" is offered for [sync]'s state.
+///
+/// Only where the device is waiting before it tries again and the adult can
+/// do something about the cause first (find a network, set the clock): there
+/// a press tries at once, and the state lasts long enough to press it.
+bool offersSyncNow(SyncStatus sync) =>
+    !sync.workingOffline &&
+    switch (sync.state) {
+      SyncState.offline || SyncState.backoff || SyncState.clockSkew => true,
+      // An attempt is already under way, and over in a moment either way.
+      SyncState.connecting => false,
+      SyncState.live => false,
+      // Signing in again, a newer app or a new invitation ends these; trying
+      // again does not.
+      SyncState.signedOut ||
+      SyncState.needsUpdate ||
+      SyncState.accessLost => false,
+    };
+
+/// Says in plain words whether this device is in step with the others, and
+/// offers "Sync now" where trying again can help: see [offersSyncNow].
 ///
 /// With [compact] it is the state's icon alone in a 48dp target, for a row
 /// with no room for the words: the words are its tooltip and what a screen
@@ -39,8 +58,7 @@ class SyncChip extends StatelessWidget {
       listenable: sync,
       builder: (context, _) {
         final state = sync.state;
-        // Nothing to retry while live, or while paused on purpose.
-        final live = state == SyncState.live || sync.workingOffline;
+        final canRetry = offersSyncNow(sync);
         final label = syncLabel(sync);
         if (compact) {
           void retry() {
@@ -51,14 +69,14 @@ class SyncChip extends StatelessWidget {
           return Semantics(
             container: true,
             liveRegion: true,
-            button: !live,
-            label: live ? label : '$label. Tap to sync now',
+            button: canRetry,
+            label: canRetry ? '$label. Tap to sync now' : label,
             excludeSemantics: true,
-            onTap: live ? null : retry,
+            onTap: canRetry ? retry : null,
             child: Tooltip(
               message: label,
               child: InkResponse(
-                onTap: live ? null : retry,
+                onTap: canRetry ? retry : null,
                 radius: 24,
                 child: SizedBox(
                   width: 44,
@@ -89,7 +107,7 @@ class SyncChip extends StatelessWidget {
           liveRegion: true,
           child: Container(
             constraints: const BoxConstraints(minHeight: 36),
-            padding: EdgeInsets.only(left: 10, right: live ? 12 : 2),
+            padding: EdgeInsets.only(left: 10, right: canRetry ? 2 : 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -116,7 +134,7 @@ class SyncChip extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (!live)
+                if (canRetry)
                   TextButton(
                     onPressed: () {
                       // Failures show up as the next state; nothing to await.

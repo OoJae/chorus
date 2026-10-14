@@ -143,6 +143,7 @@ class ChorusSession {
   /// stream can deliver a circle without any new attempt being made.
   Future<bool> _syncedOrTick({required bool first}) async {
     const tick = Duration(seconds: 2);
+    var ticked = false;
     final synced = await Future.any<bool>([
       if (first)
         sync.syncAttempt()
@@ -151,11 +152,16 @@ class ChorusSession {
         _nextSync ??= sync
             .syncAttempt(nudge: false)
             .whenComplete(() => _nextSync = null),
-        Future<bool>.delayed(tick, () => false),
+        Future<bool>.delayed(tick, () {
+          ticked = true;
+          return false;
+        }),
       ],
     ]);
-    // A supervisor that is not running answers at once; do not spin on it.
-    if (first && !synced) await Future<void>.delayed(tick ~/ 2);
+    // A supervisor that is not running answers "no" at once, every time,
+    // and it is stopped for as long as an adult works offline. Any "no"
+    // that did not take a tick costs a pause, so the caller never spins.
+    if (!synced && !ticked) await Future<void>.delayed(tick ~/ 2);
     _checkOpen();
     return synced;
   }
