@@ -11,6 +11,9 @@ fields:
   spokenAt: DateTime
   ### When the server got it.
   receivedAt: DateTime
+  ### True when an adult tapped it in "Show words on the board" (modelled),
+  ### false when the child said it.
+  modelled: bool, default=false
 indexes:
   ### Serves the week's range scan, and makes a resent batch harmless: one
   ### tile cannot be spoken twice at the same instant.

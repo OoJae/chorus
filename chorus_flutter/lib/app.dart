@@ -27,6 +27,7 @@ import 'src/media/clip_player.dart';
 import 'src/media/device_media_capture.dart';
 import 'src/media/media_files.dart';
 import 'src/media/media_gateway.dart';
+import 'src/modelling/modelling_wiring.dart';
 import 'src/speech/clip_tile_speaker.dart';
 import 'src/speech/tts_speech_service.dart';
 import 'src/suggest/server_word_suggester.dart';
@@ -319,6 +320,13 @@ class SessionWorkspace implements Workspace {
         openStore: () => _session.boardStore(circle),
       ),
     );
+    final modelling = openModelling(
+      _client,
+      circle: circle,
+      userId: me,
+      log: features?.wordLog,
+      sync: sync,
+    );
     return CircleServices(
       userId: me,
       media: parts.media,
@@ -347,6 +355,8 @@ class SessionWorkspace implements Workspace {
       sharing: features?.sharing,
       boards: features?.boards,
       trust: parts.trust?.services(canEdit: canEdit),
+      modelling: modelling.source,
+      speech: modelling.speech,
     );
   }
 

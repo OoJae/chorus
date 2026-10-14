@@ -1,0 +1,6 @@
+### One week's progress in counts, for the printable report.
+class: ProgressReport
+fields:
+  childName: String
+  week: WeekReport
+  focus: List<FocusReportLine>

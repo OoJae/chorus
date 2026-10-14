@@ -23,7 +23,8 @@ abstract class WordUseRecord
     required this.boardId,
     required this.spokenAt,
     required this.receivedAt,
-  });
+    bool? modelled,
+  }) : modelled = modelled ?? false;
 
   factory WordUseRecord({
     int? id,
@@ -32,6 +33,7 @@ abstract class WordUseRecord
     required _is.UuidValue boardId,
     required DateTime spokenAt,
     required DateTime receivedAt,
+    bool? modelled,
   }) = _WordUseRecordImpl;
 
   factory WordUseRecord.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -50,6 +52,9 @@ abstract class WordUseRecord
       receivedAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['receivedAt'],
       ),
+      modelled: jsonSerialization['modelled'] == null
+          ? null
+          : _is.BoolJsonExtension.fromJson(jsonSerialization['modelled']),
     );
   }
 
@@ -72,6 +77,10 @@ abstract class WordUseRecord
   /// When the server got it.
   DateTime receivedAt;
 
+  /// True when an adult tapped it in "Show words on the board" (modelled),
+  /// false when the child said it.
+  bool modelled;
+
   @override
   _is.Table<int?> get table => t;
 
@@ -85,6 +94,7 @@ abstract class WordUseRecord
     _is.UuidValue? boardId,
     DateTime? spokenAt,
     DateTime? receivedAt,
+    bool? modelled,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -96,6 +106,7 @@ abstract class WordUseRecord
       'boardId': boardId.toJson(),
       'spokenAt': spokenAt.toJson(),
       'receivedAt': receivedAt.toJson(),
+      'modelled': modelled,
     };
   }
 
@@ -142,6 +153,7 @@ class _WordUseRecordImpl extends WordUseRecord {
     required _is.UuidValue boardId,
     required DateTime spokenAt,
     required DateTime receivedAt,
+    bool? modelled,
   }) : super._(
          id: id,
          circleSpace: circleSpace,
@@ -149,6 +161,7 @@ class _WordUseRecordImpl extends WordUseRecord {
          boardId: boardId,
          spokenAt: spokenAt,
          receivedAt: receivedAt,
+         modelled: modelled,
        );
 
   /// Returns a shallow copy of this [WordUseRecord]
@@ -162,6 +175,7 @@ class _WordUseRecordImpl extends WordUseRecord {
     _is.UuidValue? boardId,
     DateTime? spokenAt,
     DateTime? receivedAt,
+    bool? modelled,
   }) {
     return WordUseRecord(
       id: id is int? ? id : this.id,
@@ -170,6 +184,7 @@ class _WordUseRecordImpl extends WordUseRecord {
       boardId: boardId ?? this.boardId,
       spokenAt: spokenAt ?? this.spokenAt,
       receivedAt: receivedAt ?? this.receivedAt,
+      modelled: modelled ?? this.modelled,
     );
   }
 }
@@ -207,6 +222,11 @@ class WordUseRecordUpdateTable extends _is.UpdateTable<WordUseRecordTable> {
         table.receivedAt,
         value,
       );
+
+  _is.ColumnValue<bool, bool> modelled(bool value) => _is.ColumnValue(
+    table.modelled,
+    value,
+  );
 }
 
 class WordUseRecordTable extends _is.Table<int?> {
@@ -232,6 +252,11 @@ class WordUseRecordTable extends _is.Table<int?> {
       'receivedAt',
       this,
     );
+    modelled = _is.ColumnBool(
+      'modelled',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final WordUseRecordUpdateTable updateTable;
@@ -248,6 +273,10 @@ class WordUseRecordTable extends _is.Table<int?> {
   /// When the server got it.
   late final _is.ColumnDateTime receivedAt;
 
+  /// True when an adult tapped it in "Show words on the board" (modelled),
+  /// false when the child said it.
+  late final _is.ColumnBool modelled;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -256,6 +285,7 @@ class WordUseRecordTable extends _is.Table<int?> {
     boardId,
     spokenAt,
     receivedAt,
+    modelled,
   ];
 }
 

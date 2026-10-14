@@ -17,6 +17,7 @@ import 'package:chorus_ui/credits/credits_screen.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/features/features.dart';
 import 'package:chorus_ui/home/home.dart';
+import 'package:chorus_ui/modelling/focus_nudge_note.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
@@ -188,6 +189,7 @@ class HomeScreen extends StatelessWidget {
           summary: summary,
           store: store,
           sync: sync,
+          modelling: services?.modelling,
         ),
       );
     } else if (summary != null) {
@@ -198,6 +200,7 @@ class HomeScreen extends StatelessWidget {
           childName: selected.childName,
           tiles: store.tiles,
           role: store.role,
+          modelling: services?.modelling,
         ),
       );
     }
@@ -233,6 +236,8 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
       clash: services?.trust?.clash,
+      modelling: services?.modelling,
+      speech: services?.speech,
     );
     _open(
       context,
@@ -291,7 +296,7 @@ class HomeScreen extends StatelessWidget {
     final canEdit = selected.myRole != CircleRole.partner;
     final childName = selected.childName;
     return ListenableBuilder(
-      listenable: store,
+      listenable: Listenable.merge([store, ?services?.modelling]),
       builder: (context, _) {
         // A board already on this device can be used straight away,
         // whatever the network is doing.
@@ -339,6 +344,7 @@ class HomeScreen extends StatelessWidget {
               userId: services?.userId,
               open: (screen) => _open(context, screen),
             ),
+            ?focusNudgeNoteFor(services?.modelling),
             if (noWords)
               HomeNote(
                 icon: const Icon(Icons.grid_view_rounded),

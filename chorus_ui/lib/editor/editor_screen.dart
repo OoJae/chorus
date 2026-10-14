@@ -15,9 +15,14 @@ import '../contracts_boards.dart';
 import '../contracts_clash.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
+import '../contracts_modelling.dart';
 import '../contracts_suggest.dart';
 import '../features/clash/clash_guide.dart';
 import '../features/trust/presence_line.dart';
+import '../features/flags/w6.dart';
+import '../modelling/focus_words_screen.dart' show focusIdsOf;
+import '../modelling/modelling_tools.dart';
+import '../modelling/word_finder.dart';
 import '../widgets/board_tabs.dart';
 import '../widgets/sync_chip.dart';
 import 'add_word_sheet.dart';
@@ -78,6 +83,8 @@ class EditorScreen extends StatefulWidget {
     this.pickObfFile,
     this.onExport,
     this.clash,
+    this.modelling,
+    this.speech,
   });
 
   final BoardStore store;
@@ -114,6 +121,13 @@ class EditorScreen extends StatefulWidget {
   /// The practice partner behind "Try a clash" in the board menu. Null
   /// hides it.
   final ClashPartner? clash;
+  /// Modelled taps, focus words and the word finder's extras; null leaves
+  /// them out.
+  final ModellingSource? modelling;
+
+  /// The browser's speech recognition for "Listen" in model mode; null, or
+  /// one that is not available, hides it.
+  final SpeechListener? speech;
 
   /// The column beside the board on a wide screen, for tests.
   @visibleForTesting
@@ -481,7 +495,7 @@ class _EditorScreenState extends State<EditorScreen>
       ),
       body: SafeArea(
         child: ListenableBuilder(
-          listenable: Listenable.merge([_store, _flights]),
+          listenable: Listenable.merge([_store, _flights, ?widget.modelling]),
           builder: (context, _) {
             final board = _currentBoard();
             if (board == null) return _NoBoardYet(margin: margin);
@@ -502,6 +516,13 @@ class _EditorScreenState extends State<EditorScreen>
     final board = _currentBoard();
     final clash = offersClash(widget.clash, _store) ? widget.clash : null;
     return [
+      if (wordFinderEnabled)
+        IconButton(
+          icon: const Icon(Icons.search_rounded),
+          tooltip: findWordLabel,
+          onPressed: () =>
+              openWordFinder(context, store: _store, live: widget.live),
+        ),
       if (onPrint != null)
         IconButton(
           icon: const Icon(Icons.print_rounded),
@@ -599,10 +620,14 @@ class _EditorScreenState extends State<EditorScreen>
       cells: gridOf(board.id, _store.tiles, _store.boards),
       media: widget.media,
       hiddenIds: _flights.flying,
+      ringedIds: focusIdsOf(widget.modelling),
       // Model mode points at words and changes nothing, so a read-only
       // partner may use it too.
       onTile: modelling
-          ? (tile) => live.sendPulse(tile.id)
+          ? (tile) {
+              live.sendPulse(tile.id);
+              if (modelledWordsEnabled) widget.modelling?.noteModelled(tile);
+            }
           : (canEdit ? _editTile : null),
       onEmpty: canEdit && !modelling
           ? (row, col) => showAddWordSheet(
@@ -625,6 +650,19 @@ class _EditorScreenState extends State<EditorScreen>
             onChanged: (value) => setState(() => _modelling = value),
             labelFor: (id) =>
                 _store.tiles.where((tile) => tile.id == id).firstOrNull?.label,
+            extra:
+                !(wordFinderEnabled ||
+                    speechToSymbolsEnabled ||
+                    focusWordsEnabled)
+                ? null
+                : ModellingTools(
+                    store: _store,
+                    live: live,
+                    modelling: widget.modelling,
+                    speech: widget.speech,
+                    boardTiles: () =>
+                        gridOf(board.id, _store.tiles, _store.boards).values,
+                  ),
           );
     return (
       header: withClashGuide(

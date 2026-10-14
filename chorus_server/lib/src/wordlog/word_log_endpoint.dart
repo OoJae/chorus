@@ -78,7 +78,25 @@ class WordLogEndpoint extends Endpoint {
     Session session,
     UuidValue circleSpace,
     List<WordUseEntry> uses,
-  ) async {
+  ) => _record(session, circleSpace, uses, modelled: false);
+
+  /// Adds words an adult tapped in "Show words on the board" (model mode)
+  /// as modelled, not said, and returns how many were new. The same rules
+  /// and failures as [record]: editing roles only, only while the log is
+  /// on, never words of tiles marked "never log". The device leaves them
+  /// out in private mode.
+  Future<int> recordModelled(
+    Session session,
+    UuidValue circleSpace,
+    List<WordUseEntry> uses,
+  ) => _record(session, circleSpace, uses, modelled: true);
+
+  Future<int> _record(
+    Session session,
+    UuidValue circleSpace,
+    List<WordUseEntry> uses, {
+    required bool modelled,
+  }) async {
     await requireMember(session, circleSpace, editing: true);
     if (!await isWordLogOn(session, circleSpace)) {
       throw WordLogException(failure: WordLogFailure.off);
@@ -120,6 +138,7 @@ class WordLogEndpoint extends Endpoint {
             boardId: byId[use.tileId]!.boardId,
             spokenAt: use.spokenAt.toUtc(),
             receivedAt: now,
+            modelled: modelled,
           ),
     ];
     if (rows.isEmpty) return 0;

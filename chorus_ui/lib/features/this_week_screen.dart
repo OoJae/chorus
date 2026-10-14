@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 
 import '../brand/tokens.dart';
 import '../contracts.dart';
+import '../contracts_modelling.dart';
 import '../contracts_wordlog.dart';
+import '../modelling/week_modelling.dart';
 import 'feature_page.dart';
 
 /// The week so far: the most used words as laminated tiles with their
@@ -27,9 +29,14 @@ class ThisWeekScreen extends StatefulWidget {
     this.tiles = const [],
     this.role,
     this.onOpenWordLog,
+    this.modelling,
   });
 
   final WeekSummarySource source;
+
+  /// Offers the progress report to guardians and therapists; null leaves it
+  /// out.
+  final ModellingSource? modelling;
   final String childName;
 
   /// The circle's word log, to tell "off" from "could not be had".
@@ -218,6 +225,8 @@ class _ThisWeekScreenState extends State<ThisWeekScreen> {
     return FeaturePage(
       title: 'This week',
       barActions: [
+        if (widget.modelling case final modelling? when _mayView)
+          ProgressReportAction(modelling: modelling),
         if (canRefresh)
           IconButton(
             onPressed: _load,
@@ -306,6 +315,8 @@ class _Week extends StatelessWidget {
             ],
           ),
         ],
+        // Draws nothing when nothing was modelled.
+        ModelledSection(week: week),
         if (week.firstTimeWords.isNotEmpty) ...[
           const FeatureHeading('Used for the first time'),
           _words(week.firstTimeWords),

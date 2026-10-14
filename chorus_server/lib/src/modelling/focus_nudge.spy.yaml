@@ -1,0 +1,14 @@
+### The Thursday nudge: a focus word nobody had modelled by Thursday. One per
+### circle and week, written by the weekly job. Server-only and not synced.
+class: FocusNudge
+table: focus_nudge
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  weekStart: DateTime
+  tileId: UuidValue
+  createdAt: DateTime
+indexes:
+  focus_nudge_circle_week_idx:
+    fields: circleSpace, weekStart
+    unique: true

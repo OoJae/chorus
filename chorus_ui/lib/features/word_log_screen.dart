@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../brand/haptics.dart';
 import '../contracts.dart';
+import '../contracts_modelling.dart';
 import '../contracts_wordlog.dart';
 import 'feature_page.dart';
 import 'this_week_screen.dart';
@@ -31,6 +32,7 @@ class WordLogScreen extends StatefulWidget {
     this.summary,
     this.store,
     this.sync,
+    this.modelling,
   });
 
   final WordLog log;
@@ -46,6 +48,9 @@ class WordLogScreen extends StatefulWidget {
   /// Says whether the device is offline, so the screen can say why a change
   /// would fail before it is tried.
   final SyncStatus? sync;
+
+  /// Passed on to "This week" for the progress report.
+  final ModellingSource? modelling;
 
   @override
   State<WordLogScreen> createState() => _WordLogScreenState();
@@ -156,6 +161,7 @@ class _WordLogScreenState extends State<WordLogScreen> {
             log: widget.log,
             tiles: store.tiles,
             role: store.role,
+            modelling: widget.modelling,
           ),
         ),
       ),

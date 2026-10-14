@@ -1,0 +1,7 @@
+### One focus word in the progress report.
+class: FocusReportLine
+fields:
+  label: String
+  tip: String
+  modelled: int
+  said: int

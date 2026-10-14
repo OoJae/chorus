@@ -1,0 +1,8 @@
+### This week's nudge as the app sees it: the word nobody has modelled yet
+### and its tip. The app words the message.
+class: FocusNudgeInfo
+fields:
+  tileId: UuidValue
+  label: String
+  tip: String
+  weekStart: DateTime

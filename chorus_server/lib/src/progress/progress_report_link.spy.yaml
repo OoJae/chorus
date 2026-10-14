@@ -1,0 +1,18 @@
+### A one-page progress report kept behind a token: counts only, never a
+### sentence. Server-only and not synced.
+class: ProgressReportLink
+table: progress_report_link
+serverOnly: true
+fields:
+  ### Unguessable; the only key to the page.
+  token: String
+  circleSpace: UuidValue
+  ### The report as worked out when the link was made.
+  report: ProgressReport
+  createdBy: UuidValue
+  createdAt: DateTime
+  expiresAt: DateTime
+indexes:
+  progress_report_link_token_idx:
+    fields: token
+    unique: true

@@ -18,3 +18,6 @@ fields:
   wordsUsed: int
   ### When these numbers were worked out.
   computedAt: DateTime
+  ### Words an adult modelled this week, with how often the child said each.
+  ### Null from an older server or a week stored before it was counted.
+  modelled: List<ModelledTally>?

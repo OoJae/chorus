@@ -5,6 +5,7 @@
 library;
 
 import 'facts.dart';
+import 'modelling.dart' show ModelledCount;
 import 'word_use.dart';
 
 /// One word and how many times it was spoken.
@@ -36,6 +37,7 @@ class WeekSummary {
     required this.notUsedYet,
     required this.totalUses,
     required this.wordsUsed,
+    this.modelled = const [],
   });
 
   /// Reads what [toJson] wrote. Throws [FormatException] for anything else.
@@ -56,6 +58,16 @@ class WeekSummary {
         notUsedYet: labels('notUsedYet'),
         totalUses: json['totalUses'] as int,
         wordsUsed: json['wordsUsed'] as int,
+        modelled: [
+          for (final entry
+              in ((json['modelled'] as List<Object?>?) ?? const [])
+                  .cast<Map<String, Object?>>())
+            ModelledCount(
+              entry['label'] as String,
+              modelled: entry['modelled'] as int,
+              said: entry['said'] as int,
+            ),
+        ],
       );
     } on TypeError {
       throw const FormatException('Not a week summary');
@@ -83,6 +95,10 @@ class WeekSummary {
   /// Different words spoken this week.
   final int wordsUsed;
 
+  /// Words an adult modelled this week, with how often the child said each.
+  /// Empty when nothing was modelled, or the server is older.
+  final List<ModelledCount> modelled;
+
   DateTime get weekEnd => weekStart.add(const Duration(days: 7));
 
   Map<String, Object?> toJson() => {
@@ -95,6 +111,10 @@ class WeekSummary {
     'notUsedYet': notUsedYet,
     'totalUses': totalUses,
     'wordsUsed': wordsUsed,
+    'modelled': [
+      for (final word in modelled)
+        {'label': word.label, 'modelled': word.modelled, 'said': word.said},
+    ],
   };
 }
 

@@ -14,6 +14,7 @@
 import 'dart:async' as _ida;
 import 'package:clock/clock.dart' as _io0w16m8;
 import 'package:serverpod/serverpod.dart' as _is;
+import '../modelling/focus_nudge_future_call.dart' as _itd4ngxe;
 import '../printing/snapshot_cleanup_future_call.dart' as _idwo78qf;
 import '../summary/weekly_summary_future_call.dart' as _i6h5nm3a;
 
@@ -59,6 +60,7 @@ class FutureCalls extends _is.FutureCallDispatch<_FutureCallRef> {
     String serverId,
   ) {
     var registeredFutureCalls = <String, _is.InvokableFutureCall>{
+      'FocusNudgeWriteNudgesFutureCall': FocusNudgeWriteNudgesFutureCall(),
       'SnapshotCleanupSweepFutureCall': SnapshotCleanupSweepFutureCall(),
       'WeeklySummaryStoreLastWeekFutureCall':
           WeeklySummaryStoreLastWeekFutureCall(),
@@ -182,6 +184,8 @@ class _FutureCallRef {
 
   final _InvokeFutureCall _invokeFutureCall;
 
+  late final focusNudge = _FocusNudgeFutureCallDispatcher(_invokeFutureCall);
+
   late final snapshotCleanup = _SnapshotCleanupFutureCallDispatcher(
     _invokeFutureCall,
   );
@@ -189,6 +193,19 @@ class _FutureCallRef {
   late final weeklySummary = _WeeklySummaryFutureCallDispatcher(
     _invokeFutureCall,
   );
+}
+
+class _FocusNudgeFutureCallDispatcher {
+  _FocusNudgeFutureCallDispatcher(this._invokeFutureCall);
+
+  final _InvokeFutureCall _invokeFutureCall;
+
+  Future<void> writeNudges() {
+    return _invokeFutureCall(
+      'FocusNudgeWriteNudgesFutureCall',
+      null,
+    );
+  }
 }
 
 class _SnapshotCleanupFutureCallDispatcher {
@@ -214,6 +231,17 @@ class _WeeklySummaryFutureCallDispatcher {
       'WeeklySummaryStoreLastWeekFutureCall',
       null,
     );
+  }
+}
+
+class FocusNudgeWriteNudgesFutureCall extends _is.FutureCall
+    implements _is.InvokableFutureCall {
+  @override
+  _ida.Future<void> invoke(
+    _is.Session session,
+    _is.SerializableModel? object,
+  ) async {
+    await _itd4ngxe.FocusNudgeFutureCall().writeNudges(session);
   }
 }
 

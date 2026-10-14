@@ -13,6 +13,7 @@ import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_media.dart';
 import '../features/flags/w2.dart' as w2;
+import '../modelling/focus_words_screen.dart' show FocusRing;
 import '../widgets/label_fit.dart';
 import '../widgets/tile_view.dart';
 import 'contested_tray_card.dart';
@@ -74,9 +75,14 @@ class EditorGrid extends StatefulWidget {
     this.dimTiles = false,
     this.media,
     this.hiddenIds = const {},
+    this.ringedIds = const {},
   });
 
   final BoardFacts board;
+
+  /// Tiles that wear a quiet ring, drawn over them and taking no space:
+  /// the focus words of the week.
+  final Set<String> ringedIds;
 
   /// Where the tiles' pictures come from. Null draws labels only.
   final MediaStore? media;
@@ -197,8 +203,11 @@ class EditorGridState extends State<EditorGrid> {
       pictures: pictures,
       onTap: onTile == null ? null : () => onTile(tile),
     );
-    if (!widget.hiddenIds.contains(tile.id)) return view;
-    return Opacity(opacity: 0, child: view);
+    final shown = widget.ringedIds.contains(tile.id)
+        ? FocusRing(child: view)
+        : view;
+    if (!widget.hiddenIds.contains(tile.id)) return shown;
+    return Opacity(opacity: 0, child: shown);
   }
 }
 

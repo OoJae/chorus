@@ -3,7 +3,13 @@
 library;
 
 import 'package:chorus_shared/chorus_shared.dart'
-    show TileFacts, WeekSummary, WordUse, summarizeWeek, weekStartOf;
+    show
+        TileFacts,
+        WeekSummary,
+        WordUse,
+        modelledVersusSaid,
+        summarizeWeek,
+        weekStartOf;
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
@@ -56,20 +62,32 @@ Future<WeekReport> computeWeek(
     where: (t) => t.circleId.equals(circleSpace) & (t.createdAt < end),
   );
 
-  final summary = summarizeWeek(
-    [
-      ...earlier,
-      for (final use in week)
-        WordUse(
-          tileId: use.tileId.uuid,
-          boardId: use.boardId.uuid,
-          spokenAt: use.spokenAt,
+  // What the child said; an adult's modelled taps are counted apart.
+  WordUse useOf(WordUseRecord use) => WordUse(
+    tileId: use.tileId.uuid,
+    boardId: use.boardId.uuid,
+    spokenAt: use.spokenAt,
+  );
+  final said = [
+    for (final use in week)
+      if (!use.modelled) useOf(use),
+  ];
+  final modelled = [
+    for (final use in week)
+      if (use.modelled) useOf(use),
+  ];
+  final facts = [for (final tile in tiles) _factsOf(tile)];
+  final summary = summarizeWeek([...earlier, ...said], facts, start);
+  return reportOf(summary, computedAt: DateTime.now().toUtc()).copyWith(
+    modelled: [
+      for (final row in modelledVersusSaid(said, modelled, facts, start))
+        ModelledTally(
+          label: row.label,
+          modelled: row.modelled,
+          said: row.said,
         ),
     ],
-    [for (final tile in tiles) _factsOf(tile)],
-    start,
   );
-  return reportOf(summary, computedAt: DateTime.now().toUtc());
 }
 
 /// Works out last week (the one before the week [now] falls in) for every
@@ -116,7 +134,8 @@ WeekReport reportOf(WeekSummary summary, {required DateTime computedAt}) =>
       computedAt: computedAt,
     );
 
-/// Ids of the tiles of [circleSpace] spoken before [start], each once.
+/// Ids of the tiles of [circleSpace] the child spoke before [start], each
+/// once. Modelled taps do not count.
 Future<List<String>> _tilesSpokenBefore(
   Session session,
   UuidValue circleSpace,
@@ -125,7 +144,8 @@ Future<List<String>> _tilesSpokenBefore(
   final rows = await session.db.unsafeQuery(
     'SELECT DISTINCT "tileId"::text FROM "word_use" '
     'WHERE "circleSpace" = CAST(@circle AS uuid) '
-    'AND "spokenAt" < CAST(@start AS timestamp)',
+    'AND "spokenAt" < CAST(@start AS timestamp) '
+    'AND "modelled" = false',
     parameters: QueryParameters.named({
       'circle': circleSpace.uuid,
       'start': _sqlTimestamp(start),

@@ -1,0 +1,7 @@
+### A focus word of the week as the app sees it.
+class: FocusWordInfo
+fields:
+  tileId: UuidValue
+  tip: String
+  ### Monday 00:00 UTC of the week it is pinned for.
+  weekStart: DateTime

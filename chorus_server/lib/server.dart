@@ -9,6 +9,7 @@ import 'src/demo/demo_seed.dart';
 import 'src/generated/serverpod.dart';
 import 'src/jobs/scheduled_jobs.dart';
 import 'src/printing/print_routes.dart';
+import 'src/progress/progress_routes.dart';
 import 'src/sharing/sharing_routes.dart';
 import 'src/web/app_route.dart';
 
@@ -69,6 +70,9 @@ void run(List<String> args) async {
 
   // The view-only board and the .obf export.
   registerSharingRoutes(pod);
+
+  // The one-page progress report (counts only).
+  registerProgressRoutes(pod);
 
   // Start the server.
   await pod.start();
