@@ -409,6 +409,28 @@ void main() {
       expect(text.top, greaterThanOrEqualTo(row.bottom));
       expect(text.width, greaterThan(280));
     });
+
+    testWidgets('on a phone the "Work offline" explanation sits under its '
+        'switch at the full width', (tester) async {
+      await pumpHome(tester, circle());
+      tester.view.physicalSize = const Size(360, 820);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Work offline'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(tester.takeException(), isNull);
+
+      final row = tester.getRect(
+        find.widgetWithText(SwitchListTile, 'Work offline'),
+      );
+      final text = tester.getRect(
+        find.textContaining('Pauses sync on this device'),
+      );
+      expect(text.top, greaterThanOrEqualTo(row.bottom));
+      expect(text.width, greaterThan(280));
+    });
   });
 
   testWidgets('a guardian sees every action and the sync chip', (tester) async {

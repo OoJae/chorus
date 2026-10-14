@@ -268,7 +268,9 @@ String renderPrintPage(
     for (var col = 0; col < board.cols; col++) {
       final tile = board.cells[(row, col)];
       if (tile == null) {
-        out.write('<td class="empty"></td>');
+        // The empty box keeps the row at full height: a row of empty cells
+        // would otherwise collapse to a thin line on the page.
+        out.write('<td class="empty"><div class="cell"></div></td>');
         continue;
       }
       final colour = printColours.containsKey(tile.colorKey)

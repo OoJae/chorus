@@ -352,15 +352,50 @@ class HomeScreen extends StatelessWidget {
       [
         ListenableBuilder(
           listenable: sync,
-          builder: (context, _) => SwitchListTile(
-            secondary: const Icon(Icons.cloud_off_rounded),
-            title: const Text('Work offline'),
-            subtitle: const Text(
-              'Pauses sync on this device. Changes are kept here and sent '
-              'when you switch it back.',
-            ),
-            value: sync.workingOffline,
-            onChanged: (value) => unawaited(sync.setWorkingOffline(value)),
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) {
+              const explanation = Text(
+                'Pauses sync on this device. Changes are kept here and sent '
+                'when you switch it back.',
+              );
+              void onChanged(bool value) =>
+                  unawaited(sync.setWorkingOffline(value));
+              // As with "Share what is said": on a phone the explanation
+              // would be a narrow column between the icon and the switch, so
+              // it goes under them at the full width.
+              if (box.maxWidth >= 480) {
+                return SwitchListTile(
+                  secondary: const Icon(Icons.cloud_off_rounded),
+                  title: const Text('Work offline'),
+                  subtitle: explanation,
+                  value: sync.workingOffline,
+                  onChanged: onChanged,
+                );
+              }
+              final theme = Theme.of(context);
+              return MergeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SwitchListTile(
+                      secondary: const Icon(Icons.cloud_off_rounded),
+                      title: const Text('Work offline'),
+                      value: sync.workingOffline,
+                      onChanged: onChanged,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 24, 12),
+                      child: DefaultTextStyle.merge(
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        child: explanation,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
         if (media != null) _WaitingUploads(media: media),

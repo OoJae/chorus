@@ -282,8 +282,29 @@ void main() {
       expect(parsed.cells.keys, [(1, 0)]);
       expect(parsed.cells[(1, 0)]!.label, 'apple');
       final html = renderPrintPage(parsed, savedAt: saved, expiresAt: saved);
-      expect('<td class="empty"></td>'.allMatches(html), hasLength(3));
+      expect(
+        '<td class="empty"><div class="cell"></div></td>'.allMatches(html),
+        hasLength(3),
+      );
       expect(html, contains('<td>${cell('apple')}</td>'));
+    });
+
+    test('when rows have no words then every cell still keeps its full '
+        'height on the page.', () {
+      final parsed = PrintBoard.parse(
+        jsonEncode({
+          'name': 'Snacks',
+          'rows': 6,
+          'cols': 6,
+          'tiles': [
+            {'row': 0, 'col': 0, 'label': 'apple'},
+          ],
+        }),
+      );
+      final html = renderPrintPage(parsed, savedAt: saved, expiresAt: saved);
+      // One fixed-height box per cell, empty ones included, so no row of
+      // empty cells collapses to a line.
+      expect('<div class="cell">'.allMatches(html), hasLength(36));
     });
 
     test('when it cannot be laid out then reading it fails.', () {
