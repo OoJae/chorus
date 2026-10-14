@@ -52,6 +52,26 @@ Every update names its columns, so edits to different fields of one tile both su
 
 Automated in [`chorus_server/test/sync/`](chorus_server/test/sync/) against an embedded PostgreSQL and real SQLite replicas. Results: [docs/spike-results.md](docs/spike-results.md).
 
+## What we learned on serverpod_offline_sync
+
+Chorus is built on version 0.0.10 of an experimental module. These are the lessons that shaped the code, for anyone building on it next.
+
+- **Design the schema for the engine before writing the app.** The tile's position, `cellKey`, is unique per space (`unique(per=spaceId)`). The engine resolves clashes on that index, so we put the one thing that must never be lost in it: what each cell on the child's board means. The relation from tile to board is `deferred`, so a tile and its board can arrive in either order.
+- **Once deployed, the synced schema is frozen.** Clients compare a schema hash when they connect, so any change to a synced model locks every installed app out of sync. Everything added after the first deploy went into ordinary server-only tables: the word log, voices, focus words, scenes and the rest. Only `board`, `tile` and `tile_edit` are synced.
+- **Parked conflicts became a feature.** The engine keeps both rows of a unique clash and marks the later claim with a `__conflict__` suffix. We parse that suffix ([`tray.dart`](chorus_shared/lib/src/tray.dart)) into the "Needs a home" tray. A parent never sees the word "conflict": they see two words, two names and two times, and nothing lost.
+- **"Earlier" means the hybrid logical clock, not arrival.** A later word can sync first and briefly hold the cell. Our snapshot rules ([`reconcile_snapshot.dart`](chorus_shared/lib/src/reconcile_snapshot.dart)) treat that swap as a replacement, which the child's screen never applies on its own.
+- **The module has two roles; people have more.** It knows `readWrite` and `readOnly`. Guardian, therapist, teacher and partner are mapped onto those in our own endpoints ([`circle_endpoint.dart`](chorus_server/lib/src/circles/circle_endpoint.dart)), which check the role on every call.
+- **Every shared write needs `transactionForUser(..., spaceId:)`.** A write without it lands in the user's personal space and silently disappears from everyone else's view, even its author's (draft issue 5). Every query also filters on our own `circleId` column, because reads span all of a user's spaces.
+- **Name the columns in every update.** `updateRow(columns: ...)` keeps the merge field-level, so two adults changing different properties of one word both win. We also log every change in `tile_edit`, which is what makes "Replaced changes", the activity feed and Undo possible.
+- **The server can be a member too.** `spaces.grant` gives any id a role in a space, and `transactionForUser` then writes as that member. "Try a clash" uses this: a practice partner on the server fills the same cell while the judge's device works offline.
+- **What we had to build around the module:**
+  - a supervisor with reconnect, backoff and a clock check (the module refuses more than a minute of drift);
+  - a status chip;
+  - a held snapshot, so the child's screen changes only between sentences;
+  - a one-tab-per-browser rule, because two tabs of one profile share one SQLite file.
+
+The gaps are written up as six draft issues with repro tests in [docs/upstream-issues.md](docs/upstream-issues.md), from the full log in [docs/feedback-log.md](docs/feedback-log.md).
+
 ## Checked on real devices
 
 Checked on 13 October 2026 against the Cloud deployment. Full record: [docs/device-log.md](docs/device-log.md).
