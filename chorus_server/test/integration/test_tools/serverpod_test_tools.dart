@@ -40,6 +40,10 @@ import 'package:chorus_server/src/generated/wordlog/word_log_status.dart'
     as _i5jq7z5w;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
+import 'package:chorus_server/src/generated/wordsettings/second_language.dart'
+    as _i4v7r374;
+import 'package:chorus_server/src/generated/wordsettings/word_translation.dart'
+    as _iv8bzygo;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -206,6 +210,10 @@ class TestEndpoints {
   late final _DeviceSeenEndpoint deviceSeen;
 
   late final _WordLogEndpoint wordLog;
+
+  late final _HiddenWordsEndpoint hiddenWords;
+
+  late final _HomeLanguageEndpoint homeLanguage;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -268,6 +276,14 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     wordLog = _WordLogEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    hiddenWords = _HiddenWordsEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    homeLanguage = _HomeLanguageEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1538,6 +1554,232 @@ class _WordLogEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _HiddenWordsEndpoint {
+  _HiddenWordsEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_is.UuidValue>> list(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'hiddenWords',
+            method: 'list',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'hiddenWords',
+          methodName: 'list',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_is.UuidValue>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> setHidden(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    _is.UuidValue tileId,
+    bool hidden,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'hiddenWords',
+            method: 'setHidden',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'hiddenWords',
+          methodName: 'setHidden',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'tileId': tileId,
+            'hidden': hidden,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _HomeLanguageEndpoint {
+  _HomeLanguageEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_i4v7r374.SecondLanguage?> getLanguage(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'homeLanguage',
+            method: 'getLanguage',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'homeLanguage',
+          methodName: 'getLanguage',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i4v7r374.SecondLanguage?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> setLanguage(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    _i4v7r374.SecondLanguage? language,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'homeLanguage',
+            method: 'setLanguage',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'homeLanguage',
+          methodName: 'setLanguage',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'language': language,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_iv8bzygo.WordTranslation>> listTranslations(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    String languageCode,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'homeLanguage',
+            method: 'listTranslations',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'homeLanguage',
+          methodName: 'listTranslations',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'languageCode': languageCode,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iv8bzygo.WordTranslation>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> setTranslation(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    _iv8bzygo.WordTranslation translation,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'homeLanguage',
+            method: 'setTranslation',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'homeLanguage',
+          methodName: 'setTranslation',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'translation': translation,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

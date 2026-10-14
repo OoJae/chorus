@@ -144,6 +144,9 @@ class HomeScreen extends StatelessWidget {
         heroTag: heroTag,
         onExit: () => Navigator.of(talkerContext).pop(),
         scenes: services?.scenes,
+        hiddenWords: services?.hiddenWords,
+        languages: services?.languages,
+        languageVoice: services?.languageVoice,
       ),
     );
     Navigator.of(context).push(
@@ -222,6 +225,8 @@ class HomeScreen extends StatelessWidget {
       speaker: services?.speaker,
       suggester: services?.suggester,
       copies: services?.copies,
+      hiddenWords: services?.hiddenWords,
+      languages: services?.languages,
       // From the editor the page is of the board the adult is looking at.
       onPrint: services?.publishBoard == null
           ? null

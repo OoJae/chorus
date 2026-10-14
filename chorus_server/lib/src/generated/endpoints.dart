@@ -19,6 +19,10 @@ import 'package:chorus_server/src/generated/scenes/scene_spot_info.dart'
     as _ipw1gwuw;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
+import 'package:chorus_server/src/generated/wordsettings/second_language.dart'
+    as _i4v7r374;
+import 'package:chorus_server/src/generated/wordsettings/word_translation.dart'
+    as _iv8bzygo;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -42,6 +46,7 @@ import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
 import '../trust/device_seen_endpoint.dart' as _ixbcgbh7;
 import '../wordlog/word_log_endpoint.dart' as _ivqq1yo7;
+import '../wordsettings/word_settings_endpoints.dart' as _izawk72m;
 export 'future_calls.dart' show ServerpodFutureCallsGetter;
 
 class Endpoints extends _is.EndpointDispatch {
@@ -142,6 +147,18 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'wordLog',
+          null,
+        ),
+      'hiddenWords': _izawk72m.HiddenWordsEndpoint()
+        ..initialize(
+          server,
+          'hiddenWords',
+          null,
+        ),
+      'homeLanguage': _izawk72m.HomeLanguageEndpoint()
+        ..initialize(
+          server,
+          'homeLanguage',
           null,
         ),
     };
@@ -1241,6 +1258,168 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['circleSpace'],
                   ),
+        ),
+      },
+    );
+    connectors['hiddenWords'] = _is.EndpointConnector(
+      name: 'hiddenWords',
+      endpoint: endpoints['hiddenWords']!,
+      methodConnectors: {
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['hiddenWords'] as _izawk72m.HiddenWordsEndpoint)
+                      .list(
+                        session,
+                        params['circleSpace'],
+                      ),
+        ),
+        'setHidden': _is.MethodConnector(
+          name: 'setHidden',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'tileId': _is.ParameterDescription(
+              name: 'tileId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'hidden': _is.ParameterDescription(
+              name: 'hidden',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['hiddenWords'] as _izawk72m.HiddenWordsEndpoint)
+                      .setHidden(
+                        session,
+                        params['circleSpace'],
+                        params['tileId'],
+                        params['hidden'],
+                      ),
+        ),
+      },
+    );
+    connectors['homeLanguage'] = _is.EndpointConnector(
+      name: 'homeLanguage',
+      endpoint: endpoints['homeLanguage']!,
+      methodConnectors: {
+        'getLanguage': _is.MethodConnector(
+          name: 'getLanguage',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['homeLanguage'] as _izawk72m.HomeLanguageEndpoint)
+                      .getLanguage(
+                        session,
+                        params['circleSpace'],
+                      ),
+        ),
+        'setLanguage': _is.MethodConnector(
+          name: 'setLanguage',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'language': _is.ParameterDescription(
+              name: 'language',
+              type: _is.getType<_i4v7r374.SecondLanguage?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['homeLanguage'] as _izawk72m.HomeLanguageEndpoint)
+                      .setLanguage(
+                        session,
+                        params['circleSpace'],
+                        params['language'],
+                      ),
+        ),
+        'listTranslations': _is.MethodConnector(
+          name: 'listTranslations',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'languageCode': _is.ParameterDescription(
+              name: 'languageCode',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['homeLanguage'] as _izawk72m.HomeLanguageEndpoint)
+                      .listTranslations(
+                        session,
+                        params['circleSpace'],
+                        params['languageCode'],
+                      ),
+        ),
+        'setTranslation': _is.MethodConnector(
+          name: 'setTranslation',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'translation': _is.ParameterDescription(
+              name: 'translation',
+              type: _is.getType<_iv8bzygo.WordTranslation>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['homeLanguage'] as _izawk72m.HomeLanguageEndpoint)
+                      .setTranslation(
+                        session,
+                        params['circleSpace'],
+                        params['translation'],
+                      ),
         ),
       },
     );

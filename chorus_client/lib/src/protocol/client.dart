@@ -37,6 +37,10 @@ import 'package:chorus_client/src/protocol/wordlog/word_log_status.dart'
     as _izr7qg8x;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
+import 'package:chorus_client/src/protocol/wordsettings/second_language.dart'
+    as _inmagbl8;
+import 'package:chorus_client/src/protocol/wordsettings/word_translation.dart'
+    as _ia8zarzx;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -816,6 +820,109 @@ class EndpointWordLog extends _isc.EndpointRef {
       );
 }
 
+/// Words an adult has hidden from the child's board for now.
+///
+/// Server-only rows beside the frozen synced tables: hiding never moves a
+/// word and never touches its tile. Any member may read the list (the
+/// child's board must show what is hidden whoever is signed in on it); only
+/// an editing role may change it.
+/// {@category Endpoint}
+class EndpointHiddenWords extends _isc.EndpointRef {
+  EndpointHiddenWords(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'hiddenWords';
+
+  /// Ids of the tiles hidden in [circleSpace]. Members only.
+  _ida.Future<List<_isc.UuidValue>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<_isc.UuidValue>>(
+        'hiddenWords',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Hides ([hidden] true) or shows again the tile [tileId] of
+  /// [circleSpace]. Editing roles only. Asking for the state it is already
+  /// in changes nothing. The tile need not have reached the server yet: a
+  /// word added offline can be hidden at once.
+  _ida.Future<void> setHidden(
+    _isc.UuidValue circleSpace,
+    _isc.UuidValue tileId,
+    bool hidden,
+  ) => caller.callServerEndpoint<void>(
+    'hiddenWords',
+    'setHidden',
+    {
+      'circleSpace': circleSpace,
+      'tileId': tileId,
+      'hidden': hidden,
+    },
+  );
+}
+
+/// A circle's second (home) language and its words in it.
+///
+/// Any member may read them, so every board can show them; only an editing
+/// role may change them.
+/// {@category Endpoint}
+class EndpointHomeLanguage extends _isc.EndpointRef {
+  EndpointHomeLanguage(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'homeLanguage';
+
+  /// The circle's second language, or null when it has none. Members only.
+  _ida.Future<_inmagbl8.SecondLanguage?> getLanguage(
+    _isc.UuidValue circleSpace,
+  ) => caller.callServerEndpoint<_inmagbl8.SecondLanguage?>(
+    'homeLanguage',
+    'getLanguage',
+    {'circleSpace': circleSpace},
+  );
+
+  /// Sets the circle's second language, or clears it with null. Editing
+  /// roles only. Translations into another language are kept, so switching
+  /// back brings them back.
+  _ida.Future<void> setLanguage(
+    _isc.UuidValue circleSpace,
+    _inmagbl8.SecondLanguage? language,
+  ) => caller.callServerEndpoint<void>(
+    'homeLanguage',
+    'setLanguage',
+    {
+      'circleSpace': circleSpace,
+      'language': language,
+    },
+  );
+
+  /// Every word of [circleSpace] in [languageCode]. Members only.
+  _ida.Future<List<_ia8zarzx.WordTranslation>> listTranslations(
+    _isc.UuidValue circleSpace,
+    String languageCode,
+  ) => caller.callServerEndpoint<List<_ia8zarzx.WordTranslation>>(
+    'homeLanguage',
+    'listTranslations',
+    {
+      'circleSpace': circleSpace,
+      'languageCode': languageCode,
+    },
+  );
+
+  /// Sets one word in a second language. An empty label removes it, so the
+  /// word shows in the first language again. Editing roles only.
+  _ida.Future<void> setTranslation(
+    _isc.UuidValue circleSpace,
+    _ia8zarzx.WordTranslation translation,
+  ) => caller.callServerEndpoint<void>(
+    'homeLanguage',
+    'setTranslation',
+    {
+      'circleSpace': circleSpace,
+      'translation': translation,
+    },
+  );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _iaic.Caller(client);
@@ -871,6 +978,8 @@ class Client extends _isc.ServerpodClientShared {
     summary = EndpointSummary(this);
     deviceSeen = EndpointDeviceSeen(this);
     wordLog = EndpointWordLog(this);
+    hiddenWords = EndpointHiddenWords(this);
+    homeLanguage = EndpointHomeLanguage(this);
     modules = Modules(this);
   }
 
@@ -902,6 +1011,10 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointWordLog wordLog;
 
+  late final EndpointHiddenWords hiddenWords;
+
+  late final EndpointHomeLanguage homeLanguage;
+
   late final Modules modules;
 
   @override
@@ -920,6 +1033,8 @@ class Client extends _isc.ServerpodClientShared {
     'summary': summary,
     'deviceSeen': deviceSeen,
     'wordLog': wordLog,
+    'hiddenWords': hiddenWords,
+    'homeLanguage': homeLanguage,
   };
 
   @override

@@ -56,3 +56,11 @@ wordLog:
   - setEnabled:
   - record:
   - deleteAll:
+hiddenWords:
+  - list:
+  - setHidden:
+homeLanguage:
+  - getLanguage:
+  - setLanguage:
+  - listTranslations:
+  - setTranslation:

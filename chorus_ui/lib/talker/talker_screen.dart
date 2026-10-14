@@ -13,6 +13,8 @@ import '../brand/motion.dart';
 import '../brand/pressable_surface.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
+import '../contracts_hidden.dart';
+import '../contracts_language.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
 import '../contracts_scenes.dart';
@@ -22,6 +24,7 @@ import '../widgets/label_fit.dart';
 import '../widgets/sync_chip.dart';
 import '../widgets/tile_view.dart';
 import 'talker_controller.dart';
+import 'talker_extras.dart';
 import 'talker_tabs.dart';
 
 /// Shown to adults when speech would need a network.
@@ -127,6 +130,9 @@ class TalkerScreen extends StatefulWidget {
     this.heroTag,
     this.onExit,
     this.scenes,
+    this.hiddenWords,
+    this.languages,
+    this.languageVoice,
   });
 
   final BoardStore store;
@@ -154,6 +160,17 @@ class TalkerScreen extends StatefulWidget {
   /// The circle's picture scenes: a "Scenes" button in the status row while
   /// there is one. Null for none.
   final SceneBook? scenes;
+  /// Words hidden for now: their cells are blank, and "Show everything"
+  /// shows them until the board is left. Null hides nothing.
+  final HiddenWords? hiddenWords;
+
+  /// The circle's second language: a switch shows the words in it. Null
+  /// offers no switch.
+  final HomeLanguages? languages;
+
+  /// The device's voices for the second language. Null speaks a word in
+  /// it with its recording, else in the first language.
+  final LanguageVoice? languageVoice;
 
   /// The face of the "Private" control, for tests.
   @visibleForTesting
@@ -166,17 +183,34 @@ class TalkerScreen extends StatefulWidget {
 class _TalkerScreenState extends State<TalkerScreen> {
   late TalkerController _controller;
 
+  /// Hidden words and the second language; null without either.
+  TalkerExtras? _extras;
+
   @override
   void initState() {
     super.initState();
     _warmUp();
+    _extras = _newExtras();
     _controller = _newController();
   }
 
+  TalkerExtras? _newExtras() => TalkerExtras.maybe(
+    isSafe: () => _controller.atSafePoint,
+    hidden: widget.hiddenWords,
+    languages: widget.languages,
+    voice: widget.languageVoice,
+  );
+
   TalkerController _newController() => TalkerController(
     store: widget.store,
-    speech: widget.speech,
-    speaker: widget.speaker,
+    speech: _extras?.speechFor(widget.speech) ?? widget.speech,
+    speaker:
+        _extras?.speakerFor(
+          widget.speaker,
+          widget.speech,
+          (id) => widget.store.tiles.where((t) => t.id == id).firstOrNull,
+        ) ??
+        widget.speaker,
     live: widget.live,
     wordLog: widget.wordLog,
   );
@@ -184,7 +218,16 @@ class _TalkerScreenState extends State<TalkerScreen> {
   @override
   void didUpdateWidget(TalkerScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.store != widget.store ||
+    final extrasChanged =
+        oldWidget.hiddenWords != widget.hiddenWords ||
+        oldWidget.languages != widget.languages ||
+        oldWidget.languageVoice != widget.languageVoice;
+    if (extrasChanged) {
+      _extras?.dispose();
+      _extras = _newExtras();
+    }
+    if (extrasChanged ||
+        oldWidget.store != widget.store ||
         oldWidget.speech != widget.speech ||
         oldWidget.speaker != widget.speaker ||
         oldWidget.live != widget.live ||
@@ -198,6 +241,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _extras?.dispose();
     super.dispose();
   }
 
@@ -263,7 +307,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
             onPointerUp: (_) => _controller.touchUp(),
             onPointerCancel: (_) => _controller.touchUp(),
             child: ListenableBuilder(
-              listenable: _controller,
+              listenable: Listenable.merge([_controller, _extras]),
               builder: (context, _) => LayoutBuilder(
                 builder: (context, box) => Padding(
                   padding: const EdgeInsets.all(_edge),
@@ -298,6 +342,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
             pulsing: controller.pulsing,
             onTap: controller.tapTile,
             gap: layout == TalkerLayout.short ? 3 : 4,
+            extras: _extras,
           );
     final heroTag = widget.heroTag;
     if (heroTag != null && !ChorusMotion.reduced(context)) {
@@ -327,6 +372,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
         width: width,
         textScale: MediaQuery.textScalerOf(context).scale(1),
       ),
+      extras: _extras,
     );
     final hasTabs = controller.showsTabs;
     Widget tabs(Axis axis) => TalkerBoardTabs(
@@ -607,10 +653,14 @@ class _BoardGrid extends StatefulWidget {
     required this.onTap,
     required this.gap,
     this.media,
+    this.extras,
   });
 
   final BoardSnapshot snapshot;
   final MediaStore? media;
+
+  /// Hidden words and the second language; null for neither.
+  final TalkerExtras? extras;
 
   /// Ids of the tiles an adult is pointing at.
   final Set<String> pulsing;
@@ -664,7 +714,9 @@ class _BoardGridState extends State<_BoardGrid> {
           box.maxHeight / board.rows - 2 * gap,
         );
         final labelSize = _sizer.sizeFor(
-          labels: snapshot.cells.values.map((tile) => tile.label),
+          labels: snapshot.cells.values.map(
+            (tile) => (widget.extras?.shownTile(tile) ?? tile).label,
+          ),
           tile: tileSize,
           scaler: MediaQuery.textScalerOf(context),
           direction: Directionality.of(context),
@@ -707,6 +759,12 @@ class _BoardGridState extends State<_BoardGrid> {
     bool pictures,
   ) {
     if (tile == null) return const SizedBox.expand();
+    final extras = widget.extras;
+    // A hidden word keeps its cell, blank and silent.
+    if (extras != null && extras.hides(tile.id)) {
+      return HiddenWordCell(key: ValueKey('hidden-${tile.id}'));
+    }
+    final shown = extras?.shownTile(tile) ?? tile;
     final glowing = widget.pulsing.contains(tile.id);
     // The glow wraps the tile and is always in the tree, so a tile keeps
     // its state and its place when a pulse starts or ends.
@@ -717,13 +775,14 @@ class _BoardGridState extends State<_BoardGrid> {
       child: _Arrival(
         fade: _arriving.contains(tile.id),
         child: TileView(
-          tile: tile,
+          tile: shown,
+          symbolLabel: identical(shown, tile) ? null : tile.label,
           media: widget.media,
           highlighted: glowing,
           labelSize: labelSize,
           pictures: pictures,
           haptic: ChorusHaptic.wordTapped,
-          onTap: () => widget.onTap(tile),
+          onTap: () => widget.onTap(shown),
         ),
       ),
     );
@@ -1138,6 +1197,7 @@ class _StatusRow extends StatelessWidget {
     required this.onAdultUpdate,
     required this.layout,
     this.scenes,
+    this.extras,
   });
 
   final TalkerController controller;
@@ -1149,6 +1209,8 @@ class _StatusRow extends StatelessWidget {
 
   /// "Scenes", first of the marks on the right, so nothing after it moves.
   final Widget? scenes;
+  /// Adds "Show everything" and the language switch; null adds nothing.
+  final TalkerExtras? extras;
 
   @override
   Widget build(BuildContext context) {
@@ -1191,6 +1253,7 @@ class _StatusRow extends StatelessWidget {
                 message: noOfflineVoiceMessage,
               ),
       ),
+      ...talkerExtraControls(extras, compact: compact),
       if (controller.offersPrivate) ...[
         gap,
         _PrivateToggle(

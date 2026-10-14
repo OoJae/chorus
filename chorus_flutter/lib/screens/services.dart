@@ -8,6 +8,8 @@ import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncStatus;
 import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_copies.dart' show BoardCopies;
+import 'package:chorus_ui/contracts_hidden.dart';
+import 'package:chorus_ui/contracts_language.dart';
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:chorus_ui/contracts_modelling.dart';
 import 'package:chorus_ui/contracts_scenes.dart' show SceneBook;
@@ -87,6 +89,9 @@ class CircleServices {
     this.speech,
     this.scenes,
     this.copies,
+    this.hiddenWords,
+    this.languages,
+    this.languageVoice,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -148,6 +153,14 @@ class CircleServices {
   /// Named board copies. Null leaves "Save a copy" and "Copies" out of the
   /// editor's board menu.
   final BoardCopies? copies;
+  /// Words hidden from the child's board for now, kept on this device.
+  final HiddenWords? hiddenWords;
+
+  /// The circle's second language and its words, kept on this device.
+  final HomeLanguages? languages;
+
+  /// The device's voices for the second language.
+  final LanguageVoice? languageVoice;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

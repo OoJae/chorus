@@ -1,0 +1,7 @@
+### A circle's second language as the app sees it.
+class: SecondLanguage
+fields:
+  ### A BCP 47 language code, e.g. `yo`, `es`, `fr`.
+  code: String
+  ### Its name, e.g. "Yoruba".
+  name: String

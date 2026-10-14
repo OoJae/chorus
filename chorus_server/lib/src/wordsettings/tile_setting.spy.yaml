@@ -1,0 +1,17 @@
+### Whether an adult has hidden a word from the child's board for now.
+### Server-only, so the frozen synced tables stay as they are. A tile with
+### no row is shown. Hiding never moves a word: its cell stays taken.
+class: TileSetting
+table: tile_setting
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  tileId: UuidValue
+  hidden: bool
+  ### The adult who last hid or showed the word, and when.
+  changedBy: UuidValue
+  changedAt: DateTime
+indexes:
+  tile_setting_space_tile_idx:
+    fields: circleSpace, tileId
+    unique: true

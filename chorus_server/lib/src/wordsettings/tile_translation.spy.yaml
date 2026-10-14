@@ -1,0 +1,17 @@
+### A word's label, and optionally what is spoken, in a circle's second
+### language. Server-only.
+class: TileTranslation
+table: tile_translation
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  tileId: UuidValue
+  languageCode: String
+  label: String
+  speech: String?
+  changedBy: UuidValue
+  changedAt: DateTime
+indexes:
+  tile_translation_space_tile_lang_idx:
+    fields: circleSpace, tileId, languageCode
+    unique: true

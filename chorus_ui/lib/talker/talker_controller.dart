@@ -355,6 +355,21 @@ class TalkerController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// True when what the child sees may change now: no finger down, the
+  /// strip empty, nothing playing and [_quiet] without a touch. Hidden
+  /// words wait for it too (see `TalkerExtras`).
+  bool get atSafePoint =>
+      !_disposed &&
+      _pointersDown == 0 &&
+      isSafePoint(
+        TalkerActivity(
+          stripEmpty: _strip.isEmpty,
+          speaking: _speech.speaking.value,
+          sinceLastTouch: _sinceTouch.elapsed,
+        ),
+        quiet: _quiet,
+      );
+
   /// Applies the automatic part of the waiting plan, and any change to the
   /// tabs, if this is a safe point. Returns true when what the child sees
   /// changed. The timer calls this.

@@ -19,6 +19,7 @@ import '../sync/adapters.dart';
 import '../sync/replica_board_store.dart';
 import '../wordlog/server_week_summary.dart';
 import '../wordlog/server_word_log.dart';
+import '../wordsettings/word_settings_wiring.dart';
 
 /// What [openCircleFeatures] made for one circle and adult. The word log
 /// holds a timer and a listener on sync, so the owner keeps this for as
@@ -33,6 +34,7 @@ class CircleFeatures {
     required this._manager,
     this.scenes,
     this.copies,
+    this.wordSettings,
   });
 
   /// The circle's word log on this device. Every role has one, to see
@@ -56,6 +58,8 @@ class CircleFeatures {
   /// Named board copies. Every role may look; only an editor takes or
   /// deletes one.
   final BoardCopies? copies;
+  /// Words hidden for now and the second language. Null when both are off.
+  final WordSettings? wordSettings;
 
   final ServerWordLog _log;
   final _StoreBoardManager? _manager;
@@ -69,6 +73,7 @@ class CircleFeatures {
     _log.dispose();
     _manager?.dispose();
     scenes?.dispose();
+    wordSettings?.dispose();
   }
 }
 
@@ -134,6 +139,13 @@ CircleFeatures openCircleFeatures(
     copies: ServerBoardCopies(
       calls: CopyCalls.forClient(client, space),
       canEdit: role.canEdit,
+      sync: sync,
+    ),
+    wordSettings: openWordSettings(
+      client,
+      circleSpace: space,
+      userId: userId,
+      role: role,
       sync: sync,
     ),
   );

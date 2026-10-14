@@ -1,0 +1,5 @@
+### Refusal from the hidden words and second language endpoints.
+exception: WordSettingsException
+fields:
+  ### What was wrong with the request, in words for a log.
+  reason: String

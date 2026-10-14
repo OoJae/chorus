@@ -15,6 +15,8 @@ import '../contracts_boards.dart';
 import '../contracts_clash.dart';
 import '../contracts_copies.dart';
 import '../copies/copies_screens.dart';
+import '../contracts_hidden.dart';
+import '../contracts_language.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
 import '../contracts_modelling.dart';
@@ -34,6 +36,7 @@ import 'obf_picker.dart';
 import 'ready_boards.dart';
 import 'replaced_changes_panel.dart';
 import 'tray_panel.dart';
+import 'word_extras.dart';
 
 /// Shown to a read-only partner in place of the editing hint.
 const String readOnlyMessage =
@@ -89,6 +92,8 @@ class EditorScreen extends StatefulWidget {
     this.modelling,
     this.speech,
     this.copies,
+    this.hiddenWords,
+    this.languages,
   });
 
   final BoardStore store;
@@ -135,6 +140,13 @@ class EditorScreen extends StatefulWidget {
   /// The circle's named board copies: "Save a copy" and "Copies" in the
   /// board menu. Null hides both.
   final BoardCopies? copies;
+  /// Words hidden for now: dimmed with a mark, and "Hide for now" or "Show
+  /// on the board again" in a word's sheet. Null offers neither.
+  final HiddenWords? hiddenWords;
+
+  /// The circle's second language: "Second language" in a word's sheet.
+  /// Null offers it not.
+  final HomeLanguages? languages;
 
   /// The column beside the board on a wide screen, for tests.
   @visibleForTesting
@@ -390,16 +402,23 @@ class _EditorScreenState extends State<EditorScreen>
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (sheetContext) => WordForm(
-        title: 'Change this word',
-        submitLabel: 'Save',
-        initial: tile,
-        media: (_store as Object) is TileMediaWriter ? widget.media : null,
-        capture: widget.capture,
-        speaker: widget.speaker,
-        suggester: widget.suggester,
-        onSubmit: (draft) => Navigator.of(sheetContext).pop(draft),
-        onRemove: () => Navigator.of(sheetContext).pop(_removeRequested),
+      builder: (sheetContext) => wordSheetWithExtras(
+        context: context,
+        sheetContext: sheetContext,
+        tile: tile,
+        hidden: widget.hiddenWords,
+        languages: widget.languages,
+        form: WordForm(
+          title: 'Change this word',
+          submitLabel: 'Save',
+          initial: tile,
+          media: (_store as Object) is TileMediaWriter ? widget.media : null,
+          capture: widget.capture,
+          speaker: widget.speaker,
+          suggester: widget.suggester,
+          onSubmit: (draft) => Navigator.of(sheetContext).pop(draft),
+          onRemove: () => Navigator.of(sheetContext).pop(_removeRequested),
+        ),
       ),
     );
     if (result == null || !mounted) return;
@@ -669,6 +688,8 @@ class _EditorScreenState extends State<EditorScreen>
       media: widget.media,
       hiddenIds: _flights.flying,
       ringedIds: focusIdsOf(widget.modelling),
+      decorateTile: (tile, view) =>
+          editorWordMark(widget.hiddenWords, tile, view),
       // Model mode points at words and changes nothing, so a read-only
       // partner may use it too.
       onTile: modelling

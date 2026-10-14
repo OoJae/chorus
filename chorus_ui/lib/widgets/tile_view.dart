@@ -58,7 +58,13 @@ class TileView extends StatelessWidget {
     this.labelSize,
     this.haptic,
     this.pictures,
+    this.symbolLabel,
   });
+
+  /// The word whose symbol is drawn when [tile]'s label is not it, e.g.
+  /// while the word shows in the circle's second language. Null draws the
+  /// symbol for [tile]'s label.
+  final String? symbolLabel;
 
   /// Font size of the label. Null sizes this tile by itself.
   final double? labelSize;
@@ -113,7 +119,9 @@ class TileView extends StatelessWidget {
   Widget _build(BuildContext context, ImageProvider? photo) {
     final family = TileFamily.forKey(tile.colorKey);
     final colors = family.colorsFor(Theme.of(context).brightness);
-    final symbol = photo == null ? symbolImageFor(tile.label) : null;
+    final symbol = photo == null
+        ? symbolImageFor(symbolLabel ?? tile.label)
+        : null;
     final picture = photo ?? symbol;
     // The label keeps to the room a picture leaves whenever the board has
     // pictures, the same room it was sized for.
