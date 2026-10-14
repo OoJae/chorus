@@ -68,7 +68,7 @@ void main() {
         html,
         contains(
           '<button type="button" class="tile c-verb" data-say="like">'
-          '<span class="label">like</span></button>',
+          '<span class="sym" aria-hidden="true">${symbolSvgFor('like')}',
         ),
       );
       expect(
@@ -78,7 +78,13 @@ void main() {
           '<span class="sym" aria-hidden="true">${symbolSvgFor('want')}',
         ),
       );
-      expect(html, contains('data-say="Grandad"><span class="label">he<'));
+      expect(
+        html,
+        contains(
+          'data-say="Grandad"><span class="sym" aria-hidden="true">'
+          '${symbolSvgFor('he')}',
+        ),
+      );
       expect(html, contains('<div id="strip" class="strip"'));
       expect(
         html,

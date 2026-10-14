@@ -82,14 +82,19 @@ void main() {
       Size(800, 1280),
       Size(1280, 800),
     ]) {
-      testWidgets('"Scenes" moves no button and not the grid at $size', (
+      testWidgets('"Scenes" moves none of the child\'s buttons and not the grid at $size', (
         tester,
       ) async {
         await pumpApp(tester, talker(), size: size);
-        Rect leave() => tester.getRect(find.text('Hold to leave').first);
+        // The child's buttons and the grid never move. "Hold to leave" is
+        // the adults' way out: it may give "Scenes" room within its row,
+        // but stays in that row.
+        double leaveRow() =>
+            tester.getRect(find.text('Hold to leave').first).center.dy;
         Rect speak() => tester.getRect(find.bySemanticsLabel('Speak'));
         Rect word() => tester.getRect(tile('want'));
-        final before = (leave(), speak(), word());
+        final before = (speak(), word());
+        final row = leaveRow();
 
         await pumpApp(
           tester,
@@ -97,7 +102,8 @@ void main() {
           size: size,
         );
         expect(find.byKey(TalkerScenesButton.buttonKey), findsOneWidget);
-        expect((leave(), speak(), word()), before);
+        expect((speak(), word()), before);
+        expect(leaveRow(), closeTo(row, 2));
       });
     }
 
