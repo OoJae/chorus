@@ -29,6 +29,11 @@ String showOnBoardLabel(String childName) => "Show on $childName's board";
 String shownMessage(String label, String childName) =>
     "'$label' is glowing on $childName's board.";
 
+/// Said once the glow is sent while no other device is in the live
+/// session, so nothing can be glowing yet.
+String sentNobodyHereMessage(String label, String childName) =>
+    "Sent. '$label' will glow if $childName's board is open.";
+
 /// Said when the circle has more than one board: the child's board rings
 /// the word's board tab when another board is on show.
 String shownOnTabMessage(String label, String childName, String board) =>
@@ -95,7 +100,9 @@ class _WordFinderScreenState extends State<WordFinderScreen> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            boards.length < 2
+            live.present.isEmpty
+                ? sentNobodyHereMessage(label, child)
+                : boards.length < 2
                 ? shownMessage(label, child)
                 : shownOnTabMessage(label, child, find.board.name),
           ),

@@ -21,7 +21,8 @@ const String quickPhrasesTitle = 'Quick phrases';
 /// Says what the page is for.
 const String quickPhrasesIntro =
     'Whole sentences the board says with one tap. They open from the '
-    'megaphone key beside the sentence.';
+    'megaphone key beside the sentence, or on a phone by holding the '
+    'sentence strip.';
 
 /// Adds a phrase.
 const String addPhraseLabel = 'Add a phrase';

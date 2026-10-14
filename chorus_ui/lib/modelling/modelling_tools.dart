@@ -66,9 +66,11 @@ class ModellingTools extends StatefulWidget {
 class _ModellingToolsState extends State<ModellingTools> {
   String? _heard;
   final List<Timer> _glows = [];
+  final TextEditingController _findText = TextEditingController();
 
   @override
   void dispose() {
+    _findText.dispose();
     _cancelGlows();
     final speech = widget.speech;
     if (speech != null && speech.listening) speech.stop();
@@ -163,6 +165,7 @@ class _ModellingToolsState extends State<ModellingTools> {
             if (wordFinderEnabled) ...[
               TextField(
                 key: ModellingTools.findFieldKey,
+                controller: _findText,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   hintText: findWordLabel,
@@ -170,7 +173,7 @@ class _ModellingToolsState extends State<ModellingTools> {
                   suffixIcon: IconButton(
                     tooltip: findWordLabel,
                     icon: const Icon(Icons.arrow_forward_rounded),
-                    onPressed: () => _find(''),
+                    onPressed: () => _find(_findText.text),
                   ),
                 ),
                 onSubmitted: _find,

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../brand/tokens.dart';
 import '../contracts.dart';
+import '../contracts_copies.dart' show TrayWordAdder;
 import '../contracts_photo_ideas.dart';
 import '../widgets/tile_view.dart';
 
@@ -17,6 +18,11 @@ const String photoIdeasIntro = 'Ideas for this photo. Tap one to use it:';
 
 /// The button that puts every idea in the tray.
 const String addAllToTrayLabel = 'Add all to Needs a home';
+
+/// Shown when none of the ideas could be put in the tray.
+const String ideasNotAddedMessage =
+    'These ideas could not be put under "Needs a home". Nothing was '
+    'changed. Put one word on this board first, then try again.';
 
 /// Shown once the ideas are in the tray.
 String ideasInTrayMessage(int count) =>
@@ -99,20 +105,35 @@ class PhotoIdeasStrip extends StatelessWidget {
   }
 }
 
-/// Puts [ideas] in the tray of [boardId] through the normal add path: each
-/// is added at an occupied spot, which the store answers by keeping it
-/// under "Needs a home". Completes with how many were added. Adds nothing
-/// when the board has no word yet to anchor on, since then a spot would
-/// be taken.
+/// Puts [ideas] in the tray of [boardId]. Completes with how many were
+/// added. A store that is a [TrayWordAdder] adds each straight to the
+/// tray, so this works on a board with no words yet and never takes a
+/// spot. Any other store goes through the normal add path: each idea is
+/// added at an occupied spot, which the store answers by keeping it under
+/// "Needs a home"; that adds nothing when the board has no word yet to
+/// anchor on, since then a spot would be taken.
 Future<int> addIdeasToTray(
   BoardStore store,
   String boardId,
   List<WordIdea> ideas,
 ) async {
+  final Object target = store;
+  var added = 0;
+  if (target is TrayWordAdder) {
+    for (final idea in ideas) {
+      await target.addToTray(
+        boardId: boardId,
+        label: idea.label,
+        speech: idea.speech.isEmpty ? null : idea.speech,
+        colorKey: colorForKey.containsKey(idea.colorKey) ? idea.colorKey : null,
+      );
+      added++;
+    }
+    return added;
+  }
   final held = gridOf(boardId, store.tiles, store.boards);
   if (held.isEmpty) return 0;
   final (row, col) = held.keys.first;
-  var added = 0;
   for (final idea in ideas) {
     await store.addTile(
       boardId: boardId,
