@@ -110,9 +110,29 @@ On this phone airplane mode leaves Wi-Fi on (it remembers that Wi-Fi was switche
 | Wi-Fi back on | The chip returned to "Up to date" by itself. |
 | Errors | None seen. |
 
+## 14 October 2026, afternoon (12:50 to 13:20 UTC): the redesign on Cloud
+
+Build under test: branch `wave5` at `2b38bd7` (the redesign, the word log, "This week", the view-only board, Open Board Format export and import, more boards, Mulberry symbols, the photo suggestion through Xiaomi MiMo), deployed to Serverpod Cloud at 12:49 UTC; release APK of the same commit installed on the phone at 13:02 UTC. Same single account on the phone and in Edge, one Edge tab. The suggestion service was set to `mimo-v2.6-pro` through its Anthropic-compatible endpoint, with the participant's own key.
+
+| Check | Where | Result |
+|---|---|---|
+| Launch reveal, then home with the board as a 3D object | Edge (dark mode) and phone (dark mode) | Yes. Edge's first frame came 1.6 s after a reload. Dragging across the board tilted it in perspective; it settled back on release. |
+| "Open Maya's board" | Edge | The child's board opened with Mulberry symbols on 23 words, "Private", the live mark and "Hold to leave". "I", "want", "more" built the sentence; "Hold to leave" returned home. |
+| Photo suggestion through MiMo | Edge | For a photo of a red ball: "Suggested. Tap one to use it: ball, circle, red", 9.4 s after the request. Nothing went on the board until chosen. |
+| Word log | Edge | Off by default. Turned on by the guardian ("On for Maya's board, on every device in the circle"); five taps on the child's board. |
+| "This week" | Edge | "5 taps · 4 words"; most used "more ×2", then go, help, want; first-time words and words added this week listed. |
+| View-only board for a babysitter | Edge, then a second browser with no account | Link made, expiry 21 October. The page opened with no sign-in, made no request to any other site, and spoke "want" and "more" when tapped. Response headers: `Content-Security-Policy: default-src 'none'; ... script-src 'unsafe-inline'; img-src data:` and `Cache-Control: private, no-store`. |
+| Open Board Format export | curl | `/export/<token>`: HTTP 200, `Home.obf` as an attachment, format `open-board-0.1`, 6 x 6, 36 buttons with colours, licence block. |
+| Add, rename and archive a board | Edge | "+" added "Board 3"; right-click on its tab opened "Rename this board" and "Archive this board"; rename saved; archive asked "Maya will no longer see this board. Nothing is deleted." and removed the tab. "Archive this board" is greyed out for Home. A long press with a mouse did not open the menu (right-click does). |
+| Import an Open Board Format file | Edge | A four-word .obf file (given to the file input by script) became a new board "Snacks": "4 words are on the new board", in their positions. It reached the phone's child board as a new tab. |
+| Paper copy | Edge, then a second browser | The link opened (HTTP 200) with the new mark, colours and credits. Fault found: rows with no words printed as thin lines. Fixed in `be2a08e` (each empty cell keeps its full-height box), not yet deployed at the time of writing. |
+| A new word held back on the child's board | Phone and Edge | Phone on "My words" with "mango guava" in the strip; Edge added "juice". The phone showed "1 waiting" and did not place the word. After the strip was cleared, "juice" appeared in its cell within 3.5 s and the notice went. Nothing else moved. |
+| Two devices fill the same empty cell while working offline | Phone and Edge | Phone "cookie" first, Edge "cake" a minute later, same cell, both with "Work offline" on. Phone back online first, then Edge. Edge showed "cookie" in the cell and "cake" under "Needs a home · 4" within 15 s, with no reload; the phone showed the same in its bottom sheet. |
+| Phone layout of "Work offline" on home | Phone | The explanation was squeezed into a narrow column. Fixed in `be2a08e`, as for "Share what is said". |
+
 ### Not yet checked on a device
 
-- An offline word uploading after a real loss of network (checked only with "Work offline"; see the evening section).
+- An offline word uploading after a real loss of network (checked only with "Work offline").
 - Two different accounts on two devices on Cloud (every check above used one account).
-- A new word held back on the phone's child screen. One attempt was inconclusive: the word was added to "My words" while the phone showed "Home".
-- Live pointing ("Show words on the board") reaching the phone, recorded voices, "Replaced changes" with restore, the paper copy, and the demo sign-ins, all on Cloud.
+- Live pointing ("Show words on the board") reaching the phone, recorded voices, "Replaced changes" with restore, and the demo sign-ins, all on Cloud.
+- A touch long press on a board tab on the phone (right-click was used in the browser).
