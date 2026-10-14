@@ -253,9 +253,16 @@ void main() {
         weekStart: week,
       );
       await tester.pumpWidget(
-        featureApp(Scaffold(body: FocusNudgeNoteView(modelling: modelling))),
+        featureApp(
+          Scaffold(
+            body: ListenableBuilder(
+              listenable: modelling,
+              builder: (context, _) =>
+                  Column(children: [?focusNudgeNoteFor(modelling)]),
+            ),
+          ),
+        ),
       );
-      await tester.pump();
       expect(
         find.text(
           "Nobody has modelled 'help' yet this week. Try it at snack time.",
@@ -266,6 +273,8 @@ void main() {
       await tester.pump();
       expect(find.byType(HomeNote), findsNothing);
       expect(modelling.nudgeNote, isNull);
+      expect(focusNudgeNoteFor(modelling), isNull);
+      expect(focusNudgeNoteFor(null), isNull);
     });
 
     test('uses the tip when there is one', () {

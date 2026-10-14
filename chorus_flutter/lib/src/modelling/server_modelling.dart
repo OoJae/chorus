@@ -20,6 +20,9 @@ import 'open_link.dart';
 /// How long the focus words read are trusted before they are read again.
 const Duration focusFreshFor = Duration(minutes: 1);
 
+/// How long this week's nudge read is trusted before it is read again.
+const Duration nudgeFreshFor = Duration(minutes: 10);
+
 /// [ModellingSource] over the circle's endpoints.
 class ServerModelling extends ModellingSource {
   ServerModelling({
@@ -150,9 +153,31 @@ class ServerModelling extends ModellingSource {
     }
   }
 
+  FocusNudgeNote? _nudge;
+  DateTime? _nudgeReadAt;
+
   @override
-  Future<void> dismissNudge(FocusNudgeNote note) =>
-      store.writeText(_dismissFile, _dismissKey(note));
+  FocusNudgeNote? get shownNudge {
+    final readAt = _nudgeReadAt;
+    if (readAt == null || DateTime.now().difference(readAt) > nudgeFreshFor) {
+      _nudgeReadAt = DateTime.now();
+      unawaited(
+        nudge().then((note) {
+          if (_disposed || note?.tileId == _nudge?.tileId) return;
+          _nudge = note;
+          notifyListeners();
+        }),
+      );
+    }
+    return _nudge;
+  }
+
+  @override
+  Future<void> dismissNudge(FocusNudgeNote note) async {
+    _nudge = null;
+    if (!_disposed) notifyListeners();
+    await store.writeText(_dismissFile, _dismissKey(note));
+  }
 
   String get _dismissFile => 'chorus_nudge_${_userId}_${_space.uuid}.txt';
 

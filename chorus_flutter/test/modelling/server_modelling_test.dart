@@ -63,6 +63,9 @@ void main() {
       await source.refreshFocus();
       expect(source.focusWords, isEmpty);
       expect(await source.nudge(), isNull);
+      expect(source.shownNudge, isNull);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(source.shownNudge, isNull);
     },
   );
 

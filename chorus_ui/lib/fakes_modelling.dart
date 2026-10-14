@@ -57,8 +57,12 @@ class FakeModelling extends ModellingSource {
   Future<FocusNudgeNote?> nudge() async => nudgeNote;
 
   @override
+  FocusNudgeNote? get shownNudge => nudgeNote;
+
+  @override
   Future<void> dismissNudge(FocusNudgeNote note) async {
     nudgeNote = null;
+    notifyListeners();
   }
 
   @override

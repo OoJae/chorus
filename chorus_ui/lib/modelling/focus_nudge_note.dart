@@ -13,64 +13,39 @@ import '../home/home_actions.dart';
 /// Tooltip of the button that hides the nudge on this device.
 const String dismissNudgeLabel = 'Hide this note';
 
-/// Home's note for this week's nudge, when there is one. Draws nothing
-/// while it loads, when there is none, and once dismissed here.
-class FocusNudgeNoteView extends StatefulWidget {
-  const FocusNudgeNoteView({super.key, required this.modelling});
-
-  final ModellingSource modelling;
-
-  @override
-  State<FocusNudgeNoteView> createState() => _FocusNudgeNoteViewState();
+/// The note home shows for [modelling]'s nudge, or null when there is none
+/// (or the flag is off), so home adds nothing at all.
+Widget? focusNudgeNoteFor(ModellingSource? modelling) {
+  if (!focusNudgeEnabled || modelling == null) return null;
+  final note = modelling.shownNudge;
+  if (note == null) return null;
+  return FocusNudgeNoteView(modelling: modelling, note: note);
 }
 
-class _FocusNudgeNoteViewState extends State<FocusNudgeNoteView> {
-  FocusNudgeNote? _note;
+/// Home's note for this week's nudge, with a button that hides it on this
+/// device.
+class FocusNudgeNoteView extends StatelessWidget {
+  const FocusNudgeNoteView({
+    super.key,
+    required this.modelling,
+    required this.note,
+  });
 
-  @override
-  void initState() {
-    super.initState();
-    if (focusNudgeEnabled) unawaited(_load());
-  }
-
-  @override
-  void didUpdateWidget(FocusNudgeNoteView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.modelling, widget.modelling) &&
-        focusNudgeEnabled) {
-      unawaited(_load());
-    }
-  }
-
-  Future<void> _load() async {
-    FocusNudgeNote? note;
-    try {
-      note = await widget.modelling.nudge();
-    } catch (_) {
-      note = null;
-    }
-    if (mounted) setState(() => _note = note);
-  }
-
-  void _dismiss(FocusNudgeNote note) {
-    setState(() => _note = null);
-    unawaited(
-      Future<void>.sync(
-        () => widget.modelling.dismissNudge(note),
-      ).then<void>((_) {}, onError: (Object _) {}),
-    );
-  }
+  final ModellingSource modelling;
+  final FocusNudgeNote note;
 
   @override
   Widget build(BuildContext context) {
-    final note = _note;
-    if (!focusNudgeEnabled || note == null) return const SizedBox.shrink();
     return HomeNote(
       icon: const Icon(Icons.push_pin_outlined),
       message: focusNudgeMessage(note),
       action: IconButton(
         tooltip: dismissNudgeLabel,
-        onPressed: () => _dismiss(note),
+        onPressed: () => unawaited(
+          Future<void>.sync(
+            () => modelling.dismissNudge(note),
+          ).then<void>((_) {}, onError: (Object _) {}),
+        ),
         icon: const Icon(Icons.close_rounded),
       ),
     );

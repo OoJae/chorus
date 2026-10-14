@@ -79,7 +79,12 @@ abstract class ModellingSource extends ChangeNotifier {
   /// there is none or it cannot be had. Never throws.
   Future<FocusNudgeNote?> nudge();
 
-  /// Hides [note] on this device.
+  /// This week's nudge as last read, unless it was dismissed on this
+  /// device; null otherwise. Reading it starts a read when there was none
+  /// yet or the last one is old, and listeners hear when it arrives.
+  FocusNudgeNote? get shownNudge;
+
+  /// Hides [note] on this device; [shownNudge] is null from then on.
   Future<void> dismissNudge(FocusNudgeNote note);
 
   /// Makes a one-page progress report of this week and completes with its

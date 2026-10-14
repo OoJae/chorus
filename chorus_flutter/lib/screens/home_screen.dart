@@ -285,7 +285,7 @@ class HomeScreen extends StatelessWidget {
     final canEdit = selected.myRole != CircleRole.partner;
     final childName = selected.childName;
     return ListenableBuilder(
-      listenable: store,
+      listenable: Listenable.merge([store, ?services?.modelling]),
       builder: (context, _) {
         // A board already on this device can be used straight away,
         // whatever the network is doing.
@@ -327,8 +327,7 @@ class HomeScreen extends StatelessWidget {
           ),
           notes: [
             ?readinessNote,
-            if (services?.modelling case final modelling?)
-              FocusNudgeNoteView(modelling: modelling),
+            ?focusNudgeNoteFor(services?.modelling),
             if (noWords)
               HomeNote(
                 icon: const Icon(Icons.grid_view_rounded),
