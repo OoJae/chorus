@@ -29,7 +29,7 @@ The app shows its sync state in words, in a small chip at the top. When all is w
 
 ## Part A. One browser
 
-Status at 16:20 UTC on 14 October 2026: the landing page, the child's board, adding a word, "Try a clash" to the end, the "Needs a home" card, "What changed" with Undo, "Under the hood" and "Who is up to date" were checked in Microsoft Edge on macOS against the deployed build. Sign-up was last checked on 13 October, before the app moved to `/app/`. Placing a waiting word from the tray was last checked on a local server. The demo sign-ins have not yet been tried on Serverpod Cloud.
+Status at 17:45 UTC on 14 October 2026: the landing page, the child's board, adding a word, "Try a clash" to the end, the "Needs a home" card, "What changed" with Undo, "Under the hood" and "Who is up to date" were checked in Microsoft Edge on macOS against the deployed build. Sign-up was last checked on 13 October, before the app moved to `/app/`. Placing a waiting word from the tray was last checked on a local server. The demo parent's sign-in was checked on Serverpod Cloud at 17:45 UTC; the therapist and partner sign-ins have not been tried there.
 
 1. **Open the landing page.** Go to https://chorus.serverpod.space/ with the sound on. Try the small board at the top if you like, then click "Open Chorus". The first visit to the app can take a little while to load.
 
@@ -60,7 +60,7 @@ Status at 16:20 UTC on 14 October 2026: the landing page, the child's board, add
 
 This is the collision Chorus is built around: two adults put a word in the same empty spot while both are offline.
 
-Status at 16:20 UTC on 14 October 2026: the same-cell result was checked on Serverpod Cloud between an Android phone and Edge, signed in as the same adult on both (13 and 14 October), and with three demo sign-ins on a local server. Two different accounts, the invitation code and the demo sign-ins have not yet been tried on Cloud. The invitation rules have endpoint tests, and the same-cell rule has automated tests against real PostgreSQL and real SQLite replica files (scenario T1 in [`spike-results.md`](spike-results.md)).
+Status at 17:45 UTC on 14 October 2026: the same-cell result was checked on Serverpod Cloud between an Android phone and Edge, signed in as the same adult on both (13 and 14 October), and with three demo sign-ins on a local server. Two different accounts, the invitation code and the therapist and partner demo sign-ins have not yet been tried on Cloud (the demo parent's was, at 17:45 UTC). The invitation rules have endpoint tests, and the same-cell rule has automated tests against real PostgreSQL and real SQLite replica files (scenario T1 in [`spike-results.md`](spike-results.md)).
 
 You need two sign-ins that do not share browser storage: a normal window (A, from part A) and a private window (B; Incognito in Chrome, InPrivate in Edge), or two browsers. A second tab in window A's browser cannot be the second adult: tabs of one browser profile share one copy of the board, so Chorus runs in only one of them at a time.
 
@@ -114,7 +114,7 @@ In a wide window, the keys for word endings, quick phrases and the keyboard sit 
 
 ## Part D. Android phone
 
-Status at 16:20 UTC on 14 October 2026: on one phone (a Xiaomi on Android 16), earlier builds were installed, received a board made in the browser through the sync module, and spoke with no network at all (airplane mode on and Wi-Fi off), also after the app was closed and opened again (13 and 14 October). The APK in the release is a later build and has not yet been checked on a phone.
+Status at 17:20 UTC on 14 October 2026: on one phone (a Xiaomi on Android 16), earlier builds were installed, received a board made in the browser through the sync module, and spoke with no network at all (airplane mode on and Wi-Fi off), also after the app was closed and opened again (13 and 14 October). The APK in the release has the same code as the build installed on that phone at 16:39 UTC, which spoke with no network and showed the word finder's glow, a held-back word and a same-spot clash with Edge.
 
 1. **Install.** On the phone, open https://github.com/OoJae/chorus/releases/latest and download the APK. Android asks you to allow installs from this source: the build is signed with a debug key and does not come from a store. It needs Android 7.0 or later. If Google Play Protect warns about the app, look in its dialog for the choice to install anyway.
 
@@ -149,7 +149,7 @@ Each of these was checked in Microsoft Edge on the deployed build. The photo was
 | "Signed out, saved on this device" | Sign out and sign in again. |
 | "No longer shared with you" | The server refused this account access to the board. Tell us at the link below. |
 | "Chorus is open in another tab" | Chorus runs in one tab of a browser profile at a time. Click "Use Chorus in this tab". For a second adult, use a private window or another browser. |
-| "The practice partner needs a rest. Try again in an hour." | The practice partner adds a limited number of words to each circle per hour (5 in the build checked on 14 October, 30 after the final fixes), and on the shared demo circle every judge's tries count. Wait, sign up with your own email address for a circle of your own, or make the clash yourself with a second window (part B). |
+| "The practice partner needs a rest. Try again in an hour." | The practice partner adds at most 30 words to each circle per hour, and on the shared demo circle every judge's tries count. Wait, sign up with your own email address for a circle of your own, or make the clash yourself with a second window (part B). |
 | "Every spot is taken. Remove a word, or add a board with +, then try again." | Do one of those, then choose "Try a clash" again. |
 | "The practice partner's word arrived first, because Work offline was turned off before your word went in." | Click "Try again", and add your word before turning "Work offline" off. |
 | "This needs a connection for a moment." | Check the connection, then click "Try again". |

@@ -2,7 +2,7 @@
 
 Version 2, 14 October 2026, 16:35 UTC. Every scene is final. Each line of scene 5 names a feature checked on the live Cloud build on 14 October (docs/device-log.md, "late afternoon"). One phrase, "and make it glow on Maya's board", is checked on the phone before recording; if it fails, say the shorter scene 5 text instead.
 
-The film runs 1:50. The narration is about 215 words at a calm pace. Every line describes something shown in a real capture from the live app.
+The finished film runs 1:35; the scene times below are from the 1:50 plan. The narration is about 215 words at a calm pace. Every line describes something shown in a real capture from the live app.
 
 ## How to make the audio in Clipchamp
 
@@ -79,11 +79,11 @@ If a word comes out wrong, here is what the text does about it:
 **Say:**
 > Chorus. Many hands on one board, and every word stays hers.
 
-**On screen:** the Chorus mark and wordmark, chorus.serverpod.space, "Android app and code on GitHub".
+**On screen:** the Chorus mark and wordmark, chorus.serverpod.space, "Android app and code: github.com/OoJae/chorus".
 
 ## Rules the film keeps
 
 - Every app behaviour in the film comes from a real capture of the live Cloud build or the release APK. A wait that is shortened is marked on screen, for example "sped up ×4".
-- The narration and captions name only Chorus and Serverpod.
+- Apart from Postgres (scene 6) and the GitHub address on the closing card, the narration and captions name only Chorus and Serverpod.
 - Maya is a persona, and so are the adults. No real child appears, and there are no clinical claims.
 - No music. The only sounds are this voice-over, the phone's own speech and soft tap sounds.

@@ -1,6 +1,6 @@
 # Chorus
 
-**A talking picture board for a non-speaking child that works offline, which the adults in the child's circle edit from their own devices. When two adults fill the same empty spot offline, both words survive, and no button the child knows ever moves.**
+**A talking picture board for a non-speaking child that works offline, which the adults in the child's circle edit from their own devices. When two adults fill the same empty spot offline, both words survive, and no word the child knows ever moves.**
 
 Built on Serverpod 4.0.4 and its experimental offline sync module, hosted on Serverpod Cloud. Maya, the child in the demo, and every adult in it are personas. No child, parent or clinician has used Chorus, and it makes no clinical claims.
 
@@ -56,13 +56,13 @@ The password is in the submission text, never in this repository.
 
 ## What the circle gets
 
-Each item says how far it was checked. "Checked" means it was seen working on a real device against the Cloud deployment, as recorded in the [device log](docs/device-log.md). "Built and tested" means automated tests cover it but nobody has checked it on a device yet. Most of these features were checked in a browser only, because the phone did not yet have the new build.
+Each item says how far it was checked. "Checked" means it was seen working on a real device against the Cloud deployment, as recorded in the [device log](docs/device-log.md). "Built and tested" means automated tests cover it but nobody has checked it on a device yet. Most of these features were checked in a browser only; the phone got the final build late on 14 October, and only some were checked there.
 
 **Trust and repair, for the adults**
 
 - **"What changed" with one-tap "Undo".** Every change to a word is listed with the adult's name and the local time. An undo is saved as a new change, so nothing is wiped. Home counts what came in while you were away ("Since you last looked: 26 changes"). Checked.
 - **"Needs a home" in plain words.** A parked word shows both words, both adults and both times. The tray never uses the word "conflict"; only "Under the hood" shows the engine's raw key. Checked.
-- **Sync status in words.** The chip reads "Everyone's up to date", or "Working offline, 1 change waiting to send". Checked. "Who is up to date" lists the circle's devices and when each last synced. It was checked for the browser only, because the phone ran an older build. A line naming who else is looking at the board is built and tested.
+- **Sync status in words.** The chip reads "Everyone's up to date", or "Working offline, 1 change waiting to send". Checked. "Who is up to date" lists the circle's devices and when each last synced. It was checked for the browser only. A line naming who else is looking at the board was checked: the editor in Edge showed it while the phone had the board open.
 - **"Under the hood".** It shows the rows in this device's replica for each table, the changes waiting, the last sync, the circle's space id and the module's version. Checked.
 - **Named copies.** "Save a copy" keeps a board under a name, such as "Before the school trip". "Copies" lists the saved copies. Saving and listing were checked. "Put back" sends a word from a copy back through "Needs a home". It is built and tested.
 - **"Replaced changes".** When two adults change the same field of a word offline, the replaced label, spoken text or colour is listed with a one-tap restore. Built and tested.
@@ -86,7 +86,7 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 
 **Modelling: adults show words on the board as they talk**
 
-- **"Show words on the board".** An adult taps words in the editor and they glow on the child's board over the live stream. These taps count as modelled, not said. Counting was checked, and the glow reached the phone on Cloud on 14 October.
+- **"Show words on the board".** An adult taps words in the editor and they glow on the child's board over the live stream. These taps count as modelled, not said. Counting was checked. The same glow, sent from the word finder, reached the phone on Cloud on 14 October.
 - **Word finder.** "Find a word": typing "help" gave "Home board · row 2, column 5" with a small map. "Show on Maya's board" made "help" glow on the phone's board a moment later (checked on Cloud, 14 October).
 - **Modelled and said.** With the word log on, "This week" counts the words adults modelled apart from the words the child said, for example "help: modelled 1 · said 1". Checked.
 - **Focus words.** Up to three "Focus words" a week, each with a tip for the adults ("At snack time: 'help open?'"), shown as "Words of the week". Checked. Each Thursday at 09:00 UTC, a note on home names a focus word nobody has modelled yet that week. The note is built and tested, and the first one is due on Thursday 15 October.
@@ -115,10 +115,10 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 | Endpoints | [`lib/src/`](chorus_server/lib/src/) | Circles and invitations, members, the word log, suggestions, practice, devices ([`device_seen_endpoint.dart`](chorus_server/lib/src/trust/device_seen_endpoint.dart)), scenes, copies, voices, quick phrases, languages and word settings, focus words and reports. |
 | Streaming method | [`live_endpoint.dart`](chorus_server/lib/src/live/live_endpoint.dart) | Live pointing, presence and shared sentences, relayed between members and never stored. The glow and the presence line were checked between Edge and the phone on Cloud on 14 October; shared sentences were not. |
 | File storage | [`media_endpoint.dart`](chorus_server/lib/src/media/media_endpoint.dart) | Photos and recorded voices, held in private storage. Each file is named by its SHA-256 and checked on the server. |
-| Future calls | [`scheduled_jobs.dart`](chorus_server/lib/src/jobs/scheduled_jobs.dart) | The weekly summary (Mondays 02:00 UTC), the Thursday focus-word note (09:00 UTC) and a daily clean-up of expired links (03:30 UTC). They need a Cloud plan that runs future calls. None had come due by 14 October; the first, the clean-up, is due at 03:30 UTC on 15 October. Without the jobs, a week's summary is worked out when it is asked for and the Thursday note is written when home first asks after 09:00. The clean-up has no such fallback, but an expired link is refused either way. |
+| Future calls | [`scheduled_jobs.dart`](chorus_server/lib/src/jobs/scheduled_jobs.dart) | The weekly summary (Mondays 02:00 UTC), the Thursday focus-word note (09:00 UTC) and a daily clean-up of expired links (03:30 UTC). They need a Cloud plan that runs future calls; the live project's Starter plan does not, so none runs there. Without the jobs, a week's summary is worked out when it is asked for and the Thursday note is written when home first asks after 09:00. The clean-up has no such fallback, but an expired link is refused either way. |
 | Web server routes | [`app_route.dart`](chorus_server/lib/src/web/app_route.dart), [`app_config_route.dart`](chorus_server/lib/src/web/routes/app_config_route.dart), [`print_routes.dart`](chorus_server/lib/src/printing/print_routes.dart), [`sharing_routes.dart`](chorus_server/lib/src/sharing/sharing_routes.dart), [`progress_routes.dart`](chorus_server/lib/src/progress/progress_routes.dart) | The landing page at `/`, the Flutter app at `/app/`, and four token pages: `/print/<token>`, `/b/<token>` (view-only), `/export/<token>` (.obf) and `/report/<token>`. |
 | Passwords | [`suggest_service.dart`](chorus_server/lib/src/suggest/suggest_service.dart), [`demo_seed.dart`](chorus_server/lib/src/demo/demo_seed.dart) | `anthropicApiKey`, `suggestModel` and `suggestBaseUrl` for photo ideas. `demoPassword` creates the demo sign-ins. |
-| Serverpod Cloud | [`scloud.yaml`](chorus_server/scloud.yaml) | Hosts the server, Postgres, the web pages and email, on the Starter plan (Europe; 256 MB compute, 1 GB database). |
+| Serverpod Cloud | [`scloud.yaml`](chorus_server/scloud.yaml) | Hosts the server, Postgres, the web pages and email, on the Starter plan (Europe; 256 MB compute, a small database with 2 GB of storage). |
 
 Every table added after the first deploy is server-only: 21 of them, 18 on 14 October. The gaps we worked around are logged in [docs/feedback-log.md](docs/feedback-log.md).
 
@@ -185,7 +185,7 @@ Not yet checked on any device (built and tested only):
 - Placing a waiting word from the tray on Cloud. It was checked only on a local server.
 - A touch long press on a board tab. Right-click was used in the browser.
 
-A code review after the last checks found six faults, listed at the end of the device log. The final build fixes five of them, with automated tests, and switches "Remove from circle" off. None of these fixes has been checked on a device.
+A code review after the afternoon checks found six faults, listed in the device log before its evening section. The build deployed at 16:35 UTC fixes five of them, with automated tests, and switches "Remove from circle" off. The evening checks ran on that build, but none of them tried these fixes.
 
 ## Build and run
 
@@ -261,7 +261,7 @@ These counts are from 14 October 2026, on the merged tree, and every suite passe
 - The live session (pointing, presence and shared sentences) works on one server instance only.
 - The APK is signed with the debug key and keeps the scaffold's id, `com.example.chorus_flutter`.
 - The synced `Tile` table has two columns kept for features that were not built: `linkBoardId` is never set and `noLog` is always false. The synced schema is frozen, so they stay.
-- The new features have not been seen on the phone. The phone layout notes from earlier builds are in the device log.
+- Most new features have not been tried on the phone. On the final build it showed the status row, a picture on every core word, the word finder's glow, a held-back word and the same-spot clash. The phone layout notes from earlier builds are in the device log.
 
 ## Privacy
 
