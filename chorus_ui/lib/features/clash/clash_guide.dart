@@ -50,7 +50,8 @@ const String clashWaitingMessage = 'Sending your word and bringing in theirs…'
 String clashDoneMessage({required String kept, required String waiting}) =>
     'Both words are safe. "$kept" got to the spot first, so it keeps it. '
     '"$waiting" waits under Needs a home, on every adult\'s device. Nothing '
-    'was lost: choose a new spot for it whenever you like.';
+    'was lost: choose a new spot for it whenever you like. Tap a practice '
+    'word to remove it when you are done.';
 
 /// The partner's word arrived before the adult's.
 const String clashMissedMessage =

@@ -253,6 +253,7 @@ void main() {
         );
         expect(find.text('0.0.10'), findsOneWidget);
         expect(find.text('https://chorus.example/'), findsOneWidget);
+        expect(find.text('live'), findsOneWidget);
         await tester.scrollUntilVisible(
           find.text('board:2:3__conflict__tile-7'),
           200,

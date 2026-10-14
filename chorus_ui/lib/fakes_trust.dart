@@ -78,6 +78,7 @@ class FakeReplicaInspector implements ReplicaInspector {
             ],
             moduleVersion: '0.0.10',
             serverAddress: 'https://chorus.example/',
+            syncState: 'live',
           );
 
   ReplicaReport report;

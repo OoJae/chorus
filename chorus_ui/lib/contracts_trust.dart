@@ -67,6 +67,7 @@ class ReplicaReport {
     required this.parked,
     required this.moduleVersion,
     required this.serverAddress,
+    this.syncState = '',
   });
 
   /// Rows of the circle in each synced table on this device.
@@ -92,6 +93,9 @@ class ReplicaReport {
 
   /// The API server this device syncs with.
   final String serverAddress;
+
+  /// The supervisor's state, as its enum names it: `live`, `offline`.
+  final String syncState;
 }
 
 /// Reads the [ReplicaReport] of one circle on this device.

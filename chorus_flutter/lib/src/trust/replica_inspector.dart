@@ -62,6 +62,9 @@ class LocalReplicaInspector implements ReplicaInspector {
       ],
       moduleVersion: offlineSyncModuleVersion,
       serverAddress: serverAddress,
+      syncState: sync.workingOffline
+          ? 'paused (Work offline)'
+          : sync.state.name,
     );
   }
 }

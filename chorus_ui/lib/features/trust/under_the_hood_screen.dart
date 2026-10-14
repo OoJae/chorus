@@ -93,6 +93,7 @@ class _UnderTheHoodScreenState extends State<UnderTheHoodScreen> {
       _Row('tile', '${report.tiles}'),
       _Row('tile_edit', '${report.tileEdits}'),
       const FeatureHeading('Sync'),
+      if (report.syncState.isNotEmpty) _Row('Sync state', report.syncState),
       _Row(
         'Changes waiting to send',
         !report.hasUnsent
