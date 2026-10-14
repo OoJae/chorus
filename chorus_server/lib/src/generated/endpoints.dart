@@ -32,6 +32,7 @@ import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
+import '../quickphrases/quick_phrase_endpoint.dart' as _i2z0d7f4;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
@@ -88,6 +89,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'printing',
+          null,
+        ),
+      'quickPhrase': _i2z0d7f4.QuickPhraseEndpoint()
+        ..initialize(
+          server,
+          'quickPhrase',
           null,
         ),
       'sharing': _ifnilofz.SharingEndpoint()
@@ -627,6 +634,58 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['token'],
                   ),
+        ),
+      },
+    );
+    connectors['quickPhrase'] = _is.EndpointConnector(
+      name: 'quickPhrase',
+      endpoint: endpoints['quickPhrase']!,
+      methodConnectors: {
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['quickPhrase'] as _i2z0d7f4.QuickPhraseEndpoint)
+                      .list(
+                        session,
+                        params['circleSpace'],
+                      ),
+        ),
+        'set': _is.MethodConnector(
+          name: 'set',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'phrases': _is.ParameterDescription(
+              name: 'phrases',
+              type: _is.getType<List<String>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['quickPhrase'] as _i2z0d7f4.QuickPhraseEndpoint)
+                      .set(
+                        session,
+                        params['circleSpace'],
+                        params['phrases'],
+                      ),
         ),
       },
     );

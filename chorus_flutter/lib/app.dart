@@ -26,6 +26,7 @@ import 'src/media/clip_player.dart';
 import 'src/media/device_media_capture.dart';
 import 'src/media/media_files.dart';
 import 'src/media/media_gateway.dart';
+import 'src/quickphrases/server_quick_phrases.dart';
 import 'src/speech/clip_tile_speaker.dart';
 import 'src/speech/tts_speech_service.dart';
 import 'src/suggest/server_word_suggester.dart';
@@ -336,6 +337,12 @@ class SessionWorkspace implements Workspace {
       summary: features?.summary,
       sharing: features?.sharing,
       boards: features?.boards,
+      quickPhrases: ServerQuickPhrases.forClient(
+        _client,
+        circleSpace: space,
+        canEdit: canEdit,
+      ),
+      wordCounts: DeviceWordCounts(circleId: space.uuid),
     );
   }
 

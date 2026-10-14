@@ -191,6 +191,8 @@ class TestEndpoints {
 
   late final _PrintingEndpoint printing;
 
+  late final _QuickPhraseEndpoint quickPhrase;
+
   late final _SharingEndpoint sharing;
 
   late final _SuggestEndpoint suggest;
@@ -236,6 +238,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     printing = _PrintingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    quickPhrase = _QuickPhraseEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1044,6 +1050,83 @@ class _PrintingEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _QuickPhraseEndpoint {
+  _QuickPhraseEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<String>> list(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'quickPhrase',
+            method: 'list',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'quickPhrase',
+          methodName: 'list',
+          parameters: _ist.testObjectToJson({'circleSpace': circleSpace}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<String>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<String>> set(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    List<String> phrases,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'quickPhrase',
+            method: 'set',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'quickPhrase',
+          methodName: 'set',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'phrases': phrases,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<String>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

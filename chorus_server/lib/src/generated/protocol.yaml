@@ -27,6 +27,9 @@ media:
 printing:
   - publishBoard:
   - pageUrl:
+quickPhrase:
+  - list:
+  - set:
 sharing:
   - publishViewOnly:
   - withdraw:

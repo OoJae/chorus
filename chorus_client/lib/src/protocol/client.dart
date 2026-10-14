@@ -530,6 +530,44 @@ class EndpointPrinting extends _isc.EndpointRef {
       );
 }
 
+/// A circle's quick phrases: the few whole sentences the child's board says
+/// at once ("Stop", "Help", "I'm hurt"). Every member reads them; editing
+/// roles change them. Kept on the server only, never synced: each device
+/// keeps its own copy for when it is offline.
+/// {@category Endpoint}
+class EndpointQuickPhrase extends _isc.EndpointRef {
+  EndpointQuickPhrase(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'quickPhrase';
+
+  /// The circle's phrases in order, or the defaults when it has none of its
+  /// own. Members only.
+  _ida.Future<List<String>> list(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<List<String>>(
+        'quickPhrase',
+        'list',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Replaces the circle's phrases with [phrases], in that order, and
+  /// returns what was kept: trimmed, without empties or repeats, at most
+  /// `maxQuickPhrases`, each at most `maxQuickPhraseLength` long (see
+  /// `cleanQuickPhrases`). An empty list puts the defaults back. Editing
+  /// roles only: a read-only partner is refused with `notAllowed`.
+  _ida.Future<List<String>> set(
+    _isc.UuidValue circleSpace,
+    List<String> phrases,
+  ) => caller.callServerEndpoint<List<String>>(
+    'quickPhrase',
+    'set',
+    {
+      'circleSpace': circleSpace,
+      'phrases': phrases,
+    },
+  );
+}
+
 /// Sharing a board with someone outside the circle, such as a babysitter:
 /// a page that speaks, and the same board as an .obf file.
 /// {@category Endpoint}
@@ -781,6 +819,7 @@ class Client extends _isc.ServerpodClientShared {
     live = EndpointLive(this);
     media = EndpointMedia(this);
     printing = EndpointPrinting(this);
+    quickPhrase = EndpointQuickPhrase(this);
     sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
     summary = EndpointSummary(this);
@@ -804,6 +843,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointPrinting printing;
 
+  late final EndpointQuickPhrase quickPhrase;
+
   late final EndpointSharing sharing;
 
   late final EndpointSuggest suggest;
@@ -824,6 +865,7 @@ class Client extends _isc.ServerpodClientShared {
     'live': live,
     'media': media,
     'printing': printing,
+    'quickPhrase': quickPhrase,
     'sharing': sharing,
     'suggest': suggest,
     'summary': summary,

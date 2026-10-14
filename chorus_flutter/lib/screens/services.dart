@@ -8,6 +8,7 @@ import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncStatus;
 import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_media.dart';
+import 'package:chorus_ui/contracts_quick_phrases.dart';
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
 import 'package:chorus_ui/contracts_wordlog.dart';
@@ -78,6 +79,8 @@ class CircleServices {
     this.summary,
     this.sharing,
     this.boards,
+    this.quickPhrases,
+    this.wordCounts,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -123,6 +126,14 @@ class CircleServices {
   /// a screen holding the store may use that instead; both write the same
   /// replica.
   final BoardManager? boards;
+
+  /// The circle's quick phrases, kept on this device for use offline.
+  /// Every role reads them; only editing roles change them.
+  final QuickPhraseBook? quickPhrases;
+
+  /// How often this device has spoken each word, for the keyboard's
+  /// predictions. Kept on this device only.
+  final SpokenWordCounts? wordCounts;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

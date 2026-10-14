@@ -1,0 +1,15 @@
+### One of a circle's quick phrases: a whole sentence the child's board
+### says at once, such as "I need a break". Server-only and not synced; a
+### circle with no rows uses the defaults in `defaultQuickPhrases`.
+class: QuickPhrase
+table: quick_phrase
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  ### Its place in the list, from 0.
+  position: int
+  text: String
+indexes:
+  quick_phrase_space_position_idx:
+    fields: circleSpace, position
+    unique: true
