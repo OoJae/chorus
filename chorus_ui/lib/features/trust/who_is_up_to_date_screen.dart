@@ -99,7 +99,24 @@ class _WhoIsUpToDateScreenState extends State<WhoIsUpToDateScreen> {
       builder: (context, _) => FutureBuilder<List<DeviceSeenInfo>>(
         future: _list,
         builder: (context, snapshot) {
-          final list = snapshot.data;
+          final reported = snapshot.data;
+          // This device is listed even before its first report arrives.
+          final thisId = widget.directory.thisDeviceId;
+          final list =
+              reported == null ||
+                  thisId.isEmpty ||
+                  reported.any((d) => d.deviceId == thisId)
+              ? reported
+              : [
+                  DeviceSeenInfo(
+                    userId: '',
+                    userName: '',
+                    deviceId: thisId,
+                    deviceLabel: '',
+                    lastSyncAt: widget.sync.lastMergeAt ?? DateTime.now(),
+                  ),
+                  ...reported,
+                ];
           final content = <Widget>[
             const Text(whoIsUpToDateIntro),
             const SizedBox(height: 16),

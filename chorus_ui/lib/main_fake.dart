@@ -24,6 +24,7 @@ import 'credits/credits_screen.dart';
 import 'editor/add_word_sheet.dart';
 import 'editor/editor_screen.dart';
 import 'fakes.dart';
+import 'fakes_clash.dart';
 import 'fakes_features.dart';
 import 'fakes_media.dart';
 import 'features/features.dart';
@@ -285,6 +286,7 @@ class _ChorusGalleryState extends State<ChorusGallery> {
           ),
         ),
       ),
+      clash: FakeClashPartner(),
     ),
   );
 

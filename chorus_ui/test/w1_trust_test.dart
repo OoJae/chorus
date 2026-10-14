@@ -187,7 +187,7 @@ void main() {
       await tester.pumpWidget(
         featureApp(
           WhoIsUpToDateScreen(
-            directory: FakeDeviceDirectory(list: const []),
+            directory: FakeDeviceDirectory(thisDeviceId: '', list: const []),
             sync: FakeSyncStatus(),
           ),
           reduced: true,
@@ -195,6 +195,23 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text(whoIsUpToDateEmpty), findsOneWidget);
+    });
+
+    testWidgets('lists this device before its first report arrives', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        featureApp(
+          WhoIsUpToDateScreen(
+            directory: FakeDeviceDirectory(list: const []),
+            sync: FakeSyncStatus(),
+          ),
+          reduced: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('This device: up to date'), findsOneWidget);
+      expect(find.text(whoIsUpToDateEmpty), findsNothing);
     });
   });
 
