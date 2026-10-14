@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
+import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
+    as _i1jjj2rd;
 import 'package:serverpod/protocol.dart' as _isp;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
@@ -40,10 +42,21 @@ import 'media/media_kind.dart' as _i8mjpd0r;
 import 'media/media_object.dart' as _i87lco0i;
 import 'media/upload_ticket.dart' as _illp1jkh;
 import 'printing/shared_snapshot.dart' as _if9s8td9;
+import 'printing/snapshot_kind.dart' as _iergzj3e;
+import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/ai_usage.dart' as _inv1atzh;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
+import 'summary/week_report.dart' as _iaf8iewd;
+import 'summary/weekly_summary.dart' as _ikaxfpae;
+import 'summary/word_tally.dart' as _i6roonjc;
+import 'wordlog/word_log_exception.dart' as _i163yf92;
+import 'wordlog/word_log_failure.dart' as _i352cmsp;
+import 'wordlog/word_log_setting.dart' as _i8exouxb;
+import 'wordlog/word_log_status.dart' as _i5lyi3mq;
+import 'wordlog/word_use_entry.dart' as _in1k2ibs;
+import 'wordlog/word_use_record.dart' as _iqz5pl6l;
 export 'boards/board.dart';
 export 'boards/tile.dart';
 export 'boards/tile_edit.dart';
@@ -63,10 +76,21 @@ export 'media/media_kind.dart';
 export 'media/media_object.dart';
 export 'media/upload_ticket.dart';
 export 'printing/shared_snapshot.dart';
+export 'printing/snapshot_kind.dart';
+export 'sharing/view_only_link.dart';
 export 'suggest/ai_usage.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
+export 'summary/week_report.dart';
+export 'summary/weekly_summary.dart';
+export 'summary/word_tally.dart';
+export 'wordlog/word_log_exception.dart';
+export 'wordlog/word_log_failure.dart';
+export 'wordlog/word_log_setting.dart';
+export 'wordlog/word_log_status.dart';
+export 'wordlog/word_use_entry.dart';
+export 'wordlog/word_use_record.dart';
 export 'sync_tables.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
@@ -558,6 +582,13 @@ class Protocol extends _is.DatabaseSerializationManager {
           isNullable: false,
           dartType: 'DateTime',
         ),
+        _isp.ColumnDefinition(
+          name: 'kind',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:SnapshotKind',
+          columnDefault: '\'print\'',
+        ),
       ],
       foreignKeys: [],
       indexes: [
@@ -864,6 +895,186 @@ class Protocol extends _is.DatabaseSerializationManager {
       ],
       managed: true,
     ),
+    _isp.TableDefinition(
+      name: 'weekly_summary',
+      dartName: 'WeeklySummary',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'weekStart',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'report',
+          columnType: _isp.ColumnType.json,
+          isNullable: false,
+          dartType: 'protocol:WeekReport',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'weekly_summary_circle_week_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'weekStart',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'word_log_setting',
+      dartName: 'WordLogSetting',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'enabled',
+          columnType: _isp.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'word_log_setting_circle_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'word_use',
+      dartName: 'WordUseRecord',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tileId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'boardId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spokenAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'receivedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'word_use_circle_spoken_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'spokenAt',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'tileId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iais.Protocol.targetTableDefinitions,
     ..._izehhkf5.Protocol.targetTableDefinitions,
     ..._iacs.Protocol.targetTableDefinitions,
@@ -954,6 +1165,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _if9s8td9.SharedSnapshot) {
       return _if9s8td9.SharedSnapshot.fromJson(data) as T;
     }
+    if (t == _iergzj3e.SnapshotKind) {
+      return _iergzj3e.SnapshotKind.fromJson(data) as T;
+    }
+    if (t == _iveyennw.ViewOnlyLink) {
+      return _iveyennw.ViewOnlyLink.fromJson(data) as T;
+    }
     if (t == _inv1atzh.AiUsage) {
       return _inv1atzh.AiUsage.fromJson(data) as T;
     }
@@ -965,6 +1182,33 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ifctwajg.WordSuggestion) {
       return _ifctwajg.WordSuggestion.fromJson(data) as T;
+    }
+    if (t == _iaf8iewd.WeekReport) {
+      return _iaf8iewd.WeekReport.fromJson(data) as T;
+    }
+    if (t == _ikaxfpae.WeeklySummary) {
+      return _ikaxfpae.WeeklySummary.fromJson(data) as T;
+    }
+    if (t == _i6roonjc.WordTally) {
+      return _i6roonjc.WordTally.fromJson(data) as T;
+    }
+    if (t == _i163yf92.WordLogException) {
+      return _i163yf92.WordLogException.fromJson(data) as T;
+    }
+    if (t == _i352cmsp.WordLogFailure) {
+      return _i352cmsp.WordLogFailure.fromJson(data) as T;
+    }
+    if (t == _i8exouxb.WordLogSetting) {
+      return _i8exouxb.WordLogSetting.fromJson(data) as T;
+    }
+    if (t == _i5lyi3mq.WordLogStatus) {
+      return _i5lyi3mq.WordLogStatus.fromJson(data) as T;
+    }
+    if (t == _in1k2ibs.WordUseEntry) {
+      return _in1k2ibs.WordUseEntry.fromJson(data) as T;
+    }
+    if (t == _iqz5pl6l.WordUseRecord) {
+      return _iqz5pl6l.WordUseRecord.fromJson(data) as T;
     }
     if (t == _is.getType<_i3lcnjeo.Board?>()) {
       return (data != null ? _i3lcnjeo.Board.fromJson(data) : null) as T;
@@ -1026,6 +1270,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _if9s8td9.SharedSnapshot.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_iergzj3e.SnapshotKind?>()) {
+      return (data != null ? _iergzj3e.SnapshotKind.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iveyennw.ViewOnlyLink?>()) {
+      return (data != null ? _iveyennw.ViewOnlyLink.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_inv1atzh.AiUsage?>()) {
       return (data != null ? _inv1atzh.AiUsage.fromJson(data) : null) as T;
     }
@@ -1041,6 +1291,39 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _ifctwajg.WordSuggestion.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_iaf8iewd.WeekReport?>()) {
+      return (data != null ? _iaf8iewd.WeekReport.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ikaxfpae.WeeklySummary?>()) {
+      return (data != null ? _ikaxfpae.WeeklySummary.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i6roonjc.WordTally?>()) {
+      return (data != null ? _i6roonjc.WordTally.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i163yf92.WordLogException?>()) {
+      return (data != null ? _i163yf92.WordLogException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i352cmsp.WordLogFailure?>()) {
+      return (data != null ? _i352cmsp.WordLogFailure.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i8exouxb.WordLogSetting?>()) {
+      return (data != null ? _i8exouxb.WordLogSetting.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i5lyi3mq.WordLogStatus?>()) {
+      return (data != null ? _i5lyi3mq.WordLogStatus.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_in1k2ibs.WordUseEntry?>()) {
+      return (data != null ? _in1k2ibs.WordUseEntry.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iqz5pl6l.WordUseRecord?>()) {
+      return (data != null ? _iqz5pl6l.WordUseRecord.fromJson(data) : null)
+          as T;
+    }
     if (t == List<_i5nn4t9p.MemberInfo>) {
       return (data as List)
               .map((e) => deserialize<_i5nn4t9p.MemberInfo>(e))
@@ -1049,6 +1332,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_i6roonjc.WordTally>) {
+      return (data as List)
+              .map((e) => deserialize<_i6roonjc.WordTally>(e))
+              .toList()
+          as T;
     }
     if (t == List<_iun4jhfl.CircleInfo>) {
       return (data as List)
@@ -1064,6 +1353,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_i1jjj2rd.WordUseEntry>) {
+      return (data as List)
+              .map((e) => deserialize<_i1jjj2rd.WordUseEntry>(e))
+              .toList()
+          as T;
     }
     try {
       return _iais.Protocol().deserialize<T>(data, t);
@@ -1101,10 +1396,21 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i87lco0i.MediaObject => 'MediaObject',
       _illp1jkh.UploadTicket => 'UploadTicket',
       _if9s8td9.SharedSnapshot => 'SharedSnapshot',
+      _iergzj3e.SnapshotKind => 'SnapshotKind',
+      _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _inv1atzh.AiUsage => 'AiUsage',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
+      _iaf8iewd.WeekReport => 'WeekReport',
+      _ikaxfpae.WeeklySummary => 'WeeklySummary',
+      _i6roonjc.WordTally => 'WordTally',
+      _i163yf92.WordLogException => 'WordLogException',
+      _i352cmsp.WordLogFailure => 'WordLogFailure',
+      _i8exouxb.WordLogSetting => 'WordLogSetting',
+      _i5lyi3mq.WordLogStatus => 'WordLogStatus',
+      _in1k2ibs.WordUseEntry => 'WordUseEntry',
+      _iqz5pl6l.WordUseRecord => 'WordUseRecord',
       _ => null,
     };
   }
@@ -1157,6 +1463,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'UploadTicket';
       case _if9s8td9.SharedSnapshot():
         return 'SharedSnapshot';
+      case _iergzj3e.SnapshotKind():
+        return 'SnapshotKind';
+      case _iveyennw.ViewOnlyLink():
+        return 'ViewOnlyLink';
       case _inv1atzh.AiUsage():
         return 'AiUsage';
       case _iw5bueja.SuggestException():
@@ -1165,6 +1475,24 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'SuggestFailure';
       case _ifctwajg.WordSuggestion():
         return 'WordSuggestion';
+      case _iaf8iewd.WeekReport():
+        return 'WeekReport';
+      case _ikaxfpae.WeeklySummary():
+        return 'WeeklySummary';
+      case _i6roonjc.WordTally():
+        return 'WordTally';
+      case _i163yf92.WordLogException():
+        return 'WordLogException';
+      case _i352cmsp.WordLogFailure():
+        return 'WordLogFailure';
+      case _i8exouxb.WordLogSetting():
+        return 'WordLogSetting';
+      case _i5lyi3mq.WordLogStatus():
+        return 'WordLogStatus';
+      case _in1k2ibs.WordUseEntry():
+        return 'WordUseEntry';
+      case _iqz5pl6l.WordUseRecord():
+        return 'WordUseRecord';
     }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -1254,6 +1582,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'SharedSnapshot') {
       return deserialize<_if9s8td9.SharedSnapshot>(data['data']);
     }
+    if (dataClassName == 'SnapshotKind') {
+      return deserialize<_iergzj3e.SnapshotKind>(data['data']);
+    }
+    if (dataClassName == 'ViewOnlyLink') {
+      return deserialize<_iveyennw.ViewOnlyLink>(data['data']);
+    }
     if (dataClassName == 'AiUsage') {
       return deserialize<_inv1atzh.AiUsage>(data['data']);
     }
@@ -1265,6 +1599,33 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordSuggestion') {
       return deserialize<_ifctwajg.WordSuggestion>(data['data']);
+    }
+    if (dataClassName == 'WeekReport') {
+      return deserialize<_iaf8iewd.WeekReport>(data['data']);
+    }
+    if (dataClassName == 'WeeklySummary') {
+      return deserialize<_ikaxfpae.WeeklySummary>(data['data']);
+    }
+    if (dataClassName == 'WordTally') {
+      return deserialize<_i6roonjc.WordTally>(data['data']);
+    }
+    if (dataClassName == 'WordLogException') {
+      return deserialize<_i163yf92.WordLogException>(data['data']);
+    }
+    if (dataClassName == 'WordLogFailure') {
+      return deserialize<_i352cmsp.WordLogFailure>(data['data']);
+    }
+    if (dataClassName == 'WordLogSetting') {
+      return deserialize<_i8exouxb.WordLogSetting>(data['data']);
+    }
+    if (dataClassName == 'WordLogStatus') {
+      return deserialize<_i5lyi3mq.WordLogStatus>(data['data']);
+    }
+    if (dataClassName == 'WordUseEntry') {
+      return deserialize<_in1k2ibs.WordUseEntry>(data['data']);
+    }
+    if (dataClassName == 'WordUseRecord') {
+      return deserialize<_iqz5pl6l.WordUseRecord>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
@@ -1336,6 +1697,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _if9s8td9.SharedSnapshot.t;
       case _inv1atzh.AiUsage:
         return _inv1atzh.AiUsage.t;
+      case _ikaxfpae.WeeklySummary:
+        return _ikaxfpae.WeeklySummary.t;
+      case _i8exouxb.WordLogSetting:
+        return _i8exouxb.WordLogSetting.t;
+      case _iqz5pl6l.WordUseRecord:
+        return _iqz5pl6l.WordUseRecord.t;
     }
     return null;
   }

@@ -1,0 +1,12 @@
+### Why words were not added to the log. Nothing of the call was kept.
+enum: WordLogFailure
+values:
+  ### The circle's log is off. The device should drop what it holds.
+  - off
+  ### More than 200 words in one call.
+  - tooMany
+  ### A time more than five minutes ahead, or more than 30 days ago.
+  - badTime
+  ### A tile the server does not know in this circle, perhaps not synced
+  ### yet. Worth sending again later.
+  - unknownTile

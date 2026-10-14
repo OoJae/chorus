@@ -23,8 +23,16 @@ import 'package:chorus_client/src/protocol/live/live_event.dart' as _ij4123it;
 import 'package:chorus_client/src/protocol/media/media_kind.dart' as _i1n9e0sn;
 import 'package:chorus_client/src/protocol/media/upload_ticket.dart'
     as _i4yoz54l;
+import 'package:chorus_client/src/protocol/sharing/view_only_link.dart'
+    as _i15qvapk;
 import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
     as _igbppnkp;
+import 'package:chorus_client/src/protocol/summary/week_report.dart'
+    as _iqxiegs0;
+import 'package:chorus_client/src/protocol/wordlog/word_log_status.dart'
+    as _izr7qg8x;
+import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
+    as _iyisc6zi;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -522,6 +530,67 @@ class EndpointPrinting extends _isc.EndpointRef {
       );
 }
 
+/// Sharing a board with someone outside the circle, such as a babysitter:
+/// a page that speaks, and the same board as an .obf file.
+/// {@category Endpoint}
+class EndpointSharing extends _isc.EndpointRef {
+  EndpointSharing(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'sharing';
+
+  /// Stores [boardJson], a snapshot the caller built from its own replica
+  /// (the paper copy's format, with `speech` where a tile says something
+  /// other than its label), and returns the link to its view-only page.
+  /// Editing roles only.
+  ///
+  /// The page opens for 7 days, unless withdrawn sooner. Throws
+  /// [CircleException] with `notAllowed` when the snapshot is over 200 KB or
+  /// is not a board the page can lay out.
+  _ida.Future<_i15qvapk.ViewOnlyLink> publishViewOnly(
+    _isc.UuidValue circleSpace,
+    String boardJson,
+  ) => caller.callServerEndpoint<_i15qvapk.ViewOnlyLink>(
+    'sharing',
+    'publishViewOnly',
+    {
+      'circleSpace': circleSpace,
+      'boardJson': boardJson,
+    },
+  );
+
+  /// Stops the page and the file behind [token] opening, now. Works for any
+  /// link of the circle, paper copies included. Editing roles only.
+  ///
+  /// Returns false when there was nothing to withdraw: the link is unknown,
+  /// belongs to another circle, or had already stopped. Throws
+  /// [CircleException] with `notAllowed` for text that is not a token.
+  _ida.Future<bool> withdraw(
+    _isc.UuidValue circleSpace,
+    String token,
+  ) => caller.callServerEndpoint<bool>(
+    'sharing',
+    'withdraw',
+    {
+      'circleSpace': circleSpace,
+      'token': token,
+    },
+  );
+
+  /// The address of the .obf file for [token], on the web server as the
+  /// outside world reaches it. Works for paper-copy tokens too.
+  ///
+  /// Reads no data: the answer is the same for a token that does not exist.
+  /// Throws [CircleException] with `notAllowed` for text that is not a
+  /// token.
+  _ida.Future<String> exportUrl(String token) =>
+      caller.callServerEndpoint<String>(
+        'sharing',
+        'exportUrl',
+        {'token': token},
+      );
+}
+
 /// Optional help for adults: a word suggested for a photo.
 ///
 /// The suggestion is only returned to the adult who asked. Nothing reaches a
@@ -551,6 +620,116 @@ class EndpointSuggest extends _isc.EndpointRef {
       'locale': locale,
     },
   );
+}
+
+/// "This week": what the word log says about one week, for the adults who
+/// plan the child's words.
+/// {@category Endpoint}
+class EndpointSummary extends _isc.EndpointRef {
+  EndpointSummary(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'summary';
+
+  /// The week from Monday 00:00 UTC of the week [weekStart] falls in (this
+  /// week when null) for [circleSpace]: most used words, words used for the
+  /// first time, words added, words not used yet, and the totals. Guardians
+  /// and therapists only.
+  ///
+  /// A week the weekly job already worked out is read as stored; any other
+  /// is worked out now, so nothing depends on the job running. Throws
+  /// [CircleException] with `notAllowed` for teachers and partners.
+  _ida.Future<_iqxiegs0.WeekReport> week(
+    _isc.UuidValue circleSpace, [
+    DateTime? weekStart,
+  ]) => caller.callServerEndpoint<_iqxiegs0.WeekReport>(
+    'summary',
+    'week',
+    {
+      'circleSpace': circleSpace,
+      'weekStart': weekStart,
+    },
+  );
+}
+
+/// The opt-in word log: which tile the child's board spoke, and when.
+///
+/// Off until a guardian turns it on for the circle. It holds tile ids,
+/// board ids and times only, never a label or a sentence, and a guardian can
+/// delete it all at any time.
+/// {@category Endpoint}
+class EndpointWordLog extends _isc.EndpointRef {
+  EndpointWordLog(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'wordLog';
+
+  /// Whether [circleSpace] keeps a word log, and whether the caller may
+  /// change that. Members only.
+  _ida.Future<_izr7qg8x.WordLogStatus> status(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<_izr7qg8x.WordLogStatus>(
+        'wordLog',
+        'status',
+        {'circleSpace': circleSpace},
+      );
+
+  /// Turns the circle's word log on or off. Guardians only. Turning it off
+  /// keeps what was logged; [deleteAll] removes it.
+  ///
+  /// Words spoken before the log was last turned on or off are not taken
+  /// (see [record]), so asking for the state it is already in changes
+  /// nothing, not even the time.
+  _ida.Future<_izr7qg8x.WordLogStatus> setEnabled(
+    _isc.UuidValue circleSpace,
+    bool enabled,
+  ) => caller.callServerEndpoint<_izr7qg8x.WordLogStatus>(
+    'wordLog',
+    'setEnabled',
+    {
+      'circleSpace': circleSpace,
+      'enabled': enabled,
+    },
+  );
+
+  /// Adds [uses] to the log and returns how many were new. Editing roles
+  /// only, and only while the log is on.
+  ///
+  /// All or nothing: throws [WordLogException] and keeps none of the call
+  /// when the log is off (`off`), there are more than 200 (`tooMany`), a
+  /// time is more than five minutes ahead or more than 30 days old
+  /// (`badTime`), or a tile is not one of the circle's (`unknownTile`). A
+  /// word sent twice is kept once, so a batch can safely be sent again.
+  /// Words of tiles marked "never log" are dropped quietly. The board is
+  /// taken from the tile as the server holds it.
+  ///
+  /// Words spoken before the guardian last turned the log on or off, or
+  /// deleted it, are dropped quietly too. A device that was offline, or
+  /// never heard that its last batch arrived, still holds words; without
+  /// this, sending them after a delete would put the deleted words back.
+  _ida.Future<int> record(
+    _isc.UuidValue circleSpace,
+    List<_iyisc6zi.WordUseEntry> uses,
+  ) => caller.callServerEndpoint<int>(
+    'wordLog',
+    'record',
+    {
+      'circleSpace': circleSpace,
+      'uses': uses,
+    },
+  );
+
+  /// Removes the circle's whole word log for good, with the weeks worked
+  /// out from it. Guardians only. Returns how many words went.
+  ///
+  /// It also moves the log's start to now, so words a device still holds
+  /// from before the delete are not taken when it sends them (see
+  /// [record]).
+  _ida.Future<int> deleteAll(_isc.UuidValue circleSpace) =>
+      caller.callServerEndpoint<int>(
+        'wordLog',
+        'deleteAll',
+        {'circleSpace': circleSpace},
+      );
 }
 
 class Modules {
@@ -602,7 +781,10 @@ class Client extends _isc.ServerpodClientShared {
     live = EndpointLive(this);
     media = EndpointMedia(this);
     printing = EndpointPrinting(this);
+    sharing = EndpointSharing(this);
     suggest = EndpointSuggest(this);
+    summary = EndpointSummary(this);
+    wordLog = EndpointWordLog(this);
     modules = Modules(this);
   }
 
@@ -622,7 +804,13 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointPrinting printing;
 
+  late final EndpointSharing sharing;
+
   late final EndpointSuggest suggest;
+
+  late final EndpointSummary summary;
+
+  late final EndpointWordLog wordLog;
 
   late final Modules modules;
 
@@ -636,7 +824,10 @@ class Client extends _isc.ServerpodClientShared {
     'live': live,
     'media': media,
     'printing': printing,
+    'sharing': sharing,
     'suggest': suggest,
+    'summary': summary,
+    'wordLog': wordLog,
   };
 
   @override

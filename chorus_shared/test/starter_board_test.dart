@@ -6,14 +6,15 @@ const circleB = '9a1d4e70-2c3b-4f58-8e6a-5b7c0d1e2f34';
 const adult = '5c8e2a44-1b7d-4e9f-a3c6-7d2f0b9e1a55';
 
 final _uuid = RegExp(
-    r'^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+);
 
 List<TileFacts> tilesFor(String circleId) => starterTiles(
-      circleId: circleId,
-      createdBy: adult,
-      createdByName: 'Mum',
-      createdAt: DateTime.utc(2026, 10, 13),
-    );
+  circleId: circleId,
+  createdBy: adult,
+  createdByName: 'Mum',
+  createdAt: DateTime.utc(2026, 10, 13),
+);
 
 void main() {
   group('universalCore36', () {
@@ -30,20 +31,24 @@ void main() {
 
     test('has 36 unique words', () {
       expect(universalCore36, hasLength(36));
-      expect(universalCore36.map((w) => w.label.toLowerCase()).toSet(),
-          hasLength(36));
+      expect(
+        universalCore36.map((w) => w.label.toLowerCase()).toSet(),
+        hasLength(36),
+      );
     });
 
-    test('uses every cell of the 6x6 grid exactly once, in row-major order',
-        () {
-      expect(starterRows * starterCols, 36);
-      final cells = [for (final w in universalCore36) (w.row, w.col)];
-      expect(cells, [
-        for (var r = 0; r < starterRows; r++)
-          for (var c = 0; c < starterCols; c++) (r, c),
-      ]);
-      expect(cells.toSet(), hasLength(36));
-    });
+    test(
+      'uses every cell of the 6x6 grid exactly once, in row-major order',
+      () {
+        expect(starterRows * starterCols, 36);
+        final cells = [for (final w in universalCore36) (w.row, w.col)];
+        expect(cells, [
+          for (var r = 0; r < starterRows; r++)
+            for (var c = 0; c < starterCols; c++) (r, c),
+        ]);
+        expect(cells.toSet(), hasLength(36));
+      },
+    );
 
     test('every colorKey has a colour, and every colour is used', () {
       final used = universalCore36.map((w) => w.colorKey).toSet();
@@ -51,6 +56,17 @@ void main() {
       for (final argb in colorForKey.values) {
         expect(argb >> 24, 0xFF, reason: 'colours are opaque');
       }
+    });
+
+    test('colours are the light fills of the six tile families', () {
+      expect(colorForKey, {
+        'verb': 0xFFC7EFB2,
+        'pronoun': 0xFFFFEFA0,
+        'descriptor': 0xFFC0DBFF,
+        'question': 0xFFDDCBFF,
+        'negation': 0xFFFFD2AE,
+        'determiner': 0xFFE5E4E0,
+      });
     });
 
     test('part-of-speech counts', () {
@@ -82,10 +98,14 @@ void main() {
     });
 
     test('differs by name and by circle', () {
-      expect(deterministicId(circleA, 'a'),
-          isNot(deterministicId(circleA, 'b')));
-      expect(deterministicId(circleA, 'a'),
-          isNot(deterministicId(circleB, 'a')));
+      expect(
+        deterministicId(circleA, 'a'),
+        isNot(deterministicId(circleA, 'b')),
+      );
+      expect(
+        deterministicId(circleA, 'a'),
+        isNot(deterministicId(circleB, 'a')),
+      );
     });
   });
 
@@ -155,7 +175,10 @@ void main() {
 
     test('createdAt is optional', () {
       final tiles = starterTiles(
-          circleId: circleA, createdBy: adult, createdByName: 'Mum');
+        circleId: circleA,
+        createdBy: adult,
+        createdByName: 'Mum',
+      );
       expect(tiles.every((t) => t.createdAt == null), isTrue);
     });
 

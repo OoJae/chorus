@@ -86,9 +86,33 @@ void main() {
     );
     final json = snapshot([plain]);
     expect(json['tiles'], [
-      {'row': 0, 'col': 0, 'label': 'Grandma'},
+      {'row': 0, 'col': 0, 'label': 'Grandma', 'speech': 'Nana'},
     ]);
     expect(jsonEncode(json), isNot(contains('Mum')));
+    expect(jsonEncode(json), isNot(contains('a' * 64)));
+    expect(jsonEncode(json), isNot(contains('b' * 64)));
+  });
+
+  test('what a word says is sent only when it differs from the label', () {
+    TileFacts word(int col, String label, String? speech) => TileFacts(
+      id: '5555555$col-2222-4333-8444-555555555555',
+      boardId: home.id,
+      cellKey: placedKey(home.id, 0, col),
+      label: label,
+      speech: speech,
+    );
+    final json = snapshot([
+      word(0, 'juice', 'I want juice'),
+      word(1, 'more', 'more'),
+      word(2, 'go', ''),
+      word(3, 'stop', null),
+    ]);
+    expect(json['tiles'], [
+      {'row': 0, 'col': 0, 'label': 'juice', 'speech': 'I want juice'},
+      {'row': 0, 'col': 1, 'label': 'more'},
+      {'row': 0, 'col': 2, 'label': 'go'},
+      {'row': 0, 'col': 3, 'label': 'stop'},
+    ]);
   });
 
   test('the home board is the one printed, never an archived one', () {

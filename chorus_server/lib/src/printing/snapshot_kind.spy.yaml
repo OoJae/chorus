@@ -1,0 +1,9 @@
+### What a stored board snapshot is for.
+enum: SnapshotKind
+serialized: byName
+serverOnly: true
+values:
+  ### A paper copy, at `/print/<token>`.
+  - print
+  ### A page that speaks, for someone outside the circle, at `/b/<token>`.
+  - viewOnly

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../brand/tokens.dart';
 import '../contracts_live.dart';
 
 /// Shown in the bar while the live session has no connection.
@@ -44,7 +45,7 @@ class ModelModeBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final colors = ChorusColors.of(context);
     return ListenableBuilder(
       listenable: live,
       builder: (context, _) {
@@ -52,12 +53,14 @@ class ModelModeBar extends StatelessWidget {
         return Semantics(
           container: true,
           // A Material of its own, so the switch row's ink is drawn on the
-          // bar's colour and not hidden behind it.
+          // bar's colour and not hidden behind it. On, it sinks to the page's
+          // colour inside a heavier line; the switch row's text keeps its
+          // theme colours, which read on both.
           child: Material(
-            color: on ? scheme.primaryContainer : Colors.white,
+            color: on ? colors.card : colors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.black, width: on ? 2 : 1),
+              side: BorderSide(color: colors.ink, width: on ? 2 : 1),
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -161,10 +164,11 @@ class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = ChorusColors.of(context).ink;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.black),
+        Icon(icon, size: 20, color: ink),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -172,7 +176,7 @@ class _Line extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: strong ? FontWeight.w700 : FontWeight.w400,
-              color: Colors.black,
+              color: ink,
             ),
           ),
         ),

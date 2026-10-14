@@ -4,6 +4,8 @@ library;
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../brand/tokens.dart';
+
 /// Boards still in use, the home board first, then oldest first as given.
 List<BoardFacts> liveBoards(Iterable<BoardFacts> boards) {
   final live = boards.where((board) => !board.archived).toList();
@@ -104,6 +106,7 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     return Semantics(
       button: true,
       selected: selected,
@@ -123,10 +126,10 @@ class _Tab extends StatelessWidget {
           ),
         ),
         child: Material(
-          color: selected ? Colors.black : Colors.white,
+          color: selected ? colors.ink : colors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.black, width: 1.5),
+            side: BorderSide(color: colors.ink, width: 1.5),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(10),
@@ -141,7 +144,7 @@ class _Tab extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: selected ? Colors.white : Colors.black,
+                    color: selected ? colors.surface : colors.ink,
                   ),
                 ),
               ),

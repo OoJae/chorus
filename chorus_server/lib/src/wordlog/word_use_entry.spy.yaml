@@ -1,0 +1,7 @@
+### One spoken word as the child's device sends it to the word log: the
+### tile, its board and the time. No label, no sentence.
+class: WordUseEntry
+fields:
+  tileId: UuidValue
+  boardId: UuidValue
+  spokenAt: DateTime

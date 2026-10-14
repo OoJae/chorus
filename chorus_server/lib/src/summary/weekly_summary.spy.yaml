@@ -1,0 +1,14 @@
+### A finished week of a circle's word log, worked out ahead by the weekly
+### job. Server-only. Removed with the word log, and whenever a late word
+### changes a week it describes.
+class: WeeklySummary
+table: weekly_summary
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  weekStart: DateTime
+  report: WeekReport
+indexes:
+  weekly_summary_circle_week_idx:
+    fields: circleSpace, weekStart
+    unique: true

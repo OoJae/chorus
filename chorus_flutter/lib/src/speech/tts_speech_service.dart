@@ -5,12 +5,19 @@ import 'package:chorus_ui/contracts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import 'online_voices.dart';
+
 /// Speaks with the device's own voice.
 ///
 /// Nothing here throws: where there is no engine (some browsers, widget
 /// tests) every call is quiet and [offlineVoiceReady] stays false.
 class TtsSpeechService implements SpeechService {
-  TtsSpeechService({this.language = 'en-US', bool? web}) : _web = web ?? kIsWeb;
+  TtsSpeechService({
+    this.language = 'en-US',
+    bool? web,
+    Set<String> Function()? onlineVoices,
+  }) : _web = web ?? kIsWeb,
+       _onlineVoices = onlineVoices ?? onlineVoiceNames;
 
   /// Language tag the voice is asked for.
   final String language;
@@ -19,15 +26,20 @@ class TtsSpeechService implements SpeechService {
   /// walk the browser's path.
   final bool _web;
 
+  /// The names of the browser's voices that are not on this device. The
+  /// app reads the browser's own list (flutter_tts does not say); tests
+  /// pass their own.
+  final Set<String> Function() _onlineVoices;
+
   /// One wait for the browser's engine to go quiet, and how many of them a
   /// word is held for at most (300 ms in all) when the engine never reports.
   static const Duration _turn = Duration(milliseconds: 10);
   static const int _quietTurns = 30;
 
   /// Everyday en-US voices by the start of the name browsers give them,
-  /// best first. The ones that live on the machine come first, because the
-  /// board has to speak with no network: macOS, then Windows, then the
-  /// online voices of Chrome and Edge.
+  /// best first: macOS, then Windows, then names Chrome and Edge also give
+  /// online voices. Only a voice on the device is ever chosen (see
+  /// [_deviceVoice]).
   static const List<String> _everydayVoices = [
     'Samantha',
     'Microsoft Zira',
@@ -171,7 +183,8 @@ class TtsSpeechService implements SpeechService {
     }
   }
 
-  /// Gives a browser an everyday voice for [language].
+  /// Gives a browser an everyday voice for [language] that is on the
+  /// device.
   ///
   /// Chrome and Edge load their voices a moment after the page first asks,
   /// so the language set while warming up finds none, and the browser then
@@ -185,7 +198,7 @@ class TtsSpeechService implements SpeechService {
       // first because setting a voice does not set the language.
       await tts.setLanguage(language);
       if (voices is! List || voices.isEmpty) return;
-      final voice = _everydayVoice(voices);
+      final voice = _deviceVoice(voices, _onlineVoices());
       if (voice != null) await tts.setVoice(voice);
       _voiceChosen = true;
     } catch (_) {
@@ -193,17 +206,52 @@ class TtsSpeechService implements SpeechService {
     }
   }
 
-  /// The first of [_everydayVoices] that [voices] has for [language], as
-  /// the name and locale the browser listed.
-  Map<String, String>? _everydayVoice(List<Object?> voices) {
+  /// The voice to set from [voices], as the name and locale the browser
+  /// listed, or null to keep the one the language took.
+  ///
+  /// A voice named in [online] is never chosen: it sends every word the
+  /// child taps to a speech service, and is silent with no network. So
+  /// this is the first of [_everydayVoices] on the device for [language];
+  /// else, when the voice the language took (the first listed for it) is
+  /// online, the first on the device for [language], then for any variant
+  /// of it. With no voice of its own for the language, the browser speaks
+  /// as it chooses.
+  Map<String, String>? _deviceVoice(List<Object?> voices, Set<String> online) {
     final wanted = language.toLowerCase();
+    final base = wanted.split('-').first;
+    final listed = [
+      for (final voice in voices)
+        if (voice is Map)
+          (name: '${voice['name'] ?? ''}', locale: '${voice['locale'] ?? ''}'),
+    ];
+    final onDevice = [
+      for (final voice in listed)
+        if (!online.contains(voice.name)) voice,
+    ];
+    Map<String, String> chosen(({String name, String locale}) voice) => {
+      'name': voice.name,
+      'locale': voice.locale,
+    };
+
     for (final everyday in _everydayVoices) {
-      for (final voice in voices) {
-        if (voice is! Map) continue;
-        final locale = '${voice['locale'] ?? ''}';
-        if (locale.toLowerCase() != wanted) continue;
-        final name = '${voice['name'] ?? ''}';
-        if (name.startsWith(everyday)) return {'name': name, 'locale': locale};
+      for (final voice in onDevice) {
+        if (voice.locale.toLowerCase() == wanted &&
+            voice.name.startsWith(everyday)) {
+          return chosen(voice);
+        }
+      }
+    }
+    // As flutter_tts matches it when the language is set.
+    final taken = listed
+        .where((voice) => voice.locale.toLowerCase().startsWith(wanted))
+        .firstOrNull;
+    if (taken == null || !online.contains(taken.name)) return null;
+    for (final fits in <bool Function(String locale)>[
+      (locale) => locale == wanted,
+      (locale) => locale == base || locale.startsWith('$base-'),
+    ]) {
+      for (final voice in onDevice) {
+        if (fits(voice.locale.toLowerCase())) return chosen(voice);
       }
     }
     return null;

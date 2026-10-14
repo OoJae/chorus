@@ -209,7 +209,10 @@ class _ErrorCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black, width: 1.5),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface,
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [

@@ -3,7 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-/// Credits for the starter board, and the limits of what Chorus claims.
+/// Credits for the starter board, its pictures and the typefaces, and the
+/// limits of what Chorus claims.
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key});
 
@@ -30,12 +31,31 @@ class CreditsScreen extends StatelessWidget {
                         '(CC BY-SA 4.0).',
                     'Source: project-core.com\n'
                         'Licence: creativecommons.org/licenses/by-sa/4.0',
-                    'Chorus adapted the vocabulary as colour-coded text '
-                        'tiles, without the original symbols. The adapted '
-                        'starter board is shared under the same licence.',
+                    'Chorus adapted the vocabulary as colour-coded tiles, '
+                        'without the original Universal Core symbols. Where '
+                        'a word has a Mulberry Symbols picture, the tile '
+                        'shows it. The adapted starter board is shared under '
+                        'the same licence.',
                     'Chorus is not affiliated with or endorsed by the Center '
                         'for Literacy and Disability Studies or the '
                         'University of North Carolina at Chapel Hill.',
+                  ],
+                ),
+                _Section(
+                  title: 'Symbols',
+                  paragraphs: [
+                    'Pictures for 23 of the starter words are from Mulberry '
+                        'Symbols by Steve Lee (mulberrysymbols.org), licensed '
+                        'CC BY-SA 4.0 '
+                        '(creativecommons.org/licenses/by-sa/4.0). The other '
+                        'words are shown as text.',
+                  ],
+                ),
+                _Section(
+                  title: 'Typefaces',
+                  paragraphs: [
+                    'Fraunces, Atkinson Hyperlegible Next and IBM Plex Mono, '
+                        'under the SIL Open Font License 1.1.',
                   ],
                 ),
                 _Section(
@@ -49,9 +69,7 @@ class CreditsScreen extends StatelessWidget {
                 ),
                 _Section(
                   title: 'How it was built',
-                  paragraphs: [
-                    'Chorus was built with AI coding tools.',
-                  ],
+                  paragraphs: ['Chorus was built with AI coding tools.'],
                 ),
               ],
             ),

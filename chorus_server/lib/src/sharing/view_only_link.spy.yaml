@@ -1,0 +1,11 @@
+### A view-only board page anyone with the link can open, with no account.
+class: ViewOnlyLink
+fields:
+  ### The key to the page; also what `withdraw` takes.
+  token: String
+  ### The page, on the web server as the outside world reaches it.
+  url: String
+  ### The same board as an Open Board Format (.obf) file.
+  exportUrl: String
+  ### When the page stops opening, UTC.
+  expiresAt: DateTime

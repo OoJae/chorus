@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../brand/tokens.dart';
 import '../contracts.dart';
 
 /// Plain-words description of [sync]'s state.
@@ -57,6 +58,7 @@ class SyncChip extends StatelessWidget {
     return ListenableBuilder(
       listenable: sync,
       builder: (context, _) {
+        final colors = ChorusColors.of(context);
         final state = sync.state;
         final canRetry = offersSyncNow(sync);
         final label = syncLabel(sync);
@@ -86,14 +88,14 @@ class SyncChip extends StatelessWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colors.surface,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 1.5),
+                        border: Border.all(color: colors.ink, width: 1.5),
                       ),
                       child: Icon(
                         _icon(state, sync.hasUnsent),
                         size: 18,
-                        color: Colors.black,
+                        color: colors.ink,
                       ),
                     ),
                   ),
@@ -109,28 +111,24 @@ class SyncChip extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 36),
             padding: EdgeInsets.only(left: 10, right: canRetry ? 2 : 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.black, width: 1.5),
+              border: Border.all(color: colors.ink, width: 1.5),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  _icon(state, sync.hasUnsent),
-                  size: 18,
-                  color: Colors.black,
-                ),
+                Icon(_icon(state, sync.hasUnsent), size: 18, color: colors.ink),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: colors.ink,
                     ),
                   ),
                 ),
@@ -143,6 +141,8 @@ class SyncChip extends StatelessWidget {
                     style: TextButton.styleFrom(
                       minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
+                      // On the chip's own face, not the page.
+                      foregroundColor: colors.ink,
                     ),
                     child: const Text('Sync now'),
                   ),

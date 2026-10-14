@@ -13,10 +13,8 @@ bool isPrintToken(String token) => _tokenShape.hasMatch(token);
 
 /// Status sent for an unknown or expired token.
 ///
-/// 410 and not 404 on purpose: `server.dart` wraps the whole web server in a
-/// fallback that replaces every 404 with the web app's start page, so a 404
-/// from here would never reach the browser. 410 does, with the "not here"
-/// page.
+/// The same for both, so an old paper link reads exactly like a mistyped
+/// one and reveals nothing about boards that once existed.
 const int printMissingStatus = 410;
 
 /// Adds `GET /print/<token>`, the printable page of a published board, to the
@@ -75,14 +73,18 @@ Response _missing() => Response(
 );
 
 /// Keeps the page out of caches and search results, and lets it load or run
-/// nothing: it is text and one inline stylesheet.
-final Headers _headers = Headers.build((h) {
+/// nothing: it is text, inline pictures and one inline stylesheet.
+final Headers _headers = boardPageHeaders(
+  "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; "
+  "form-action 'none'; frame-ancestors 'none'",
+);
+
+/// Headers for a page reached by a token: kept out of caches, referrers and
+/// search results, never sniffed, and limited by [contentSecurityPolicy].
+Headers boardPageHeaders(String contentSecurityPolicy) => Headers.build((h) {
   h['Cache-Control'] = ['private, no-store'];
   h['Referrer-Policy'] = ['no-referrer'];
   h['X-Robots-Tag'] = ['noindex, nofollow'];
   h['X-Content-Type-Options'] = ['nosniff'];
-  h['Content-Security-Policy'] = [
-    "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; "
-        "form-action 'none'; frame-ancestors 'none'",
-  ];
+  h['Content-Security-Policy'] = [contentSecurityPolicy];
 });

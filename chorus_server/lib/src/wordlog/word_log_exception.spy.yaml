@@ -1,0 +1,4 @@
+### Sent to the client when words are refused by the word log.
+exception: WordLogException
+fields:
+  failure: WordLogFailure

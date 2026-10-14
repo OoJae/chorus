@@ -1,0 +1,20 @@
+### One week of the word log, for the adults ("This week"). The same fields
+### as `WeekSummary` in chorus_shared, which works it out.
+class: WeekReport
+fields:
+  ### Monday 00:00 UTC. The week runs seven days from here.
+  weekStart: DateTime
+  ### Most used first, at most ten.
+  topWords: List<WordTally>
+  ### Spoken this week and never before it.
+  firstTimeWords: List<String>
+  ### Added to a board this week and still on one.
+  addedWords: List<String>
+  ### On a board and never spoken by the end of the week.
+  notUsedYet: List<String>
+  ### Taps this week.
+  totalUses: int
+  ### Different words spoken this week.
+  wordsUsed: int
+  ### When these numbers were worked out.
+  computedAt: DateTime

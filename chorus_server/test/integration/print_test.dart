@@ -11,7 +11,7 @@ import 'package:chorus_server/src/printing/print_page.dart';
 import 'package:chorus_server/src/printing/printing_endpoint.dart';
 import 'package:chorus_server/src/printing/print_routes.dart';
 import 'package:chorus_shared/chorus_shared.dart'
-    show colorForKey, placedKey, trayKey, universalCore36;
+    show colorForKey, placedKey, symbolSvgFor, trayKey, universalCore36;
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart';
 import 'package:test/test.dart';
@@ -41,6 +41,15 @@ String starterSnapshot({String name = 'Home', String? childName = 'Ada'}) =>
       ],
     });
 
+/// What a printed cell holds for [label]: its symbol, if any, and the
+/// label.
+String cell(String label) {
+  final symbol = symbolSvgFor(label);
+  return '<div class="cell">'
+      '${symbol == null ? '' : '<span class="sym" aria-hidden="true">$symbol</span>'}'
+      '<span class="label">${const HtmlEscape().convert(label)}</span></div>';
+}
+
 void main() {
   group('Given a snapshot,', () {
     final saved = DateTime.utc(2026, 10, 13, 9);
@@ -51,40 +60,153 @@ void main() {
     );
 
     test('when it is the starter board then every word is in its cell with '
-        'its colour, under the credit line.', () {
+        'its colour, under the mark and the credit line.', () {
       final html = page(starterSnapshot());
 
       expect(html, contains('<h1>Ada: Home</h1>'));
       expect('<tr>'.allMatches(html), hasLength(6));
       expect('<td'.allMatches(html), hasLength(36));
-      expect(html, contains('<td class="c-verb">like</td>'));
-      expect(html, contains('<td class="c-negation">not</td>'));
-      expect(html, contains('<td class="c-pronoun">I</td>'));
+      expect(html, contains('<td class="c-verb">${cell('like')}</td>'));
+      expect(html, contains('<td class="c-negation">${cell('not')}</td>'));
+      expect(html, contains('<td class="c-pronoun">${cell('I')}</td>'));
       // First row in board order.
       expect(
         html,
         contains(
-          '<tr><td class="c-verb">like</td><td class="c-verb">want</td>',
+          '<tr><td class="c-verb">${cell('like')}</td>'
+          '<td class="c-verb">${cell('want')}</td>',
         ),
       );
-      expect(html, contains('Universal Core'));
-      expect(html, contains('Center for Literacy and Disability Studies'));
-      expect(html, contains('UNC-Chapel Hill'));
-      expect(html, contains('CC BY-SA 4.0'));
+      expect(
+        html,
+        contains(
+          'Pictures: Mulberry Symbols, Steve Lee, CC BY-SA 4.0. Words: '
+          'Universal Core, CLDS UNC-Chapel Hill, CC BY-SA 4.0.',
+        ),
+      );
       expect(html, contains('13 October 2026'));
       expect(html, contains('12 November 2026'));
       expect(html, contains('@media print'));
+      expect(html, contains('@page{size:landscape'));
       expect(html, contains('print-color-adjust:exact'));
       expect(html, isNot(contains('<script')));
     });
 
+    test('when a word has a Mulberry symbol then it is drawn inline above '
+        'the label, and a word without one is the label alone.', () {
+      final html = page(starterSnapshot());
+
+      expect(symbolSvgFor('want'), isNotNull);
+      expect(
+        html,
+        contains(
+          '<span class="sym" aria-hidden="true">${symbolSvgFor('want')}'
+          '</span><span class="label">want</span>',
+        ),
+      );
+      expect(symbolSvgFor('like'), isNull);
+      expect(
+        html,
+        contains('<div class="cell"><span class="label">like</span></div>'),
+      );
+      // Every starter word with a symbol gets it, and nothing is fetched.
+      final drawn = universalCore36.where((w) => symbolSvgFor(w.label) != null);
+      expect(drawn, hasLength(23));
+      expect('class="sym"'.allMatches(html), hasLength(23));
+      expect(html, isNot(matches(RegExp(r'\b(src|href)\s*='))));
+    });
+
+    test('when the header is drawn then it carries the mark, four tiles of '
+        'the key with darker edges, beside the word chorus.', () {
+      final html = page(starterSnapshot());
+      final mark = brandMarkSvg();
+
+      expect(html, contains('<span class="brand">$mark'));
+      expect(html, contains('<span class="word">chorus</span>'));
+      for (final (fill, edge) in [
+        ('#c7efb2', '#7db863'),
+        ('#ffefa0', '#d6b53f'),
+        ('#c0dbff', '#6e9fe0'),
+        ('#ddcbff', '#9b7bdf'),
+      ]) {
+        expect(mark, contains('fill="$fill"'));
+        expect(mark, contains('fill="$edge"'));
+      }
+      expect('<rect '.allMatches(mark), hasLength(8));
+      expect(mark, contains('aria-hidden="true"'));
+    });
+
+    test('when the mark is drawn then it is the drawing the app icons come '
+        'from.', () {
+      final rects = RegExp(r'<rect [^>]*/>');
+      List<String> tilesOf(String svg) =>
+          rects.allMatches(svg).map((m) => m[0]!.toLowerCase()).toList();
+      final icon = File('../docs/brand/mark.svg').readAsStringSync();
+
+      expect(tilesOf(icon), hasLength(8));
+      expect(tilesOf(brandMarkSvg()), tilesOf(icon));
+      expect(brandMarkSvg(), contains('viewBox="0 0 64 64"'));
+    });
+
+    test('when the grid has from 1 to 12 rows then each printed row and '
+        'the whole grid fit the landscape page.', () {
+      for (var rows = 1; rows <= 12; rows++) {
+        final html = page(
+          jsonEncode({'rows': rows, 'cols': 6, 'tiles': <Object>[]}),
+        );
+        final cell = RegExp(
+          r'\.cell\{height:([0-9.]+)mm\}',
+        ).firstMatch(html.substring(html.indexOf('@media print')));
+        expect(cell, isNotNull, reason: '$rows rows');
+        // The content box, 2 mm of padding and the 0.5 mm border.
+        final row = double.parse(cell![1]!) + 2.5;
+        expect(row, lessThanOrEqualTo(34), reason: '$rows rows');
+        expect(row * rows, lessThanOrEqualTo(150.5), reason: '$rows rows');
+      }
+    });
+
+    test('when a tile says something other than its label then that is '
+        'read, and the paper still shows the label.', () {
+      final board = PrintBoard.parse(
+        jsonEncode({
+          'rows': 1,
+          'cols': 2,
+          'tiles': [
+            {'row': 0, 'col': 0, 'label': 'Grandma', 'speech': 'Nana'},
+            {'row': 0, 'col': 1, 'label': 'more', 'speech': '  '},
+          ],
+        }),
+      );
+
+      expect(board.cells[(0, 0)]!.speech, 'Nana');
+      expect(board.cells[(0, 0)]!.spokenText, 'Nana');
+      expect(board.cells[(0, 1)]!.speech, isNull);
+      expect(board.cells[(0, 1)]!.spokenText, 'more');
+      final html = renderPrintPage(board, savedAt: saved, expiresAt: saved);
+      expect(html, contains('Grandma'));
+      expect(html, isNot(contains('Nana')));
+    });
+
     test('when the colours are compared with the app then they are the '
-        'same.', () {
+        'same, the new tile fills, and printed exactly.', () {
       expect(printColours.keys, colorForKey.keys);
       for (final MapEntry(:key, :value) in colorForKey.entries) {
         final rgb = (value & 0xFFFFFF).toRadixString(16).padLeft(6, '0');
         expect(printColours[key], '#$rgb', reason: key);
       }
+      expect(printColours, {
+        'verb': '#c7efb2',
+        'pronoun': '#ffefa0',
+        'question': '#ddcbff',
+        'descriptor': '#c0dbff',
+        'determiner': '#e5e4e0',
+        'negation': '#ffd2ae',
+      });
+      final html = page(starterSnapshot());
+      for (final MapEntry(:key, :value) in printColours.entries) {
+        expect(html, contains('td.c-$key{background:$value}'), reason: key);
+      }
+      expect(html, contains('-webkit-print-color-adjust:exact'));
     });
 
     test('when text carries markup then it is printed as text.', () {
@@ -161,7 +283,7 @@ void main() {
       expect(parsed.cells[(1, 0)]!.label, 'apple');
       final html = renderPrintPage(parsed, savedAt: saved, expiresAt: saved);
       expect('<td class="empty"></td>'.allMatches(html), hasLength(3));
-      expect(html, contains('<td>apple</td>'));
+      expect(html, contains('<td>${cell('apple')}</td>'));
     });
 
     test('when it cannot be laid out then reading it fails.', () {
@@ -272,7 +394,10 @@ void main() {
         expect(response.body.bodyType?.mimeType, MimeType.html);
         final html = await response.readAsString();
         expect(html, contains('<h1>Ada: Home</h1>'));
-        expect(html, contains('<td class="c-verb">finished</td>'));
+        expect(
+          html,
+          contains('<td class="c-verb">${cell('finished')}</td>'),
+        );
         expect(html, contains('CC BY-SA 4.0'));
         expect(
           response.headers['content-security-policy']!.single,

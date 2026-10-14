@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
@@ -7,7 +8,10 @@ import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 import 'src/cache_busting.dart';
 import 'src/demo/demo_seed.dart';
 import 'src/generated/serverpod.dart';
+import 'src/jobs/scheduled_jobs.dart';
 import 'src/printing/print_routes.dart';
+import 'src/sharing/sharing_routes.dart';
+import 'src/web/app_route.dart';
 import 'src/web/routes/app_config_route.dart';
 
 /// The starting point of the Serverpod server.
@@ -55,9 +59,10 @@ void run(List<String> args) async {
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());
   if (appDir.existsSync()) {
-    // Serve the flutter web app under /.
+    // Serve the flutter web app under /. The server's own pages keep their
+    // own 404s; see `AppRoute`.
     pod.webServer.addRoute(
-      FlutterRoute(
+      AppRoute(
         appDir,
         // If building the Flutter app with WASM, set the below parameter to
         // true and add the --wasm flag to the flutter build command.
@@ -73,13 +78,7 @@ void run(List<String> args) async {
       ),
     );
 
-    pod.webServer.addMiddleware(
-      FallbackMiddleware(
-        fallback: defaultRoute,
-        on: (response) => response.statusCode == 404,
-      ).call,
-      '/',
-    );
+    pod.webServer.addMiddleware(appFallback(defaultRoute), '/');
 
     pod.webServer.addRoute(
       defaultRoute,
@@ -105,9 +104,15 @@ void run(List<String> args) async {
   // The printable page of a published board.
   registerPrintRoutes(pod);
 
+  // The view-only board and the .obf export.
+  registerSharingRoutes(pod);
+
   // Start the server.
   await pod.start();
 
   // Demo accounts and their circle, once the database is up.
   scheduleDemoSeed(pod);
+
+  // The weekly summary and the daily cleanup, where future calls run.
+  unawaited(scheduleJobs(pod));
 }

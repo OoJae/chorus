@@ -19,13 +19,15 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A talking picture board that a child's whole circle keeps in step, and that still speaks with no signal.">
-  <meta name="theme-color" content="#1F4E9C">
+  <meta name="theme-color" content="#F6F2EA" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101214" media="(prefers-color-scheme: dark)">
 
-  <!-- iOS meta tags & icons -->
+  <!-- iOS meta tags & icons. The touch icon is opaque: iOS turns see-through
+       corners black. -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Chorus">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
@@ -33,41 +35,78 @@
   <title>Chorus</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    /* Shown until the app's first frame, so a slow connection is not a blank page. */
+    /* Shown until the app's first frame, so a slow connection is not a blank
+       page: the mark on card (slate in dark mode), its four tiles rising one
+       after another like voices joining, and the name under it. Fraunces is
+       not loaded yet, so the name falls back to the system serif. */
     #loading {
       position: fixed; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 20px;
-      font: 600 28px system-ui, sans-serif; color: #1F4E9C; background: #fff;
+      align-items: center; justify-content: center; gap: 14px;
+      color: #15171A; background: #F6F2EA;
+      --action: #C7EFB2; --action-edge: #7DB863;
+      --person: #FFEFA0; --person-edge: #D6B53F;
+      --describe: #C0DBFF; --describe-edge: #6E9FE0;
+      --question: #DDCBFF; --question-edge: #9B7BDF;
+      --muted: #5A5F67;
     }
-    #loading .dots { display: flex; gap: 10px; }
-    #loading .dots i {
-      width: 14px; height: 14px; border-radius: 4px; background: #CCFFAA;
-      animation: chorus-pulse 1.2s ease-in-out infinite;
+    #loading svg { width: 72px; height: 72px; overflow: visible; }
+    #loading .tile rect { fill: var(--edge); }
+    #loading .tile rect + rect { fill: var(--face); }
+    #loading .tile { animation: chorus-rise 1.6s cubic-bezier(.65, 0, .35, 1) infinite; }
+    #loading .tile:nth-child(2) { animation-delay: .15s; }
+    #loading .tile:nth-child(3) { animation-delay: .3s; }
+    #loading .tile:nth-child(4) { animation-delay: .45s; }
+    @keyframes chorus-rise { 0%, 50%, 100% { transform: translateY(0); } 25% { transform: translateY(-4px); } }
+    #loading .name {
+      font: 600 34px/1 Fraunces, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+      letter-spacing: -0.02em;
     }
-    #loading .dots i:nth-child(2) { background: #FFFFAA; animation-delay: .15s; }
-    #loading .dots i:nth-child(3) { background: #AACCFF; animation-delay: .3s; }
-    #loading .dots i:nth-child(4) { background: #CCAAFF; animation-delay: .45s; }
-    @keyframes chorus-pulse { 0%, 100% { transform: scale(.8); opacity: .5; } 50% { transform: scale(1.15); opacity: 1; } }
     /* Filled in only when loading is slow. It takes no room of its own, so the
-       name and the dots do not jump when the words appear. */
+       mark and the name do not jump when the words appear. */
     #loading .slow {
       height: 0; padding: 0 24px; text-align: center;
-      font: 400 16px system-ui, sans-serif;
+      font: 400 16px system-ui, sans-serif; color: var(--muted);
     }
     #loading .slow.shown { animation: chorus-appear .4s ease-out; }
     @keyframes chorus-appear { from { opacity: 0; } }
-    @media (prefers-reduced-motion: reduce) { #loading .dots i, #loading .slow.shown { animation: none; } }
+    @media (prefers-color-scheme: dark) {
+      #loading {
+        color: #EEE9E0; background: #101214;
+        --action: #A9D993; --action-edge: #5F9A48;
+        --person: #E7D57D; --person-edge: #B0942D;
+        --describe: #9DC2F1; --describe-edge: #4F7EBF;
+        --question: #C1AEEF; --question-edge: #7A5BC1;
+        --muted: #A4A8AF;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) { #loading .tile, #loading .slow.shown { animation: none; } }
   </style>
 </head>
 <body>
   <div id="loading" role="status" aria-live="polite">
-    <span>Chorus</span>
-    <span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <!-- The mark, as in docs/brand/mark.svg: each tile is its edge colour
+         with the face 3 units shorter on top. -->
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <g class="tile" style="--face: var(--action); --edge: var(--action-edge)">
+        <rect x="3" y="1.5" width="25" height="25" rx="6"/><rect x="3" y="1.5" width="25" height="22" rx="6"/>
+      </g>
+      <g class="tile" style="--face: var(--person); --edge: var(--person-edge)">
+        <rect x="36" y="4.5" width="25" height="25" rx="6"/><rect x="36" y="4.5" width="25" height="22" rx="6"/>
+      </g>
+      <g class="tile" style="--face: var(--describe); --edge: var(--describe-edge)">
+        <rect x="3" y="37.5" width="25" height="25" rx="6"/><rect x="3" y="37.5" width="25" height="22" rx="6"/>
+      </g>
+      <g class="tile" style="--face: var(--question); --edge: var(--question-edge)">
+        <rect x="36" y="37.5" width="25" height="25" rx="6"/><rect x="36" y="37.5" width="25" height="22" rx="6"/>
+      </g>
+    </svg>
+    <span class="name">chorus</span>
     <span class="slow"></span>
   </div>
   <script>
     // A first visit on a slow connection can take many seconds. After four,
-    // say so in words, so the dots are not mistaken for a page that is stuck.
+    // say so in words, so the moving tiles are not mistaken for a page that
+    // is stuck.
     var slowTimer = setTimeout(function () {
       var slow = document.querySelector('#loading .slow');
       if (!slow) return;

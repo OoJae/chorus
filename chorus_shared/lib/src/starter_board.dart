@@ -66,15 +66,17 @@ const List<StarterWord> universalCore36 = [
   StarterWord('stop', 5, 5, 'verb'),
 ];
 
-/// Tile background per part-of-speech key, as 0xAARRGGBB. A modified
-/// Fitzgerald-style key.
+/// Tile background per part-of-speech key, as 0xAARRGGBB: the light fills
+/// of the six tile families, a Fitzgerald-style key retuned as laminated
+/// card. `printColours` on the server mirrors these; a test holds them
+/// together.
 const Map<String, int> colorForKey = {
-  'verb': 0xFFCCFFAA,
-  'pronoun': 0xFFFFFFAA,
-  'question': 0xFFCCAAFF,
-  'descriptor': 0xFFAACCFF,
-  'determiner': 0xFFCCCCCC,
-  'negation': 0xFFCCAA88,
+  'verb': 0xFFC7EFB2, // action
+  'pronoun': 0xFFFFEFA0, // person
+  'question': 0xFFDDCBFF, // question
+  'descriptor': 0xFFC0DBFF, // describe
+  'determiner': 0xFFE5E4E0, // other
+  'negation': 0xFFFFD2AE, // not
 };
 
 /// UUID v5 of [name] in the namespace [namespaceUuid], lowercase.

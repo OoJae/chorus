@@ -12,8 +12,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:chorus_server/src/generated/circles/circle_role.dart'
     as _iwu0lutr;
+import 'package:chorus_server/src/generated/future_calls.dart' as _i1wquigt;
 import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
 import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
+import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
+    as _i1jjj2rd;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -29,7 +32,11 @@ import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
+import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
+import '../summary/summary_endpoint.dart' as _ipr0xx8n;
+import '../wordlog/word_log_endpoint.dart' as _ivqq1yo7;
+export 'future_calls.dart' show ServerpodFutureCallsGetter;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -83,10 +90,28 @@ class Endpoints extends _is.EndpointDispatch {
           'printing',
           null,
         ),
+      'sharing': _ifnilofz.SharingEndpoint()
+        ..initialize(
+          server,
+          'sharing',
+          null,
+        ),
       'suggest': _idurguj6.SuggestEndpoint()
         ..initialize(
           server,
           'suggest',
+          null,
+        ),
+      'summary': _ipr0xx8n.SummaryEndpoint()
+        ..initialize(
+          server,
+          'summary',
+          null,
+        ),
+      'wordLog': _ivqq1yo7.WordLogEndpoint()
+        ..initialize(
+          server,
+          'wordLog',
           null,
         ),
     };
@@ -605,6 +630,81 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['sharing'] = _is.EndpointConnector(
+      name: 'sharing',
+      endpoint: endpoints['sharing']!,
+      methodConnectors: {
+        'publishViewOnly': _is.MethodConnector(
+          name: 'publishViewOnly',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'boardJson': _is.ParameterDescription(
+              name: 'boardJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['sharing'] as _ifnilofz.SharingEndpoint)
+                  .publishViewOnly(
+                    session,
+                    params['circleSpace'],
+                    params['boardJson'],
+                  ),
+        ),
+        'withdraw': _is.MethodConnector(
+          name: 'withdraw',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'token': _is.ParameterDescription(
+              name: 'token',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['sharing'] as _ifnilofz.SharingEndpoint).withdraw(
+                    session,
+                    params['circleSpace'],
+                    params['token'],
+                  ),
+        ),
+        'exportUrl': _is.MethodConnector(
+          name: 'exportUrl',
+          params: {
+            'token': _is.ParameterDescription(
+              name: 'token',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['sharing'] as _ifnilofz.SharingEndpoint).exportUrl(
+                    session,
+                    params['token'],
+                  ),
+        ),
+      },
+    );
     connectors['suggest'] = _is.EndpointConnector(
       name: 'suggest',
       endpoint: endpoints['suggest']!,
@@ -642,11 +742,141 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['summary'] = _is.EndpointConnector(
+      name: 'summary',
+      endpoint: endpoints['summary']!,
+      methodConnectors: {
+        'week': _is.MethodConnector(
+          name: 'week',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'weekStart': _is.ParameterDescription(
+              name: 'weekStart',
+              type: _is.getType<DateTime?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['summary'] as _ipr0xx8n.SummaryEndpoint).week(
+                    session,
+                    params['circleSpace'],
+                    params['weekStart'],
+                  ),
+        ),
+      },
+    );
+    connectors['wordLog'] = _is.EndpointConnector(
+      name: 'wordLog',
+      endpoint: endpoints['wordLog']!,
+      methodConnectors: {
+        'status': _is.MethodConnector(
+          name: 'status',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint).status(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'setEnabled': _is.MethodConnector(
+          name: 'setEnabled',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'enabled': _is.ParameterDescription(
+              name: 'enabled',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint)
+                  .setEnabled(
+                    session,
+                    params['circleSpace'],
+                    params['enabled'],
+                  ),
+        ),
+        'record': _is.MethodConnector(
+          name: 'record',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'uses': _is.ParameterDescription(
+              name: 'uses',
+              type: _is.getType<List<_i1jjj2rd.WordUseEntry>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint).record(
+                    session,
+                    params['circleSpace'],
+                    params['uses'],
+                  ),
+        ),
+        'deleteAll': _is.MethodConnector(
+          name: 'deleteAll',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['wordLog'] as _ivqq1yo7.WordLogEndpoint).deleteAll(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+      },
+    );
     modules['serverpod_auth_idp'] = _iais.Endpoints()
       ..initializeEndpoints(server);
     modules['serverpod_offline_sync'] = _izehhkf5.Endpoints()
       ..initializeEndpoints(server);
     modules['serverpod_auth_core'] = _iacs.Endpoints()
       ..initializeEndpoints(server);
+  }
+
+  @override
+  _is.FutureCallDispatch? get futureCalls {
+    return _i1wquigt.FutureCalls();
   }
 }

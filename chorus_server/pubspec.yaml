@@ -9,6 +9,10 @@ environment:
 resolution: workspace
 
 dependencies:
+  # The rules shared with the app: summaries, symbols, the .obf format. A
+  # workspace package, so `scloud deploy` uploads it with the server.
+  chorus_shared:
+    path: ../chorus_shared
   # Hashing uploaded media. Already resolved in the workspace at 3.0.7.
   crypto: ^3.0.7
   # The suggestion service is called over plain HTTPS. Resolved at 1.6.0.
@@ -22,8 +26,6 @@ dependencies:
 dev_dependencies:
   chorus_client:
     path: ../chorus_client
-  chorus_shared:
-    path: ../chorus_shared
   lints: '>=3.0.0 <7.0.0'
   path: ^1.9.1
   serverpod_database: 4.0.4

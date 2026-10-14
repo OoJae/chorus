@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <title>Chorus</title>
+  <!-- Android adaptive icon foreground, 108 x 108 dp. The launcher masks the
+       icon to any shape inside the central 66 dp circle, so the mark (48 dp,
+       from 30 to 78) stays well inside it: its farthest corner is 29.7 dp from
+       the centre. The background layer is the card colour, #F6F2EA. -->
+  <svg x="30" y="30" width="48" height="48" viewBox="0 0 64 64">
+    <rect x="3" y="1.5" width="25" height="25" rx="6" fill="#7DB863"/>
+    <rect x="3" y="1.5" width="25" height="22" rx="6" fill="#C7EFB2"/>
+    <rect x="36" y="4.5" width="25" height="25" rx="6" fill="#D6B53F"/>
+    <rect x="36" y="4.5" width="25" height="22" rx="6" fill="#FFEFA0"/>
+    <rect x="3" y="37.5" width="25" height="25" rx="6" fill="#6E9FE0"/>
+    <rect x="3" y="37.5" width="25" height="22" rx="6" fill="#C0DBFF"/>
+    <rect x="36" y="37.5" width="25" height="25" rx="6" fill="#9B7BDF"/>
+    <rect x="36" y="37.5" width="25" height="22" rx="6" fill="#DDCBFF"/>
+  </svg>
+</svg>

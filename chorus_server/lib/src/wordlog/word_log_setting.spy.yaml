@@ -1,0 +1,16 @@
+### Whether a circle keeps a word log. Server-only. A circle with no row has
+### never turned it on: the log is off until a guardian says otherwise.
+class: WordLogSetting
+table: word_log_setting
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  enabled: bool
+  ### The guardian who last turned it on or off or deleted the log, and
+  ### when. The log takes no word spoken before then.
+  changedBy: UuidValue
+  changedAt: DateTime
+indexes:
+  word_log_setting_circle_idx:
+    fields: circleSpace
+    unique: true

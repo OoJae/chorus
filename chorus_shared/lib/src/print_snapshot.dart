@@ -2,7 +2,8 @@
 ///
 /// Built from the device's own replica, so the printed page shows what this
 /// device shows. Only words that hold a cell are included, and only their
-/// text and colour: no photos, no recordings, no names of the adults.
+/// text, what they say and their colour: no photos, no recordings, no names
+/// of the adults.
 library;
 
 import 'dart:convert';
@@ -21,8 +22,13 @@ BoardFacts? boardToPrint(Iterable<BoardFacts> boards) {
 ///
 /// ```json
 /// {"childName": "Ada", "name": "Home", "rows": 6, "cols": 6,
-///  "tiles": [{"row": 0, "col": 0, "label": "like", "colorKey": "verb"}]}
+///  "tiles": [{"row": 0, "col": 0, "label": "like", "colorKey": "verb"},
+///            {"row": 0, "col": 1, "label": "Grandma", "speech": "Nana"}]}
 /// ```
+///
+/// `speech` is there only when the tile says something other than its
+/// label, so the view-only page and the .obf export can say it. Readers
+/// that do not know it ignore it.
 ///
 /// Tiles are in row-major order. Archived, tray and contested tiles are
 /// left out, because [gridOf] decides which tile holds each cell.
@@ -34,7 +40,9 @@ String printSnapshotJson({
 }) {
   final grid = gridOf(board.id, tiles, boards);
   final cells = grid.keys.toList()
-    ..sort((a, b) => a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2));
+    ..sort(
+      (a, b) => a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2),
+    );
   return jsonEncode({
     'childName': childName,
     'name': board.name,
@@ -46,6 +54,8 @@ String printSnapshotJson({
           'row': cell.$1,
           'col': cell.$2,
           'label': grid[cell]!.label,
+          if (grid[cell]!.spokenText != grid[cell]!.label)
+            'speech': grid[cell]!.spokenText,
           if (grid[cell]!.colorKey != null) 'colorKey': grid[cell]!.colorKey,
         },
     ],

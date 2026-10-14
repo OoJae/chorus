@@ -8,6 +8,7 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_media.dart';
 import '../contracts_suggest.dart';
@@ -71,9 +72,9 @@ final List<WordColour> wordColours = [
 /// The first of [candidates] that [colorForKey] has a colour for; the first
 /// candidate if none has, which then draws white.
 String _knownKey(List<String> candidates) => candidates.firstWhere(
-      colorForKey.containsKey,
-      orElse: () => candidates.first,
-    );
+  colorForKey.containsKey,
+  orElse: () => candidates.first,
+);
 
 /// What an adult typed into a [WordForm].
 class WordDraft {
@@ -108,7 +109,10 @@ class WordDraft {
 /// and nothing for a [store] that is not a [TileMediaWriter]. Throws if the
 /// store refuses the write.
 Future<void> saveDraftMedia(
-    BoardStore store, TileFacts tile, WordDraft draft) async {
+  BoardStore store,
+  TileFacts tile,
+  WordDraft draft,
+) async {
   String? changed(String? wanted, String? held) =>
       (wanted == null || wanted == (held ?? '')) ? null : wanted;
   final imageHash = changed(draft.imageHash, tile.imageHash);
@@ -116,8 +120,11 @@ Future<void> saveDraftMedia(
   if (imageHash == null && audioHash == null) return;
   final Object target = store;
   if (target is! TileMediaWriter) return;
-  await target.setTileMedia(tile.id,
-      imageHash: imageHash, audioHash: audioHash);
+  await target.setTileMedia(
+    tile.id,
+    imageHash: imageHash,
+    audioHash: audioHash,
+  );
 }
 
 /// Opens the sheet for a new word in the empty cell ([row], [col]) and adds
@@ -181,14 +188,17 @@ Future<void> showAddWordSheet(
   try {
     // addTile does not hand back the id, so the new word is the one this
     // adult just made that was not there before.
-    final added = store.tiles.lastWhere((tile) =>
-        !before.contains(tile.id) &&
-        tile.label == draft.label &&
-        tile.createdByName == store.myName);
+    final added = store.tiles.lastWhere(
+      (tile) =>
+          !before.contains(tile.id) &&
+          tile.label == draft.label &&
+          tile.createdByName == store.myName,
+    );
     await saveDraftMedia(store, added, draft);
   } on Object {
-    messenger
-        ?.showSnackBar(const SnackBar(content: Text(mediaNotSavedMessage)));
+    messenger?.showSnackBar(
+      const SnackBar(content: Text(mediaNotSavedMessage)),
+    );
   }
 }
 
@@ -245,10 +255,12 @@ class WordForm extends StatefulWidget {
 }
 
 class _WordFormState extends State<WordForm> {
-  late final TextEditingController _label =
-      TextEditingController(text: widget.initial?.label ?? '');
-  late final TextEditingController _speech =
-      TextEditingController(text: widget.initial?.speech ?? '');
+  late final TextEditingController _label = TextEditingController(
+    text: widget.initial?.label ?? '',
+  );
+  late final TextEditingController _speech = TextEditingController(
+    text: widget.initial?.speech ?? '',
+  );
   late String? _colorKey = widget.initial?.colorKey;
   String? _labelError;
 
@@ -342,13 +354,15 @@ class _WordFormState extends State<WordForm> {
       if (!mounted) return;
       setState(() => _saving = false);
     }
-    widget.onSubmit(WordDraft(
-      label: label,
-      speech: _speech.text.trim(),
-      colorKey: _colorKey,
-      imageHash: imageHash,
-      audioHash: audioHash,
-    ));
+    widget.onSubmit(
+      WordDraft(
+        label: label,
+        speech: _speech.text.trim(),
+        colorKey: _colorKey,
+        imageHash: imageHash,
+        audioHash: audioHash,
+      ),
+    );
   }
 
   // ---- Photo -------------------------------------------------------------
@@ -365,13 +379,17 @@ class _WordFormState extends State<WordForm> {
           children: [
             SimpleDialogOption(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const _DialogChoice(Icons.photo_camera_outlined,
-                  'Take a photo'),
+              child: const _DialogChoice(
+                Icons.photo_camera_outlined,
+                'Take a photo',
+              ),
             ),
             SimpleDialogOption(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const _DialogChoice(Icons.photo_library_outlined,
-                  'Choose a photo'),
+              child: const _DialogChoice(
+                Icons.photo_library_outlined,
+                'Choose a photo',
+              ),
             ),
           ],
         ),
@@ -396,12 +414,12 @@ class _WordFormState extends State<WordForm> {
   }
 
   void _removePhoto() => setState(() {
-        _newImage = null;
-        _removeImage = widget.initial?.imageHash != null;
-        _photoMessage = null;
-        _idea = null;
-        _suggestMessage = null;
-      });
+    _newImage = null;
+    _removeImage = widget.initial?.imageHash != null;
+    _photoMessage = null;
+    _idea = null;
+    _suggestMessage = null;
+  });
 
   // ---- Suggestion --------------------------------------------------------
 
@@ -475,13 +493,16 @@ class _WordFormState extends State<WordForm> {
                       )
                     : const Icon(Icons.lightbulb_outline),
                 label: Text(
-                    _suggesting ? 'Looking at the photo' : suggestFromPhotoLabel),
+                  _suggesting ? 'Looking at the photo' : suggestFromPhotoLabel,
+                ),
               ),
               if (idea == null && message == null && !_suggesting)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(suggestSendsPhotoMessage,
-                      style: theme.textTheme.bodySmall),
+                  child: Text(
+                    suggestSendsPhotoMessage,
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ),
             ],
             if (idea != null)
@@ -609,10 +630,10 @@ class _WordFormState extends State<WordForm> {
   }
 
   void _removeRecording() => setState(() {
-        _newClip = null;
-        _removeClip = widget.initial?.audioHash != null;
-        _clipMessage = null;
-      });
+    _newClip = null;
+    _removeClip = widget.initial?.audioHash != null;
+    _clipMessage = null;
+  });
 
   Widget _photoRow(ThemeData theme) {
     final media = widget.media!;
@@ -672,9 +693,11 @@ class _WordFormState extends State<WordForm> {
                       minimumSize: const Size(48, 48),
                     ),
                     icon: const Icon(Icons.add_a_photo_outlined),
-                    label: Text(capture.hasCamera
-                        ? 'Take or choose a photo'
-                        : 'Choose a photo'),
+                    label: Text(
+                      capture.hasCamera
+                          ? 'Take or choose a photo'
+                          : 'Choose a photo',
+                    ),
                   ),
                   if (hasPhoto)
                     TextButton(
@@ -714,8 +737,10 @@ class _WordFormState extends State<WordForm> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Record how we say it (optional)',
-            style: theme.textTheme.titleSmall),
+        Text(
+          'Record how we say it (optional)',
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 4),
         Semantics(
           button: true,
@@ -756,8 +781,10 @@ class _WordFormState extends State<WordForm> {
                         ),
                         const SizedBox(width: 8),
                         Flexible(
-                          child: Text(caption,
-                              style: theme.textTheme.labelLarge),
+                          child: Text(
+                            caption,
+                            style: theme.textTheme.labelLarge,
+                          ),
                         ),
                       ],
                     ),
@@ -787,9 +814,7 @@ class _WordFormState extends State<WordForm> {
               if (canPlay)
                 TextButton.icon(
                   onPressed: _playClip,
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                  ),
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                   icon: const Icon(Icons.play_arrow),
                   label: const Text('Play it back'),
                 )
@@ -800,9 +825,7 @@ class _WordFormState extends State<WordForm> {
                 ),
               TextButton(
                 onPressed: _saving ? null : _removeRecording,
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 48),
-                ),
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                 child: const Text('Remove recording'),
               ),
             ],
@@ -829,7 +852,7 @@ class _WordFormState extends State<WordForm> {
               TextField(
                 controller: _label,
                 autofocus: widget.initial == null,
-                maxLength: 30,
+                maxLength: maxTileLabelLength,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   labelText: 'Word',
@@ -843,7 +866,7 @@ class _WordFormState extends State<WordForm> {
               const SizedBox(height: 8),
               TextField(
                 controller: _speech,
-                maxLength: 80,
+                maxLength: maxTileSpeechLength,
                 textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Says something different (optional)',
@@ -864,8 +887,7 @@ class _WordFormState extends State<WordForm> {
                       label: Text(colour.name),
                       showCheckmark: false,
                       selected: _colorKey == colour.key,
-                      onSelected: (_) =>
-                          setState(() => _colorKey = colour.key),
+                      onSelected: (_) => setState(() => _colorKey = colour.key),
                     ),
                 ],
               ),
@@ -976,7 +998,7 @@ class _Swatch extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.black54),
+        border: Border.all(color: ChorusColors.of(context).inkMuted),
       ),
     );
   }

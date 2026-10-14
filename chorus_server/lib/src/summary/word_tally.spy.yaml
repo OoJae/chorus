@@ -1,0 +1,5 @@
+### One word and how many times it was spoken in a week.
+class: WordTally
+fields:
+  label: String
+  count: int

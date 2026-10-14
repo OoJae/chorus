@@ -506,6 +506,51 @@ void main() {
       expect(engine.count('setVoice'), 0);
     });
 
+    testWidgets('an online voice is never chosen, even an everyday one', (
+      tester,
+    ) async {
+      const google = 'Google US English';
+      const aria = 'Microsoft Aria Online (Natural) - English (United States)';
+      final engine = engineFor(tester)
+        ..voices = [
+          _voice(google, 'en-US'),
+          _voice(aria, 'en-US'),
+          _voice('Fred', 'en-US'),
+        ];
+      final speech = TtsSpeechService(
+        web: true,
+        onlineVoices: () => {google, aria},
+      );
+      await speech.warmUp();
+
+      unawaited(speech.speak('want'));
+      await tester.pump(_aMoment);
+
+      expect(engine.saidWith, ['Fred']);
+    });
+
+    testWidgets('with only online voices for the language, an English voice '
+        'on the device speaks', (tester) async {
+      const google = 'Google US English';
+      final engine = engineFor(tester)
+        ..voices = [
+          _voice('Alva', 'sv-SE'),
+          _voice(google, 'en-US'),
+          _voice('Daniel', 'en-GB'),
+        ];
+      final speech = TtsSpeechService(
+        web: true,
+        onlineVoices: () => {google},
+      );
+      await speech.warmUp();
+
+      unawaited(speech.speak('want'));
+      await tester.pump(_aMoment);
+
+      expect(engine.saidWith, ['Daniel']);
+      expect(engine.spokenLanguage, 'en-US');
+    });
+
     testWidgets('a browser that cannot list its voices still speaks', (
       tester,
     ) async {

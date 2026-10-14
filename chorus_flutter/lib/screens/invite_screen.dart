@@ -126,7 +126,7 @@ class _InviteScreenState extends State<InviteScreen> {
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black, width: 2),
+            border: Border.all(color: theme.colorScheme.onSurface, width: 2),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -194,7 +194,10 @@ class _RoleOption extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.black, width: selected ? 3 : 1),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.onSurface,
+                width: selected ? 3 : 1,
+              ),
             ),
             child: Row(
               children: [

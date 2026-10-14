@@ -1,5 +1,5 @@
-### A board as one member's device saw it, kept so it can be printed from a
-### link. Server-only and not synced.
+### A board as one member's device saw it, kept so it can be printed or
+### opened from a link. Server-only and not synced.
 class: SharedSnapshot
 table: shared_snapshot
 serverOnly: true
@@ -11,7 +11,10 @@ fields:
   boardJson: String
   createdBy: UuidValue
   createdAt: DateTime
+  ### Withdrawing a link sets this to the moment it was withdrawn.
   expiresAt: DateTime
+  ### Rows from before view-only pages are paper copies.
+  kind: SnapshotKind, default=print
 indexes:
   shared_snapshot_token_idx:
     fields: token

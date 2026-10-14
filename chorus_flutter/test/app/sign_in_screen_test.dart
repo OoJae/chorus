@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_flutter/client.dart';
 import 'package:chorus_flutter/screens/sign_in_screen.dart';
+import 'package:chorus_ui/brand/test_fonts.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
@@ -19,28 +17,6 @@ const _howToStart =
 const _tryAgain =
     'That did not work. Check what you typed and the connection, then try '
     'again.';
-
-/// Loads the Roboto that comes with the Flutter SDK, the font the app has on
-/// Android and in the browser. The test font draws every letter as a full
-/// square: the sign-in package's own rows are then wider than a phone, and
-/// nothing can be said about what fits.
-Future<void> _loadRoboto() async {
-  final fonts = Directory(
-    '${Platform.environment['FLUTTER_ROOT']}'
-    '/bin/cache/artifacts/material_fonts',
-  );
-  final loader = FontLoader('Roboto');
-  for (final weight in ['Regular', 'Medium', 'Bold']) {
-    final file = File('${fonts.path}/Roboto-$weight.ttf');
-    if (!file.existsSync()) {
-      fail('These tests measure real text and need ${file.path}.');
-    }
-    loader.addFont(
-      file.readAsBytes().then((bytes) => ByteData.sublistView(bytes)),
-    );
-  }
-  await loader.load();
-}
 
 /// Pumps the screen on a phone of [size], with a status bar of [top] and a
 /// navigation bar of [bottom].
@@ -71,7 +47,10 @@ void main() {
     // The screen only draws the form here; nothing is sent to this address.
     client = Client('http://chorus.invalid/')
       ..authSessionManager = FlutterAuthSessionManager();
-    await _loadRoboto();
+    // The fonts the app bundles. The test font draws every letter as a full
+    // square: the sign-in package's own rows are then wider than a phone,
+    // and nothing can be said about what fits.
+    await loadChorusFonts();
   });
 
   testWidgets('the first form is sign-in, with sign-up one tap away', (

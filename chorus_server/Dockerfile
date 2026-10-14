@@ -8,12 +8,14 @@ FROM dart:3.12.2 AS build
 WORKDIR /app
 COPY pubspec.lock .
 COPY chorus_server chorus_server
+COPY chorus_shared chorus_shared
 RUN printf '%s\n' \
   'name: _' \
   'environment:' \
   '  sdk: ^3.12.2' \
   'workspace:' \
   '  - chorus_server' \
+  '  - chorus_shared' \
   > pubspec.yaml
 RUN dart pub get
 

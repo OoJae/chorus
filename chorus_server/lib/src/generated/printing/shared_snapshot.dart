@@ -11,9 +11,10 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _is;
+import '../printing/snapshot_kind.dart' as _ijgkrnn1;
 
-/// A board as one member's device saw it, kept so it can be printed from a
-/// link. Server-only and not synced.
+/// A board as one member's device saw it, kept so it can be printed or
+/// opened from a link. Server-only and not synced.
 abstract class SharedSnapshot
     implements _is.TableRow<int?>, _is.ProtocolSerialization {
   SharedSnapshot._({
@@ -24,7 +25,8 @@ abstract class SharedSnapshot
     required this.createdBy,
     required this.createdAt,
     required this.expiresAt,
-  });
+    _ijgkrnn1.SnapshotKind? kind,
+  }) : kind = kind ?? _ijgkrnn1.SnapshotKind.print;
 
   factory SharedSnapshot({
     int? id,
@@ -34,6 +36,7 @@ abstract class SharedSnapshot
     required _is.UuidValue createdBy,
     required DateTime createdAt,
     required DateTime expiresAt,
+    _ijgkrnn1.SnapshotKind? kind,
   }) = _SharedSnapshotImpl;
 
   factory SharedSnapshot.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -53,6 +56,11 @@ abstract class SharedSnapshot
       expiresAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['expiresAt'],
       ),
+      kind: jsonSerialization['kind'] == null
+          ? null
+          : _ijgkrnn1.SnapshotKind.fromJson(
+              (jsonSerialization['kind'] as String),
+            ),
     );
   }
 
@@ -75,7 +83,11 @@ abstract class SharedSnapshot
 
   DateTime createdAt;
 
+  /// Withdrawing a link sets this to the moment it was withdrawn.
   DateTime expiresAt;
+
+  /// Rows from before view-only pages are paper copies.
+  _ijgkrnn1.SnapshotKind kind;
 
   @override
   _is.Table<int?> get table => t;
@@ -91,6 +103,7 @@ abstract class SharedSnapshot
     _is.UuidValue? createdBy,
     DateTime? createdAt,
     DateTime? expiresAt,
+    _ijgkrnn1.SnapshotKind? kind,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -103,6 +116,7 @@ abstract class SharedSnapshot
       'createdBy': createdBy.toJson(),
       'createdAt': createdAt.toJson(),
       'expiresAt': expiresAt.toJson(),
+      'kind': kind.toJson(),
     };
   }
 
@@ -150,6 +164,7 @@ class _SharedSnapshotImpl extends SharedSnapshot {
     required _is.UuidValue createdBy,
     required DateTime createdAt,
     required DateTime expiresAt,
+    _ijgkrnn1.SnapshotKind? kind,
   }) : super._(
          id: id,
          token: token,
@@ -158,6 +173,7 @@ class _SharedSnapshotImpl extends SharedSnapshot {
          createdBy: createdBy,
          createdAt: createdAt,
          expiresAt: expiresAt,
+         kind: kind,
        );
 
   /// Returns a shallow copy of this [SharedSnapshot]
@@ -172,6 +188,7 @@ class _SharedSnapshotImpl extends SharedSnapshot {
     _is.UuidValue? createdBy,
     DateTime? createdAt,
     DateTime? expiresAt,
+    _ijgkrnn1.SnapshotKind? kind,
   }) {
     return SharedSnapshot(
       id: id is int? ? id : this.id,
@@ -181,6 +198,7 @@ class _SharedSnapshotImpl extends SharedSnapshot {
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       expiresAt: expiresAt ?? this.expiresAt,
+      kind: kind ?? this.kind,
     );
   }
 }
@@ -223,6 +241,13 @@ class SharedSnapshotUpdateTable extends _is.UpdateTable<SharedSnapshotTable> {
         table.expiresAt,
         value,
       );
+
+  _is.ColumnValue<_ijgkrnn1.SnapshotKind, _ijgkrnn1.SnapshotKind> kind(
+    _ijgkrnn1.SnapshotKind value,
+  ) => _is.ColumnValue(
+    table.kind,
+    value,
+  );
 }
 
 class SharedSnapshotTable extends _is.Table<int?> {
@@ -253,6 +278,12 @@ class SharedSnapshotTable extends _is.Table<int?> {
       'expiresAt',
       this,
     );
+    kind = _is.ColumnEnum(
+      'kind',
+      this,
+      _is.EnumSerialization.byName,
+      hasDefault: true,
+    );
   }
 
   late final SharedSnapshotUpdateTable updateTable;
@@ -269,7 +300,11 @@ class SharedSnapshotTable extends _is.Table<int?> {
 
   late final _is.ColumnDateTime createdAt;
 
+  /// Withdrawing a link sets this to the moment it was withdrawn.
   late final _is.ColumnDateTime expiresAt;
+
+  /// Rows from before view-only pages are paper copies.
+  late final _is.ColumnEnum<_ijgkrnn1.SnapshotKind> kind;
 
   @override
   List<_is.Column> get columns => [
@@ -280,6 +315,7 @@ class SharedSnapshotTable extends _is.Table<int?> {
     createdBy,
     createdAt,
     expiresAt,
+    kind,
   ];
 }
 

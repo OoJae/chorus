@@ -4,6 +4,7 @@ library;
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../brand/tokens.dart';
 import '../contracts_media.dart';
 import '../theme.dart';
 import 'label_fit.dart';
@@ -64,7 +65,7 @@ class TileView extends StatelessWidget {
     final ink = inkOn(background);
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12),
-      side: BorderSide(color: Colors.black, width: highlighted ? 4 : 1.5),
+      side: BorderSide(color: tileLabelInk, width: highlighted ? 4 : 1.5),
     );
     final label = FittedBox(
       fit: BoxFit.scaleDown,

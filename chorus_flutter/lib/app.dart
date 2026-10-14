@@ -78,6 +78,8 @@ class _ChorusAppState extends State<ChorusApp> {
       title: 'Chorus',
       debugShowCheckedModeBanner: false,
       theme: chorusTheme(),
+      darkTheme: chorusDarkTheme(),
+      themeMode: ThemeMode.system,
       home: ValueListenableBuilder(
         valueListenable: client.auth.authInfoListenable,
         builder: (context, authInfo, _) {

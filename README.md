@@ -146,8 +146,10 @@ Counts are from 14 October 2026. The server suite runs on an embedded PostgreSQL
 ## Credits and licences
 
 - **Code:** MIT, copyright 2026 OoJae ([LICENSE](LICENSE)).
-- **Starter board:** the 36 words of the Universal Core vocabulary, created by the Center for Literacy and Disability Studies, University of North Carolina at Chapel Hill, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Source: https://www.project-core.com/. Chorus adapted it as colour-coded text tiles, without the original symbols, and shares the adapted board under the same licence. Chorus is not affiliated with or endorsed by the Center or the University. See [STARTER_BOARD_LICENSE.md](chorus_shared/STARTER_BOARD_LICENSE.md) and the in-app [Credits screen](chorus_ui/lib/credits/credits_screen.dart).
-- **Browser database files:** unmodified release files of the `sqlite3` and `sqlite_async` Dart packages. No symbol set is bundled.
+- **Starter board:** the 36 words of the Universal Core vocabulary, created by the Center for Literacy and Disability Studies, University of North Carolina at Chapel Hill, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Source: https://www.project-core.com/. Chorus adapted it as colour-coded tiles, without the original Universal Core symbols and with Mulberry pictures where they exist, and shares the adapted board under the same licence. Chorus is not affiliated with or endorsed by the Center or the University. See [STARTER_BOARD_LICENSE.md](chorus_shared/STARTER_BOARD_LICENSE.md) and the in-app [Credits screen](chorus_ui/lib/credits/credits_screen.dart).
+- **Symbols:** pictures for 23 of the starter words are from [Mulberry Symbols](https://mulberrysymbols.org) by Steve Lee, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The other words are shown as text. The PNG files drawn from the original SVGs are in [chorus_ui/assets/symbols](chorus_ui/assets/symbols/LICENSE.md); the originals are in [docs/brand/mulberry](docs/brand/mulberry).
+- **Typefaces:** Fraunces, Atkinson Hyperlegible Next and IBM Plex Mono, under the SIL Open Font License 1.1 (licence texts in [chorus_ui/assets/fonts](chorus_ui/assets/fonts)).
+- **Browser database files:** unmodified release files of the `sqlite3` and `sqlite_async` Dart packages.
 
 ## AI disclosure
 

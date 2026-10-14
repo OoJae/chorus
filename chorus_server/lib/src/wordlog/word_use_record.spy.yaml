@@ -1,0 +1,19 @@
+### One word the child spoke: which tile, on which board, and when. Never a
+### label or a sentence. Server-only and not synced.
+class: WordUseRecord
+table: word_use
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  tileId: UuidValue
+  boardId: UuidValue
+  ### When the child's device spoke it.
+  spokenAt: DateTime
+  ### When the server got it.
+  receivedAt: DateTime
+indexes:
+  ### Serves the week's range scan, and makes a resent batch harmless: one
+  ### tile cannot be spoken twice at the same instant.
+  word_use_circle_spoken_idx:
+    fields: circleSpace, spokenAt, tileId
+    unique: true

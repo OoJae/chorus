@@ -5,6 +5,7 @@ library;
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 
+import 'brand/tokens.dart';
 import 'contracts.dart';
 import 'credits/credits_screen.dart';
 import 'editor/editor_screen.dart';
@@ -15,7 +16,13 @@ import 'theme.dart';
 void main() => runApp(const ChorusFakeApp());
 
 /// Words the debug buttons hand out, in turn.
-const List<String> _remoteWords = ['swing', 'juice', 'music', 'outside', 'book'];
+const List<String> _remoteWords = [
+  'swing',
+  'juice',
+  'music',
+  'outside',
+  'book',
+];
 const List<(String, String)> _clashWords = [
   ('park', 'playground'),
   ('grandma', 'bus'),
@@ -31,10 +38,12 @@ class ChorusFakeApp extends StatefulWidget {
 
 class _ChorusFakeAppState extends State<ChorusFakeApp> {
   // The starter board is full; two free spots give the demo room to add.
-  final FakeBoardStore _store =
-      FakeBoardStore.seeded(leaveEmpty: const {(4, 5), (5, 5)});
-  final FakeSpeech _speech =
-      FakeSpeech(speakFor: const Duration(milliseconds: 900));
+  final FakeBoardStore _store = FakeBoardStore.seeded(
+    leaveEmpty: const {(4, 5), (5, 5)},
+  );
+  final FakeSpeech _speech = FakeSpeech(
+    speakFor: const Duration(milliseconds: 900),
+  );
   final FakeSyncStatus _sync = FakeSyncStatus();
 
   @override
@@ -52,6 +61,8 @@ class _ChorusFakeAppState extends State<ChorusFakeApp> {
       title: 'Chorus (demo data)',
       debugShowCheckedModeBanner: false,
       theme: chorusTheme(),
+      darkTheme: chorusDarkTheme(),
+      themeMode: ThemeMode.system,
       // The fake voice is silent, so say on screen what it would speak.
       builder: (context, child) => Stack(
         children: [
@@ -121,14 +132,14 @@ class _HomePageState extends State<_HomePage> {
       _store.remoteConflict(row: 0, col: 0, label: theirs);
     } else if (_store.role.canEdit) {
       await _store.addTile(
-          boardId: _store.homeBoardId,
-          row: cell.$1,
-          col: cell.$2,
-          label: mine);
+        boardId: _store.homeBoardId,
+        row: cell.$1,
+        col: cell.$2,
+        label: mine,
+      );
       _store.remoteConflict(row: cell.$1, col: cell.$2, label: theirs);
     } else {
-      _store.remoteAdd(
-          row: cell.$1, col: cell.$2, label: mine, byName: 'Mum');
+      _store.remoteAdd(row: cell.$1, col: cell.$2, label: mine, byName: 'Mum');
       _store.remoteConflict(row: cell.$1, col: cell.$2, label: theirs);
     }
     if (!mounted) return;
@@ -157,12 +168,14 @@ class _HomePageState extends State<_HomePage> {
                 _BigButton(
                   icon: Icons.record_voice_over,
                   label: 'Talker',
-                  onPressed: () => _open(TalkerScreen(
-                    store: _store,
-                    speech: widget.speech,
-                    sync: widget.sync,
-                    onExit: () => Navigator.of(context).pop(),
-                  )),
+                  onPressed: () => _open(
+                    TalkerScreen(
+                      store: _store,
+                      speech: widget.speech,
+                      sync: widget.sync,
+                      onExit: () => Navigator.of(context).pop(),
+                    ),
+                  ),
                 ),
                 _BigButton(
                   icon: Icons.edit,
@@ -193,8 +206,9 @@ class _HomePageState extends State<_HomePage> {
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Sign in as a read-only partner'),
                     value: !_store.role.canEdit,
-                    onChanged: (readOnly) => _store.role =
-                        readOnly ? CircleRole.partner : CircleRole.guardian,
+                    onChanged: (readOnly) => _store.role = readOnly
+                        ? CircleRole.partner
+                        : CircleRole.guardian,
                   ),
                 ),
                 ListenableBuilder(
@@ -205,8 +219,9 @@ class _HomePageState extends State<_HomePage> {
                     value: widget.sync.state == SyncState.offline,
                     onChanged: (offline) {
                       widget.sync.hasUnsent = offline;
-                      widget.sync.state =
-                          offline ? SyncState.offline : SyncState.live;
+                      widget.sync.state = offline
+                          ? SyncState.offline
+                          : SyncState.live;
                     },
                   ),
                 ),
@@ -259,6 +274,7 @@ class _WouldSay extends StatelessWidget {
       valueListenable: speech.speaking,
       builder: (context, speaking, _) {
         if (!speaking || speech.spoken.isEmpty) return const SizedBox.shrink();
+        final colors = ChorusColors.of(context);
         return Positioned(
           left: 16,
           right: 16,
@@ -267,14 +283,16 @@ class _WouldSay extends StatelessWidget {
             child: SafeArea(
               child: Center(
                 child: Material(
-                  color: Colors.black,
+                  color: colors.ink,
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     child: Text(
                       'Says: "${speech.spoken.last}"',
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      style: TextStyle(color: colors.surface, fontSize: 18),
                     ),
                   ),
                 ),

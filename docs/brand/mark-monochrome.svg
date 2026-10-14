@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Chorus</title>
+  <!-- The mark as four solid tiles, for the Android 13 themed icon. The
+       launcher keeps only the shape and paints it in the wallpaper's colours,
+       so the fills and edges of the colour mark would be lost anyway. Same
+       geometry as mark.svg: top-left tile 3 units higher, 8-unit gaps. -->
+  <rect x="3" y="1.5" width="25" height="25" rx="6" fill="#000"/>
+  <rect x="36" y="4.5" width="25" height="25" rx="6" fill="#000"/>
+  <rect x="3" y="37.5" width="25" height="25" rx="6" fill="#000"/>
+  <rect x="36" y="37.5" width="25" height="25" rx="6" fill="#000"/>
+</svg>

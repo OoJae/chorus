@@ -1,0 +1,7 @@
+### Whether a circle keeps a word log, as one member sees it.
+class: WordLogStatus
+fields:
+  enabled: bool
+  ### True when the caller may turn the log on or off and delete it: a
+  ### guardian.
+  canChange: bool

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app's page colours: card in light mode, slate in dark mode. The
+         launch screens use them so the window matches the app's first frame
+         and nothing flashes white. -->
+    <color name="card">#F6F2EA</color>
+    <color name="slate">#101214</color>
+    <!-- Behind the adaptive icon's mark. -->
+    <color name="ic_launcher_background">@color/card</color>
+    <!-- Behind the mark on the launch screen before Android 12. Dark mode
+         swaps it for slate in values-night/colors.xml. -->
+    <color name="launch_background">@color/card</color>
+</resources>

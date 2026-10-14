@@ -102,6 +102,7 @@ class BigButton extends StatelessWidget {
   Widget build(BuildContext context) {
     const text = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
     const size = Size.fromHeight(64);
+    final ink = Theme.of(context).colorScheme.onSurface;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: primary
@@ -116,8 +117,8 @@ class BigButton extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 minimumSize: size,
                 textStyle: text,
-                foregroundColor: Colors.black,
-                side: const BorderSide(color: Colors.black, width: 1.5),
+                foregroundColor: ink,
+                side: BorderSide(color: ink, width: 1.5),
               ),
               icon: Icon(icon),
               label: Text(label),

@@ -27,5 +27,16 @@ media:
 printing:
   - publishBoard:
   - pageUrl:
+sharing:
+  - publishViewOnly:
+  - withdraw:
+  - exportUrl:
 suggest:
   - fromPhoto:
+summary:
+  - week:
+wordLog:
+  - status:
+  - setEnabled:
+  - record:
+  - deleteAll:

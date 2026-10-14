@@ -10,10 +10,12 @@ import 'package:chorus_shared/chorus_shared.dart' as chorus show wordsBoardId;
 import 'package:flutter/foundation.dart';
 
 import 'contracts.dart';
+import 'contracts_boards.dart';
 
 /// A [BoardStore] held in memory, seeded with the starter board and the
-/// empty "My words" board, as a guardian's device seeds a circle.
-class FakeBoardStore extends BoardStore {
+/// empty "My words" board, as a guardian's device seeds a circle. Boards
+/// can be added, renamed, archived and imported ([BoardManager]).
+class FakeBoardStore extends BoardStore implements BoardManager {
   /// Starts from `starterBoard` / `starterTiles` and `wordsBoard`. The
   /// starter board fills every cell, so [leaveEmpty] names (row, col) cells
   /// to leave out when a demo or test needs free spots on it.
@@ -51,6 +53,7 @@ class FakeBoardStore extends BoardStore {
   final List<TileFacts> _tiles = [];
   CircleRole _role;
   int _sequence = 0;
+  int _boardSequence = 0;
   int _minutes = 0;
 
   @override
@@ -153,6 +156,102 @@ class FakeBoardStore extends BoardStore {
     _tiles[index] = tile.copyWith(archived: true, cellKey: trayKey(tile.id));
     _handOver(CellKey.parse(tile.cellKey));
     notifyListeners();
+  }
+
+  @override
+  Future<String> addBoard(String name) async {
+    _requireEditor();
+    final id = _newBoard(_requireBoardName(name));
+    notifyListeners();
+    return id;
+  }
+
+  @override
+  Future<void> renameBoard(String boardId, String name) async {
+    _requireEditor();
+    final tidy = _requireBoardName(name);
+    final board = _board(boardId);
+    _boards[_boards.indexOf(board)] = BoardFacts(
+      id: board.id,
+      name: tidy,
+      rows: board.rows,
+      cols: board.cols,
+      isHome: board.isHome,
+    );
+    notifyListeners();
+  }
+
+  /// Archives the board's words with it, each in one update as
+  /// [archiveTile] does, so they leave with the board instead of waiting
+  /// in the tray for a cell they can no longer have.
+  @override
+  Future<void> archiveBoard(String boardId) async {
+    _requireEditor();
+    final index = _boards.indexWhere((board) => board.id == boardId);
+    if (index < 0) {
+      throw ArgumentError.value(boardId, 'boardId', 'No such board');
+    }
+    final board = _boards[index];
+    final problem = archiveProblem(board, _boards);
+    if (problem != null) throw StateError(problem);
+    _boards[index] = BoardFacts(
+      id: board.id,
+      name: board.name,
+      rows: board.rows,
+      cols: board.cols,
+      isHome: board.isHome,
+      archived: true,
+    );
+    for (var i = 0; i < _tiles.length; i++) {
+      final tile = _tiles[i];
+      if (tile.boardId != boardId || tile.archived) continue;
+      _tiles[i] = tile.copyWith(archived: true, cellKey: trayKey(tile.id));
+    }
+    notifyListeners();
+  }
+
+  @override
+  Future<BoardImport> importBoard(ObfBoard board) async {
+    _requireEditor();
+    final boardId = _newBoard(importedBoardName(board.name, _boards));
+    final (:fitted, :leftOver) = obfPlacements(
+      board,
+      rows: starterRows,
+      cols: starterCols,
+    );
+    for (final word in fitted) {
+      _tiles.add(TileFacts(
+        id: _nextId(),
+        boardId: boardId,
+        cellKey: placedKey(boardId, word.row, word.col),
+        label: word.label,
+        speech: word.speech,
+        colorKey: word.colorKey,
+        createdBy: _userId(myName),
+        createdByName: myName,
+        createdAt: _tick(),
+      ));
+    }
+    notifyListeners();
+    return BoardImport(boardId: boardId, leftOut: leftOver);
+  }
+
+  /// Adds an empty board the size of the starter board; returns its id.
+  String _newBoard(String name) {
+    final id = deterministicId(circleId, 'fake-board:${_boardSequence++}');
+    _boards.add(BoardFacts(
+      id: id,
+      name: name,
+      rows: starterRows,
+      cols: starterCols,
+    ));
+    return id;
+  }
+
+  String _requireBoardName(String name) {
+    final problem = boardNameProblem(name);
+    if (problem != null) throw ArgumentError.value(name, 'name', problem);
+    return tidyBoardName(name);
   }
 
   /// What the engine does when a cell is freed: the oldest tile that lost

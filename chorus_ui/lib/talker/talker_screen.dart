@@ -7,6 +7,7 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
@@ -191,7 +192,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
           ..showSnackBar(const SnackBar(content: Text(howToLeaveMessage)));
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: ChorusColors.of(context).surface,
         body: SafeArea(
           // Any finger anywhere counts as activity, whatever handles it.
           child: Listener(
@@ -546,6 +547,7 @@ class _SharingBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     return Semantics(
       button: true,
       label: '$sharingSaidMessage. Tap to stop',
@@ -554,17 +556,17 @@ class _SharingBar extends StatelessWidget {
       child: SizedBox(
         height: 48,
         child: Material(
-          color: Colors.black,
+          color: colors.ink,
           borderRadius: BorderRadius.circular(12),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onStop,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Icon(Icons.podcasts, size: 20, color: Colors.white),
-                  SizedBox(width: 8),
+                  Icon(Icons.podcasts, size: 20, color: colors.surface),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       sharingSaidMessage,
@@ -573,14 +575,14 @@ class _SharingBar extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: colors.surface,
                       ),
                     ),
                   ),
                   Text(
                     'Tap to stop',
                     maxLines: 1,
-                    style: TextStyle(fontSize: 14, color: Colors.white),
+                    style: TextStyle(fontSize: 14, color: colors.surface),
                   ),
                 ],
               ),
@@ -606,6 +608,7 @@ class _SentenceBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const side = 12.0;
+    final colors = ChorusColors.of(context);
     final words = controller.strip;
     final sentence = words.map((t) => t.label).join(' ');
     return Semantics(
@@ -614,10 +617,10 @@ class _SentenceBox extends StatelessWidget {
       excludeSemantics: true,
       onTap: controller.speakStrip,
       child: Material(
-        color: Colors.white,
+        color: colors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.black, width: 2),
+          side: BorderSide(color: colors.ink, width: 2),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -644,7 +647,7 @@ class _SentenceBox extends StatelessWidget {
                     style: TextStyle(
                       fontSize: fontSize,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: colors.ink,
                     ),
                   ),
                 ),
@@ -672,16 +675,17 @@ class _StripButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     return Semantics(
       button: true,
       label: label,
       excludeSemantics: true,
       onTap: onPressed,
       child: Material(
-        color: filled ? Colors.black : Colors.white,
+        color: filled ? colors.ink : colors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.black, width: 2),
+          side: BorderSide(color: colors.ink, width: 2),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -693,7 +697,7 @@ class _StripButton extends StatelessWidget {
             child: Icon(
               icon,
               size: 32,
-              color: filled ? Colors.white : Colors.black,
+              color: filled ? colors.surface : colors.ink,
             ),
           ),
         ),
@@ -728,6 +732,7 @@ class _StatusRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final waiting = controller.waitingCount;
     final compact = layout != TalkerLayout.roomy;
+    final ink = ChorusColors.of(context).ink;
     final pill = waiting > 0
         ? _WaitingPill(
             count: waiting,
@@ -740,13 +745,13 @@ class _StatusRow extends StatelessWidget {
       // Anything live is shown: this board is joined to the circle and
       // the other adults can see that it is here.
       if (controller.liveConnected)
-        const Padding(
-          padding: EdgeInsets.only(left: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 6),
           child: Tooltip(
             message: liveConnectedMessage,
             child: Icon(
               Icons.sensors,
-              color: Colors.black,
+              color: ink,
               semanticLabel: liveConnectedMessage,
             ),
           ),
@@ -757,13 +762,13 @@ class _StatusRow extends StatelessWidget {
         valueListenable: speech.offlineVoiceReady,
         builder: (context, ready, _) => ready
             ? const SizedBox.shrink()
-            : const Padding(
-                padding: EdgeInsets.only(left: 6),
+            : Padding(
+                padding: const EdgeInsets.only(left: 6),
                 child: Tooltip(
                   message: noOfflineVoiceMessage,
                   child: Icon(
                     Icons.volume_off,
-                    color: Colors.black,
+                    color: ink,
                     semanticLabel: noOfflineVoiceMessage,
                   ),
                 ),
@@ -848,28 +853,29 @@ class _WaitingPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = count == 1 ? '1 word waiting' : '$count words waiting';
+    final colors = ChorusColors.of(context);
     final pill = Container(
       height: 36,
       padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: colors.ink,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (needsAdult) ...[
-            const Icon(Icons.supervisor_account, size: 18, color: Colors.white),
+            Icon(Icons.supervisor_account, size: 18, color: colors.surface),
             const SizedBox(width: 6),
           ],
           Text(
             compact ? '$count waiting' : text,
             maxLines: 1,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: colors.surface,
             ),
           ),
         ],
@@ -995,6 +1001,7 @@ class _HoldTargetState extends State<_HoldTarget>
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     // The Focus is outside the Semantics, which drops everything under it,
     // so a screen reader is still told that this can take the keyboard.
     return Focus(
@@ -1032,7 +1039,7 @@ class _HoldTargetState extends State<_HoldTarget>
                             child: CircularProgressIndicator(
                               value: _hold.value,
                               strokeWidth: 3,
-                              color: Colors.black,
+                              color: colors.ink,
                             ),
                           ),
                         child!,
@@ -1052,8 +1059,8 @@ class _HoldTargetState extends State<_HoldTarget>
                             child: _hold.value > 0
                                 ? LinearProgressIndicator(
                                     value: _hold.value,
-                                    color: Colors.black,
-                                    backgroundColor: Colors.white,
+                                    color: colors.ink,
+                                    backgroundColor: colors.surface,
                                   )
                                 : null,
                           ),
@@ -1064,7 +1071,9 @@ class _HoldTargetState extends State<_HoldTarget>
             // Always in the tree, so the control keeps its shape and size
             // whether or not the keyboard is on it.
             child: CustomPaint(
-              foregroundPainter: _focused ? const _FocusRing() : null,
+              foregroundPainter: _focused
+                  ? _FocusRing(outer: colors.ink, inner: colors.surface)
+                  : null,
               child: widget.child,
             ),
           ),
@@ -1082,12 +1091,15 @@ class _HoldTargetState extends State<_HoldTarget>
   }
 }
 
-/// The mark on a hold control the keyboard is on: a thick black line round
-/// its edge and a thin white one just inside it, so it shows on the outlined
-/// leave pill and on the black waiting pill alike. It is painted over the
-/// control and takes no space.
+/// The mark on a hold control the keyboard is on: a thick ink line round
+/// its edge and a thin line of the page's colour just inside it, so it shows
+/// on the outlined leave pill and on the ink waiting pill alike. It is
+/// painted over the control and takes no space.
 class _FocusRing extends CustomPainter {
-  const _FocusRing();
+  const _FocusRing({required this.outer, required this.inner});
+
+  final Color outer;
+  final Color inner;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1099,19 +1111,20 @@ class _FocusRing extends CustomPainter {
     canvas.drawRRect(
       edge.deflate(2),
       line
-        ..color = Colors.black
+        ..color = outer
         ..strokeWidth = 4,
     );
     canvas.drawRRect(
       edge.deflate(4.75),
       line
-        ..color = Colors.white
+        ..color = inner
         ..strokeWidth = 1.5,
     );
   }
 
   @override
-  bool shouldRepaint(_FocusRing oldDelegate) => false;
+  bool shouldRepaint(_FocusRing oldDelegate) =>
+      oldDelegate.outer != outer || oldDelegate.inner != inner;
 }
 
 /// The visible way out of the talker: a labelled control an adult holds.
@@ -1123,20 +1136,17 @@ class _LeavePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = ChorusColors.of(context).ink;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 1.5),
+        border: Border.all(color: ink, width: 1.5),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.lock_outline,
-            size: compact ? 16 : 18,
-            color: Colors.black,
-          ),
+          Icon(Icons.lock_outline, size: compact ? 16 : 18, color: ink),
           SizedBox(width: compact ? 4 : 6),
           Text(
             leaveLabel,
@@ -1144,7 +1154,7 @@ class _LeavePill extends StatelessWidget {
             style: TextStyle(
               fontSize: compact ? 13 : null,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: ink,
             ),
           ),
         ],
