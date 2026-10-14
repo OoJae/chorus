@@ -3,7 +3,7 @@
   'use strict';
 
   // The film. Put its address here and the "Watch the film" button appears.
-  var FILM_URL = '';
+  var FILM_URL = 'https://youtu.be/JDv5pPvsrA8';
 
   var APP = '/app/';
 

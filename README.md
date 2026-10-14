@@ -28,7 +28,7 @@ To see the child's side, go back home and click "Open Maya's board". Tap words t
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
 - Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`; debug-signed, Android 7.0 or later).
-- Video (1:35, with a voice-over): TODO(owner): link. The narration is in [docs/voiceover.md](docs/voiceover.md).
+- Video (1:35, with a voice-over): https://youtu.be/JDv5pPvsrA8. The narration is in [docs/voiceover.md](docs/voiceover.md).
 - Code: https://github.com/OoJae/chorus
 - A longer walkthrough, with two adults in two windows: [docs/TRY-IT.md](docs/TRY-IT.md)
 - What was checked on real devices: [docs/device-log.md](docs/device-log.md)
@@ -41,7 +41,7 @@ To see the child's side, go back home and click "Open Maya's board". Tap words t
 | `demo.therapist@chorus.example` | Speech therapist | Therapist | Change the board, including "Try a clash" |
 | `demo.partner@chorus.example` | Grandad | Partner | View the board and "Suggest a word" |
 
-The password is in the submission text, never in this repository. TODO(owner): put the demo password in the submission text.
+The password is in the submission text, never in this repository.
 
 - All three share one circle, so other judges' words may already be on it. Use any empty spot.
 - The demo board is made by the demo parent's first sign-in, which we do before submitting. If the therapist or partner sign-in shows "There is no board here yet", sign in once as `demo.parent@chorus.example` (in another window, or after signing out), then click "Retry".

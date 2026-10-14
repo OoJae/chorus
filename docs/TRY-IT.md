@@ -6,13 +6,8 @@ the defaults of serverpod_auth_idp_flutter 4.0.4. "Checked" in a status line
 means there is a line for it in docs/device-log.md. Anything else described
 here is built and has automated tests, and says so where it matters.
 
-Before the submission tag:
-- resolve the TODO(owner) markers: the film
-  link and the demo password in the submission text;
-- sign in once as demo.parent@chorus.example, so the demo board exists;
-- when phone checks of the new APK are logged in device-log.md, update the
-  status lines of parts C and D.
-Then delete this comment.
+The film link is in, the demo board exists (demo.parent signed in on Cloud at
+17:45 UTC), and the demo password is given only in the submission text.
 -->
 
 # Try Chorus
@@ -24,8 +19,8 @@ Maya, the child in the demo, is a persona. No child, parent or clinician has use
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
 - Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`).
-- Film (1:35): TODO(owner): link.
-- Demo sign-ins: `demo.parent@chorus.example` (guardian), `demo.therapist@chorus.example` (therapist, can edit), `demo.partner@chorus.example` (read-only partner: views the board and can suggest a word). The password is in our submission text. TODO(owner): put the demo password in the submission text.
+- Film (1:35): https://youtu.be/JDv5pPvsrA8
+- Demo sign-ins: `demo.parent@chorus.example` (guardian), `demo.therapist@chorus.example` (therapist, can edit), `demo.partner@chorus.example` (read-only partner: views the board and can suggest a word). The password is in our submission text.
 - What was checked on real hardware, and what was not: [`device-log.md`](device-log.md)
 
 Part A needs one desktop browser and takes about three minutes, not counting the wait for the emailed code. We have tried it only in Microsoft Edge on macOS. Other browsers, and the web app in a phone's browser, have not been tried. Part B is the collision the project is about, with two adults in two windows. Parts C and D are optional.
