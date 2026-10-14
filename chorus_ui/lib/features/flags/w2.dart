@@ -15,8 +15,14 @@ const bool plainTrayEnabled = true;
 /// the top of "Needs a home".
 const bool suggestWordEnabled = true;
 
-/// "People in this circle", with "Remove from circle" for a guardian.
+/// "People in this circle", with "Remove from circle" for a guardian when
+/// [removeFromCircleEnabled] is on.
 const bool circleMembersEnabled = true;
+
+/// "Remove from circle" on each other member, for a guardian. Off for the
+/// judging: judges share the demo circle, and the server refuses to take a
+/// demo sign-in out of it anyway. The list of people stays.
+const bool removeFromCircleEnabled = false;
 
 /// Several ideas for one photo, as small word tiles coloured by part of
 /// speech, with "Add all to Needs a home". Off, the sheet asks for one word

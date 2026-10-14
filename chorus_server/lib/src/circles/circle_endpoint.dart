@@ -129,12 +129,6 @@ class CircleEndpoint extends Endpoint {
       if (invitation == null) {
         throw CircleException(failure: CircleFailure.inviteInvalid);
       }
-      if (invitation.acceptedBy != null && invitation.acceptedBy != me) {
-        throw CircleException(failure: CircleFailure.inviteUsed);
-      }
-      if (invitation.expiresAt.isBefore(now)) {
-        throw CircleException(failure: CircleFailure.inviteExpired);
-      }
       final space = invitation.circleSpace;
       final existing = await _membership(
         session,
@@ -142,6 +136,16 @@ class CircleEndpoint extends Endpoint {
         me,
         transaction: transaction,
       );
+      // A used code lets only the person who used it try again, and only
+      // while they are still in the circle (an answer that never arrived).
+      // Someone removed since needs a new invite.
+      if (invitation.acceptedBy != null &&
+          (invitation.acceptedBy != me || existing == null)) {
+        throw CircleException(failure: CircleFailure.inviteUsed);
+      }
+      if (invitation.expiresAt.isBefore(now)) {
+        throw CircleException(failure: CircleFailure.inviteExpired);
+      }
       if (existing == null) {
         await session.offlineSync.spaces.grant(
           space: space,

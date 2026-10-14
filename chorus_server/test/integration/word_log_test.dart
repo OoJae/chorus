@@ -379,6 +379,76 @@ void main() {
         expect(await log.deleteAll(circle.guardian.session, circle.space), 0);
       });
 
+      test('when the guardian deletes the log then the words sitters tapped '
+          'and the progress report links go too, and other circles keep '
+          'theirs.', () async {
+        final (circle, tiles) = await logging();
+        final (other, _) = await logging();
+        await log.record(circle.guardian.session, circle.space, [
+          spoken(tiles[0]),
+        ]);
+        final now = DateTime.now().toUtc();
+        for (final space in [circle.space, other.space]) {
+          await SitterTap.db.insertRow(
+            session,
+            SitterTap(circleSpace: space, label: 'tired', tappedAt: now),
+          );
+        }
+        final token = await endpoints.progress.makeReport(
+          circle.guardian.session,
+          circle.space,
+        );
+        await endpoints.progress.makeReport(
+          other.guardian.session,
+          other.space,
+        );
+        expect(
+          await endpoints.sitter.recentTaps(
+            circle.guardian.session,
+            circle.space,
+          ),
+          hasLength(1),
+        );
+
+        expect(await log.deleteAll(circle.guardian.session, circle.space), 1);
+
+        expect(
+          await endpoints.sitter.recentTaps(
+            circle.guardian.session,
+            circle.space,
+          ),
+          isEmpty,
+        );
+        expect(
+          await SitterTap.db.count(
+            session,
+            where: (t) => t.circleSpace.equals(circle.space),
+          ),
+          0,
+        );
+        expect(
+          await ProgressReportLink.db.findFirstRow(
+            session,
+            where: (t) => t.token.equals(token),
+          ),
+          isNull,
+        );
+        expect(
+          await SitterTap.db.count(
+            session,
+            where: (t) => t.circleSpace.equals(other.space),
+          ),
+          1,
+        );
+        expect(
+          await ProgressReportLink.db.count(
+            session,
+            where: (t) => t.circleSpace.equals(other.space),
+          ),
+          1,
+        );
+      });
+
       test('when a device sends words it still held from before the delete '
           'then they are not taken again, and later words are.', () async {
         final (circle, tiles) = await logging();

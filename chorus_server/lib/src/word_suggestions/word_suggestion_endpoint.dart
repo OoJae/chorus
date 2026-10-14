@@ -9,6 +9,13 @@ const int maxSuggestedLabelLength = 40;
 /// Most open suggestions one circle holds; older ones are not listed.
 const int maxOpenSuggestions = 50;
 
+/// Most suggestions one member may have waiting for an editor at once.
+const int maxOpenSuggestionsPerMember = 10;
+
+/// Most suggestions one circle may have waiting for an editor at once,
+/// fewer than [maxOpenSuggestions], so every waiting one is listed.
+const int maxOpenSuggestionsPerCircle = 30;
+
 /// `source` of a suggestion made by a person in the circle.
 const String suggestionFromPerson = 'person';
 
@@ -29,7 +36,12 @@ class WordSuggestionEndpoint extends Endpoint {
   bool get requireLogin => true;
 
   /// Suggests [label] (with optional [speech] and part-of-speech
-  /// [colorKey]) for [circleSpace]'s board. Any member.
+  /// [colorKey]) for [circleSpace]'s board. Any member. Each text is cut to
+  /// [maxSuggestedLabelLength] characters.
+  ///
+  /// Throws [CircleException] with `notAllowed` while the caller already
+  /// has [maxOpenSuggestionsPerMember] suggestions waiting, or the circle
+  /// [maxOpenSuggestionsPerCircle], so nobody can bury the others' words.
   Future<SuggestedWordInfo> suggest(
     Session session,
     UuidValue circleSpace,
@@ -42,19 +54,48 @@ class WordSuggestionEndpoint extends Endpoint {
     if (text == null) {
       throw ArgumentError.value(label, 'label', 'A suggestion needs a word');
     }
-    final row = await SuggestedWord.db.insertRow(
-      session,
-      SuggestedWord(
-        circleSpace: circleSpace,
-        label: text,
-        speech: _clean(speech),
-        colorKey: _clean(colorKey),
-        suggestedBy: me.userId,
-        suggestedByName: me.displayName,
-        source: suggestionFromPerson,
-        createdAt: DateTime.now().toUtc(),
-      ),
-    );
+    final row = await session.db.transaction((transaction) async {
+      // One suggestion at a time per circle, so the caps below hold even
+      // when many calls come at once.
+      await Circle.db.findFirstRow(
+        session,
+        where: (t) => t.spaceUuid.equals(circleSpace),
+        lockMode: LockMode.forUpdate,
+        transaction: transaction,
+      );
+      final mine = await SuggestedWord.db.count(
+        session,
+        where: (t) =>
+            t.circleSpace.equals(circleSpace) &
+            t.suggestedBy.equals(me.userId) &
+            t.resolvedAt.equals(null),
+        transaction: transaction,
+      );
+      final all = await SuggestedWord.db.count(
+        session,
+        where: (t) =>
+            t.circleSpace.equals(circleSpace) & t.resolvedAt.equals(null),
+        transaction: transaction,
+      );
+      if (mine >= maxOpenSuggestionsPerMember ||
+          all >= maxOpenSuggestionsPerCircle) {
+        throw CircleException(failure: CircleFailure.notAllowed);
+      }
+      return SuggestedWord.db.insertRow(
+        session,
+        SuggestedWord(
+          circleSpace: circleSpace,
+          label: text,
+          speech: _clean(speech),
+          colorKey: _clean(colorKey),
+          suggestedBy: me.userId,
+          suggestedByName: me.displayName,
+          source: suggestionFromPerson,
+          createdAt: DateTime.now().toUtc(),
+        ),
+        transaction: transaction,
+      );
+    });
     return infoOf(row);
   }
 

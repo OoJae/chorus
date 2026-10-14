@@ -31,6 +31,46 @@ const demoPersonas = [
   DemoPersona('demo.partner@chorus.example', 'Grandad', CircleRole.partner),
 ];
 
+/// The auth users of the demo sign-ins that exist on this server, by
+/// address. Empty when no demo password was ever set.
+///
+/// Read from the email provider's own table, so it works whether or not
+/// the auth services are set up in this process.
+Future<Map<String, UuidValue>> demoAccounts(Session session) async {
+  final rows = await EmailAccount.db.find(
+    session,
+    where: (t) => t.email.inSet({for (final p in demoPersonas) p.email}),
+  );
+  return {for (final row in rows) row.email: row.authUserId};
+}
+
+/// True when [user] may not be taken out of [circleSpace] because the demo
+/// needs them there: [circleSpace] is the demo circle (the demo guardian's
+/// circle for [demoChildName]), or [user] is one of the demo sign-ins.
+///
+/// Every judge shares the demo sign-ins, and [ensureDemoSeed] only puts a
+/// missing member back when the server starts, so one removal would leave
+/// that sign-in with no board for every judge after.
+Future<bool> isDemoProtected(
+  Session session,
+  UuidValue circleSpace,
+  UuidValue user,
+) async {
+  final demo = await demoAccounts(session);
+  if (demo.isEmpty) return false;
+  if (demo.values.contains(user)) return true;
+  final guardian = demo[demoPersonas.first.email];
+  if (guardian == null) return false;
+  final circle = await Circle.db.findFirstRow(
+    session,
+    where: (t) =>
+        t.spaceUuid.equals(circleSpace) &
+        t.createdBy.equals(guardian) &
+        t.childName.equals(demoChildName),
+  );
+  return circle != null;
+}
+
 /// Makes sure the demo accounts and their circle exist. Call after the
 /// server has started.
 ///

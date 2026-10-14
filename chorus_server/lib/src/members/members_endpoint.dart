@@ -4,6 +4,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart';
 
 import '../circles/membership_guard.dart';
+import '../demo/demo_seed.dart' show isDemoProtected;
 import '../generated/protocol.dart';
 
 /// The server-event channel that tells [user]'s live streams in
@@ -55,11 +56,15 @@ class MembersEndpoint extends Endpoint {
 
   /// Removes [userId] from [circleSpace]: their sync access is revoked,
   /// their membership deleted, and a live stream of theirs closes at once.
-  /// The words they added stay. Guardians only, and never themselves.
+  /// The words they added stay. Codes they made that nobody used stop
+  /// working, and the code they joined with does not let them back in
+  /// (see `CircleEndpoint.acceptInvite`): coming back takes a new invite.
+  /// Guardians only, and never themselves.
   ///
   /// Throws [CircleException] with `notAllowed` for a caller who is not a
-  /// guardian or who names themselves, and `notAMember` when [userId] is
-  /// not in the circle.
+  /// guardian or who names themselves, or when the demo needs [userId]
+  /// where they are (see [isDemoProtected]), and `notAMember` when [userId]
+  /// is not in the circle.
   Future<void> remove(
     Session session,
     UuidValue circleSpace,
@@ -67,6 +72,9 @@ class MembersEndpoint extends Endpoint {
   ) async {
     final me = await requireMember(session, circleSpace);
     if (me.role != CircleRole.guardian || me.userId == userId) {
+      throw CircleException(failure: CircleFailure.notAllowed);
+    }
+    if (await isDemoProtected(session, circleSpace, userId)) {
       throw CircleException(failure: CircleFailure.notAllowed);
     }
     await session.db.transaction((transaction) async {
@@ -87,6 +95,14 @@ class MembersEndpoint extends Endpoint {
       await Membership.db.deleteRow(
         session,
         target,
+        transaction: transaction,
+      );
+      await Invitation.db.deleteWhere(
+        session,
+        where: (t) =>
+            t.circleSpace.equals(circleSpace) &
+            t.createdBy.equals(userId) &
+            t.acceptedBy.equals(null),
         transaction: transaction,
       );
     });
