@@ -81,7 +81,10 @@ class _ScenesScreenState extends State<ScenesScreen> {
     try {
       final String hash;
       try {
-        hash = await media.addImage(bytes);
+        final Object store = media;
+        hash = store is SceneImageStore
+            ? await store.addSceneImage(bytes)
+            : await media.addImage(bytes);
       } on FormatException {
         ChorusHaptics.failed();
         messenger.showSnackBar(const SnackBar(content: Text(notAPhotoMessage)));

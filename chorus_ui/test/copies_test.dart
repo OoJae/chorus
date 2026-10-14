@@ -160,6 +160,23 @@ void main() {
     expect(kept.single.wordCount, 0);
   });
 
+  testWidgets('a copy of an archived board offers no "Put back"', (
+    tester,
+  ) async {
+    final board = await store.addBoard('Trip');
+    final trip = store.boards.firstWhere((b) => b.id == board);
+    await store.addTile(boardId: board, row: 0, col: 0, label: 'bus');
+    final copy = await copies.take(trip, 'Before');
+    await store.archiveBoard(board);
+    await pumpApp(
+      tester,
+      CopyScreen(copies: copies, copyId: copy.id, store: store),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text(boardArchivedMessage), 200);
+    expect(find.text(putBackLabel), findsNothing);
+  });
+
   testWidgets('a copy can be deleted after asking', (tester) async {
     final board = store.boards.firstWhere((b) => b.isHome);
     await copies.take(board, 'Old');

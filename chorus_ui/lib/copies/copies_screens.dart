@@ -34,6 +34,10 @@ const String noCopiesYetMessage =
     'No copies yet. Save a copy from the board menu before a big change, '
     'such as "Before the school trip".';
 
+/// Shown in place of "Put back" when the copy's board is no longer in use.
+const String boardArchivedMessage =
+    'This board was archived, so its words cannot be put back.';
+
 /// Said after a word was put back.
 String putBackMessage(String label) =>
     '"$label" is in "Needs a home". Choose its spot from there.';
@@ -433,7 +437,10 @@ class _CopyScreenState extends State<CopyScreen> {
             CopyWordState.gone)
           i,
     ];
-    final adder = _adder;
+    final boardInUse = widget.store.boards.any(
+      (b) => b.id == copy.boardId && !b.archived,
+    );
+    final adder = boardInUse ? _adder : null;
     return ListView(
       padding: const EdgeInsets.all(ChorusSpace.marginPhone),
       children: [
@@ -462,6 +469,14 @@ class _CopyScreenState extends State<CopyScreen> {
           ),
         ),
         const SizedBox(height: 8),
+        if (!boardInUse && gone.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              boardArchivedMessage,
+              style: ChorusType.body.copyWith(color: colors.inkMuted),
+            ),
+          ),
         if (gone.isEmpty)
           Text(
             allWordsHereMessage,

@@ -110,6 +110,16 @@ const String sceneNotSavedMessage =
     'That was not saved. Scenes are changed online: check the connection and '
     'try again.';
 
+/// Keeps a scene's photo larger than a tile's, since it is shown
+/// full-screen. Implemented by the same object as the `MediaStore` when it
+/// can; otherwise the photo is kept as a tile's picture is.
+abstract class SceneImageStore {
+  /// As `MediaStore.addImage`, with a longer side. Completes with the
+  /// photo's hash. Throws [FormatException] for bytes that are not a
+  /// picture.
+  Future<String> addSceneImage(Uint8List bytes);
+}
+
 /// The circle's scenes on this device.
 ///
 /// [scenes] is what this device last heard, kept so the child's scenes work
