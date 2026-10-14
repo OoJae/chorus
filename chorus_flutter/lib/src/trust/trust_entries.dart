@@ -26,8 +26,7 @@ List<Widget> trustEntries(
       HomeEntry(
         icon: Icons.devices_rounded,
         label: whoIsUpToDateTitle,
-        onTap: () =>
-            open(WhoIsUpToDateScreen(directory: devices, sync: sync)),
+        onTap: () => open(WhoIsUpToDateScreen(directory: devices, sync: sync)),
       ),
     if (underTheHoodEnabled && inspector != null)
       HomeEntry(

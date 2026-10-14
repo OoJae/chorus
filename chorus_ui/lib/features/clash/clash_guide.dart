@@ -44,8 +44,7 @@ const String clashGoOnlineMessage =
 const String clashGoOnlineAction = 'Turn Work offline off';
 
 /// While the two words travel.
-const String clashWaitingMessage =
-    'Sending your word and bringing in theirs…';
+const String clashWaitingMessage = 'Sending your word and bringing in theirs…';
 
 /// The end: both words are here.
 String clashDoneMessage({required String kept, required String waiting}) =>
@@ -258,10 +257,11 @@ class ClashGuide extends ChangeNotifier {
     final spot = _spot;
     final word = _word;
     if (spot == null || word == null) return;
-    final holder = gridOf(spot.boardId, store.tiles, store.boards)[(
-      spot.row,
-      spot.col,
-    )];
+    final holder = gridOf(
+      spot.boardId,
+      store.tiles,
+      store.boards,
+    )[(spot.row, spot.col)];
     switch (_step) {
       case ClashStep.placeYours:
         if (holder == null) return;
@@ -282,9 +282,7 @@ class ClashGuide extends ChangeNotifier {
       case ClashStep.waiting:
         final waiting = store.tiles.where((tile) {
           final key = CellKey.parse(tile.cellKey);
-          return !tile.archived &&
-              key is ContestedCell &&
-              key.wanted == spot;
+          return !tile.archived && key is ContestedCell && key.wanted == spot;
         }).firstOrNull;
         if (holder == null || waiting == null || sync.hasUnsent) return;
         _outcome = (kept: holder.label, waiting: waiting.label);

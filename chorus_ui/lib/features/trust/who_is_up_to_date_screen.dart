@@ -85,7 +85,12 @@ class WhoIsUpToDateScreen extends StatefulWidget {
 class _WhoIsUpToDateScreenState extends State<WhoIsUpToDateScreen> {
   late Future<List<DeviceSeenInfo>> _list = widget.directory.devices();
 
-  void _refresh() => setState(() => _list = widget.directory.devices());
+  void _refresh() {
+    final next = widget.directory.devices();
+    setState(() {
+      _list = next;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

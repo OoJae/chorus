@@ -291,7 +291,8 @@ class SessionWorkspace implements Workspace {
       sync: sync,
       speech: _speech,
       clipPlayer: _clipPlayer,
-    )..trust = TrustParts.open(
+    );
+    parts.trust ??= TrustParts.open(
       _client,
       space: space,
       sync: sync,

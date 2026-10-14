@@ -135,10 +135,7 @@ void main() {
     final store = FakeBoardStore.seeded();
     final sync = FakeSyncStatus();
     final partner = FakeClashPartner();
-    await _pump(
-      tester,
-      EditorScreen(store: store, sync: sync, clash: partner),
-    );
+    await _pump(tester, EditorScreen(store: store, sync: sync, clash: partner));
     await _startClash(tester);
     expect(partner.asked.single.boardId, store.wordsBoardId);
     expect(find.byType(ClashGlow), findsOneWidget);
@@ -189,10 +186,7 @@ void main() {
     final store = FakeBoardStore.seeded(withWordsBoard: false);
     final sync = FakeSyncStatus();
     final partner = FakeClashPartner();
-    await _pump(
-      tester,
-      EditorScreen(store: store, sync: sync, clash: partner),
-    );
+    await _pump(tester, EditorScreen(store: store, sync: sync, clash: partner));
     await _startClash(tester);
     expect(_inCard(clashNoSpotMessage), findsOneWidget);
     expect(partner.asked, isEmpty);
@@ -246,10 +240,7 @@ void main() {
     expect(offersClash(null, editor), isFalse);
     expect(offersClash(FakeClashPartner(), editor), isTrue);
 
-    await _pump(
-      tester,
-      EditorScreen(store: editor, sync: FakeSyncStatus()),
-    );
+    await _pump(tester, EditorScreen(store: editor, sync: FakeSyncStatus()));
     await tester.tap(find.byTooltip(boardMenuLabel));
     await tester.pumpAndSettle();
     expect(find.text(tryAClashLabel), findsNothing);

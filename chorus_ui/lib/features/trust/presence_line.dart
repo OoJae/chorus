@@ -74,6 +74,9 @@ Widget withPresenceLine(Widget header, {required LiveSession? live}) {
   return Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [header, PresenceLine(live: live)],
+    children: [
+      header,
+      PresenceLine(live: live),
+    ],
   );
 }

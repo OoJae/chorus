@@ -39,7 +39,12 @@ class UnderTheHoodScreen extends StatefulWidget {
 class _UnderTheHoodScreenState extends State<UnderTheHoodScreen> {
   late Future<ReplicaReport> _report = widget.inspector.inspect();
 
-  void _refresh() => setState(() => _report = widget.inspector.inspect());
+  void _refresh() {
+    final next = widget.inspector.inspect();
+    setState(() {
+      _report = next;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
