@@ -13,6 +13,8 @@ import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_boards.dart';
 import '../contracts_clash.dart';
+import '../contracts_copies.dart';
+import '../copies/copies_screens.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
 import '../contracts_modelling.dart';
@@ -86,6 +88,7 @@ class EditorScreen extends StatefulWidget {
     this.clash,
     this.modelling,
     this.speech,
+    this.copies,
   });
 
   final BoardStore store;
@@ -129,6 +132,9 @@ class EditorScreen extends StatefulWidget {
   /// The browser's speech recognition for "Listen" in model mode; null, or
   /// one that is not available, hides it.
   final SpeechListener? speech;
+  /// The circle's named board copies: "Save a copy" and "Copies" in the
+  /// board menu. Null hides both.
+  final BoardCopies? copies;
 
   /// The column beside the board on a wide screen, for tests.
   @visibleForTesting
@@ -525,6 +531,7 @@ class _EditorScreenState extends State<EditorScreen>
     final picker = manager == null ? null : _picker;
     final board = _currentBoard();
     final clash = offersClash(widget.clash, _store) ? widget.clash : null;
+    final copies = offersCopies(widget.copies) ? widget.copies : null;
     return [
       if (wordFinderEnabled)
         IconButton(
@@ -544,7 +551,10 @@ class _EditorScreenState extends State<EditorScreen>
             if (board != null) onPrint(board);
           },
         ),
-      if ((manager != null || onExport != null || clash != null) &&
+      if ((manager != null ||
+              onExport != null ||
+              clash != null ||
+              copies != null) &&
           board != null)
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),
@@ -577,6 +587,15 @@ class _EditorScreenState extends State<EditorScreen>
                 );
               case 'clash' when clash != null:
                 _startClash(clash);
+              case 'save-copy' when current != null && copies != null:
+                saveCopyFrom(context, copies: copies, board: current);
+              case 'copies' when copies != null:
+                openCopies(
+                  context,
+                  copies: copies,
+                  store: _store,
+                  media: widget.media,
+                );
             }
           },
           itemBuilder: (context) => [
@@ -614,6 +633,15 @@ class _EditorScreenState extends State<EditorScreen>
             if (clash != null) ...[
               const PopupMenuDivider(),
               const PopupMenuItem(value: 'clash', child: Text(tryAClashLabel)),
+            ],
+            if (copies != null) ...[
+              const PopupMenuDivider(),
+              if (copies.canEdit)
+                const PopupMenuItem(
+                  value: 'save-copy',
+                  child: Text(saveCopyLabel),
+                ),
+              const PopupMenuItem(value: 'copies', child: Text(copiesLabel)),
             ],
           ],
         ),
@@ -710,6 +738,7 @@ class _EditorScreenState extends State<EditorScreen>
                 store: _store,
                 manager: manager,
                 board: tabBoard,
+                copies: widget.copies,
               ),
       ),
       hasTabs: BoardTabs.showFor(_store.boards, canAdd: manager != null),

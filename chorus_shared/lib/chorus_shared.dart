@@ -3,6 +3,7 @@ library;
 
 export 'src/activity.dart';
 export 'src/backoff.dart';
+export 'src/board_copy_rules.dart';
 export 'src/board_rules.dart';
 export 'src/cell_key.dart';
 export 'src/detect_overwrites.dart';
@@ -12,6 +13,7 @@ export 'src/modelling.dart';
 export 'src/obf.dart';
 export 'src/print_snapshot.dart';
 export 'src/reconcile_snapshot.dart';
+export 'src/scene_rules.dart';
 export 'src/starter_board.dart';
 export 'src/symbol_svgs.dart';
 export 'src/tile_text.dart';

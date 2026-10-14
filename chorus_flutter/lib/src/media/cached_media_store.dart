@@ -13,6 +13,7 @@ import 'package:chorus_client/chorus_client.dart'
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/contracts_media.dart';
+import 'package:chorus_ui/contracts_scenes.dart' show SceneImageStore;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
@@ -43,7 +44,8 @@ abstract class ClipSource {
 
 /// The [MediaStore] of one circle, backed by [MediaFiles] and a
 /// [MediaGateway].
-class CachedMediaStore extends MediaStore implements ClipSource {
+class CachedMediaStore extends MediaStore
+    implements ClipSource, SceneImageStore {
   /// [files] is usually `openMediaFiles()`. [queueName] names this circle's
   /// saved upload queue; use a different one per user and circle. When
   /// [sync] is given, uploads and downloads are retried at once each time
@@ -175,6 +177,17 @@ class CachedMediaStore extends MediaStore implements ClipSource {
   @override
   Future<String> addImage(Uint8List bytes) async {
     final jpeg = await _shrink(bytes);
+    final hash = await _keep(jpeg, isAudio: false);
+    _images[hash] ??= MemoryImage(jpeg);
+    _changed();
+    return hash;
+  }
+
+  /// A picture scene's photo: kept up to [maxSceneImageSide] on its longest
+  /// side, since it is shown full-screen, and sent like any other picture.
+  @override
+  Future<String> addSceneImage(Uint8List bytes) async {
+    final jpeg = await _shrinkScene(bytes);
     final hash = await _keep(jpeg, isAudio: false);
     _images[hash] ??= MemoryImage(jpeg);
     _changed();
@@ -327,3 +340,13 @@ class CachedMediaStore extends MediaStore implements ClipSource {
 /// runs in place).
 Future<Uint8List> _shrinkOffThread(Uint8List bytes) =>
     compute(shrinkToJpeg, bytes);
+
+/// Longest side of a picture scene's photo, in pixels.
+const int maxSceneImageSide = 1280;
+
+/// [bytes] as a picture scene keeps them; see [shrinkToJpeg].
+Uint8List shrinkSceneJpeg(Uint8List bytes) =>
+    shrinkToJpeg(bytes, maxSide: maxSceneImageSide);
+
+Future<Uint8List> _shrinkScene(Uint8List bytes) =>
+    compute(shrinkSceneJpeg, bytes);

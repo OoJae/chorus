@@ -11,11 +11,13 @@ import 'package:flutter/foundation.dart';
 
 import 'contracts.dart';
 import 'contracts_boards.dart';
+import 'contracts_copies.dart' show TrayWordAdder;
 
 /// A [BoardStore] held in memory, seeded with the starter board and the
 /// empty "My words" board, as a guardian's device seeds a circle. Boards
 /// can be added, renamed, archived and imported ([BoardManager]).
-class FakeBoardStore extends BoardStore implements BoardManager {
+class FakeBoardStore extends BoardStore
+    implements BoardManager, TrayWordAdder {
   /// Starts from `starterBoard` / `starterTiles` and `wordsBoard`. The
   /// starter board fills every cell, so [leaveEmpty] names (row, col) cells
   /// to leave out when a demo or test needs free spots on it.
@@ -234,6 +236,36 @@ class FakeBoardStore extends BoardStore implements BoardManager {
     }
     notifyListeners();
     return BoardImport(boardId: boardId, leftOut: leftOver);
+  }
+
+  /// Adds a word to [boardId]'s "Needs a home" (a tray key), as "Put
+  /// back" in a board copy does.
+  @override
+  Future<String> addToTray({
+    required String boardId,
+    required String label,
+    String? speech,
+    String? colorKey,
+    String? imageHash,
+  }) async {
+    _requireEditor();
+    _board(boardId);
+    final text = _requireLabel(label);
+    final id = _nextId();
+    _tiles.add(TileFacts(
+      id: id,
+      boardId: boardId,
+      cellKey: trayKey(id),
+      label: text,
+      speech: (speech == null || speech.trim().isEmpty) ? null : speech.trim(),
+      colorKey: colorKey,
+      imageHash: imageHash,
+      createdBy: _userId(myName),
+      createdByName: myName,
+      createdAt: _tick(),
+    ));
+    notifyListeners();
+    return id;
   }
 
   /// Adds an empty board the size of the starter board; returns its id.

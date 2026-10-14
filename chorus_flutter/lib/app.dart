@@ -357,6 +357,8 @@ class SessionWorkspace implements Workspace {
       trust: parts.trust?.services(canEdit: canEdit),
       modelling: modelling.source,
       speech: modelling.speech,
+      scenes: features?.scenes,
+      copies: features?.copies,
     );
   }
 

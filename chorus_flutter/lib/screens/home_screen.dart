@@ -16,8 +16,10 @@ import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/credits/credits_screen.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/features/features.dart';
+import 'package:chorus_ui/features/flags/w8.dart' show pictureScenesEnabled;
 import 'package:chorus_ui/home/home.dart';
 import 'package:chorus_ui/modelling/focus_nudge_note.dart';
+import 'package:chorus_ui/scenes/scenes_screen.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
@@ -141,6 +143,7 @@ class HomeScreen extends StatelessWidget {
         wordLog: services?.wordLog,
         heroTag: heroTag,
         onExit: () => Navigator.of(talkerContext).pop(),
+        scenes: services?.scenes,
       ),
     );
     Navigator.of(context).push(
@@ -218,6 +221,7 @@ class HomeScreen extends StatelessWidget {
       capture: services?.capture,
       speaker: services?.speaker,
       suggester: services?.suggester,
+      copies: services?.copies,
       // From the editor the page is of the board the adult is looking at.
       onPrint: services?.publishBoard == null
           ? null
@@ -445,6 +449,19 @@ class HomeScreen extends StatelessWidget {
             label: printCopyLabel,
             opensScreen: false,
             onTap: hasBoard ? () => _printCopy(context) : null,
+          ),
+        if (pictureScenesEnabled && services?.scenes != null)
+          HomeEntry(
+            icon: Icons.photo_library_rounded,
+            label: scenesTitle,
+            onTap: () => _open(
+              context,
+              ScenesScreen(
+                book: services!.scenes!,
+                media: services.media,
+                capture: services.capture,
+              ),
+            ),
           ),
         if (services?.wordLog != null || services?.summary != null)
           HomeEntry(

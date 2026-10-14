@@ -15,6 +15,8 @@ import 'package:chorus_server/src/generated/circles/circle_role.dart'
 import 'package:chorus_server/src/generated/future_calls.dart' as _i1wquigt;
 import 'package:chorus_server/src/generated/live/live_event.dart' as _iclh8zz1;
 import 'package:chorus_server/src/generated/media/media_kind.dart' as _inazphuo;
+import 'package:chorus_server/src/generated/scenes/scene_spot_info.dart'
+    as _ipw1gwuw;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -28,11 +30,13 @@ import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../circles/circle_endpoint.dart' as _ixefnrd7;
 import '../circles/status_endpoint.dart' as _iy5k9ngi;
+import '../copies/board_copy_endpoint.dart' as _igbglv03;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../media/media_endpoint.dart' as _i9ppd1x8;
 import '../practice/practice_endpoint.dart' as _i56xzqly;
 import '../printing/printing_endpoint.dart' as _i0tflb56;
+import '../scenes/scene_endpoint.dart' as _iakn3uy1;
 import '../sharing/sharing_endpoint.dart' as _ifnilofz;
 import '../suggest/suggest_endpoint.dart' as _idurguj6;
 import '../summary/summary_endpoint.dart' as _ipr0xx8n;
@@ -68,6 +72,12 @@ class Endpoints extends _is.EndpointDispatch {
           'status',
           null,
         ),
+      'boardCopy': _igbglv03.BoardCopyEndpoint()
+        ..initialize(
+          server,
+          'boardCopy',
+          null,
+        ),
       'greeting': _il624ik7.GreetingEndpoint()
         ..initialize(
           server,
@@ -96,6 +106,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'printing',
+          null,
+        ),
+      'scene': _iakn3uy1.SceneEndpoint()
+        ..initialize(
+          server,
+          'scene',
           null,
         ),
       'sharing': _ifnilofz.SharingEndpoint()
@@ -443,6 +459,112 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['boardCopy'] = _is.EndpointConnector(
+      name: 'boardCopy',
+      endpoint: endpoints['boardCopy']!,
+      methodConnectors: {
+        'take': _is.MethodConnector(
+          name: 'take',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'boardId': _is.ParameterDescription(
+              name: 'boardId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['boardCopy'] as _igbglv03.BoardCopyEndpoint).take(
+                    session,
+                    params['circleSpace'],
+                    params['boardId'],
+                    params['name'],
+                  ),
+        ),
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['boardCopy'] as _igbglv03.BoardCopyEndpoint).list(
+                    session,
+                    params['circleSpace'],
+                  ),
+        ),
+        'get': _is.MethodConnector(
+          name: 'get',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'copyId': _is.ParameterDescription(
+              name: 'copyId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['boardCopy'] as _igbglv03.BoardCopyEndpoint).get(
+                    session,
+                    params['circleSpace'],
+                    params['copyId'],
+                  ),
+        ),
+        'delete': _is.MethodConnector(
+          name: 'delete',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'copyId': _is.ParameterDescription(
+              name: 'copyId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['boardCopy'] as _igbglv03.BoardCopyEndpoint)
+                  .delete(
+                    session,
+                    params['circleSpace'],
+                    params['copyId'],
+                  ),
+        ),
+      },
+    );
     connectors['greeting'] = _is.EndpointConnector(
       name: 'greeting',
       endpoint: endpoints['greeting']!,
@@ -677,6 +799,146 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['printing'] as _i0tflb56.PrintingEndpoint).pageUrl(
                     session,
                     params['token'],
+                  ),
+        ),
+      },
+    );
+    connectors['scene'] = _is.EndpointConnector(
+      name: 'scene',
+      endpoint: endpoints['scene']!,
+      methodConnectors: {
+        'list': _is.MethodConnector(
+          name: 'list',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['scene'] as _iakn3uy1.SceneEndpoint).list(
+                session,
+                params['circleSpace'],
+              ),
+        ),
+        'create': _is.MethodConnector(
+          name: 'create',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'imageHash': _is.ParameterDescription(
+              name: 'imageHash',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['scene'] as _iakn3uy1.SceneEndpoint).create(
+                session,
+                params['circleSpace'],
+                params['name'],
+                params['imageHash'],
+              ),
+        ),
+        'rename': _is.MethodConnector(
+          name: 'rename',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'sceneId': _is.ParameterDescription(
+              name: 'sceneId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['scene'] as _iakn3uy1.SceneEndpoint).rename(
+                session,
+                params['circleSpace'],
+                params['sceneId'],
+                params['name'],
+              ),
+        ),
+        'archive': _is.MethodConnector(
+          name: 'archive',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'sceneId': _is.ParameterDescription(
+              name: 'sceneId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['scene'] as _iakn3uy1.SceneEndpoint).archive(
+                    session,
+                    params['circleSpace'],
+                    params['sceneId'],
+                  ),
+        ),
+        'setSpots': _is.MethodConnector(
+          name: 'setSpots',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'sceneId': _is.ParameterDescription(
+              name: 'sceneId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'spots': _is.ParameterDescription(
+              name: 'spots',
+              type: _is.getType<List<_ipw1gwuw.SceneSpotInfo>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['scene'] as _iakn3uy1.SceneEndpoint).setSpots(
+                    session,
+                    params['circleSpace'],
+                    params['sceneId'],
+                    params['spots'],
                   ),
         ),
       },

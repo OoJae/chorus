@@ -15,7 +15,9 @@ import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
+import '../contracts_scenes.dart';
 import '../contracts_wordlog.dart';
+import '../scenes/talker_scenes.dart';
 import '../widgets/label_fit.dart';
 import '../widgets/sync_chip.dart';
 import '../widgets/tile_view.dart';
@@ -124,6 +126,7 @@ class TalkerScreen extends StatefulWidget {
     this.wordLog,
     this.heroTag,
     this.onExit,
+    this.scenes,
   });
 
   final BoardStore store;
@@ -147,6 +150,10 @@ class TalkerScreen extends StatefulWidget {
   final Object? heroTag;
 
   final VoidCallback? onExit;
+
+  /// The circle's picture scenes: a "Scenes" button in the status row while
+  /// there is one. Null for none.
+  final SceneBook? scenes;
 
   /// The face of the "Private" control, for tests.
   @visibleForTesting
@@ -311,6 +318,15 @@ class _TalkerScreenState extends State<TalkerScreen> {
       onExit: widget.onExit,
       onAdultUpdate: _confirmAdultChanges,
       layout: layout,
+      scenes: talkerScenesButton(
+        widget.scenes,
+        media: widget.media,
+        onWord: controller.addOtherWord,
+        roomy: layout == TalkerLayout.roomy,
+        short: layout == TalkerLayout.short,
+        width: width,
+        textScale: MediaQuery.textScalerOf(context).scale(1),
+      ),
     );
     final hasTabs = controller.showsTabs;
     Widget tabs(Axis axis) => TalkerBoardTabs(
@@ -1121,6 +1137,7 @@ class _StatusRow extends StatelessWidget {
     required this.onExit,
     required this.onAdultUpdate,
     required this.layout,
+    this.scenes,
   });
 
   final TalkerController controller;
@@ -1129,6 +1146,9 @@ class _StatusRow extends StatelessWidget {
   final VoidCallback? onExit;
   final VoidCallback onAdultUpdate;
   final TalkerLayout layout;
+
+  /// "Scenes", first of the marks on the right, so nothing after it moves.
+  final Widget? scenes;
 
   @override
   Widget build(BuildContext context) {
@@ -1144,6 +1164,7 @@ class _StatusRow extends StatelessWidget {
           )
         : null;
     final trailing = <Widget>[
+      ?scenes,
       if (compact)
         SyncChip(sync: sync, compact: true)
       else

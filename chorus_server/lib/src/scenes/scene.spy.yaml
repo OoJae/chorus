@@ -1,0 +1,18 @@
+### A picture scene of a circle: a family photo with spots that speak.
+### Server-only and not synced; devices keep their own copy for use with no
+### connection.
+class: Scene
+table: scene
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  name: String
+  ### Lowercase hex SHA-256 of the photo, uploaded like a tile's picture.
+  imageHash: String
+  createdBy: UuidValue
+  createdAt: DateTime
+  ### Set when an adult archives the scene; it is then left out of lists.
+  archivedAt: DateTime?
+indexes:
+  scene_circle_idx:
+    fields: circleSpace

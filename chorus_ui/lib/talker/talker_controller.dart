@@ -282,6 +282,15 @@ class TalkerController extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Adds a word that is no tile of a board, such as a picture scene's
+  /// spot, to the strip and speaks it. The word log never hears of it.
+  void addOtherWord(TileFacts word) {
+    noteTouch();
+    _strip.add(word);
+    notifyListeners();
+    unawaited(_say(word.spokenText));
+  }
+
   /// Speaks the whole strip as one sentence. Does nothing when it is empty.
   /// Shares the sentence only while [sharingSaid].
   Future<void> speakStrip() async {

@@ -1,0 +1,22 @@
+### A named copy of a board, such as "Before the school trip": its words as
+### the server held them when the copy was taken. Server-only and not
+### synced; taking or deleting one never changes the board.
+class: BoardCopy
+table: board_copy
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  boardId: UuidValue
+  ### The board's name and size when the copy was taken.
+  boardName: String
+  rows: int
+  cols: int
+  name: String
+  takenBy: UuidValue
+  takenByName: String
+  takenAt: DateTime
+  ### The placed words, kept as JSON.
+  words: List<BoardCopyWord>
+indexes:
+  board_copy_circle_idx:
+    fields: circleSpace, takenAt
