@@ -77,48 +77,77 @@ Future<int> writeFocusNudges(Session session, {DateTime? now}) async {
   }
   var added = 0;
   for (final MapEntry(key: circle, value: words) in byCircle.entries) {
-    // Without the log nobody can tell whether a word was modelled.
-    final setting = await WordLogSetting.db.findFirstRow(
-      session,
-      where: (t) => t.circleSpace.equals(circle),
-    );
-    if (setting == null || !setting.enabled) continue;
-    final counts = await modelledAndSaid(session, circle, week, {
-      for (final word in words) word.tileId,
-    });
-    final quiet = words.where((word) => counts[word.tileId]!.$1 == 0);
-    if (quiet.isEmpty) continue;
-    final rows = await FocusNudge.db.insert(
-      session,
-      [
-        FocusNudge(
-          circleSpace: circle,
-          weekStart: week,
-          tileId: quiet.first.tileId,
-          createdAt: at,
-        ),
-      ],
-      ignoreConflicts: true,
-    );
-    added += rows.length;
+    if (await _writeNudge(session, circle, words, week, at)) added++;
   }
   return added;
 }
 
+/// When the Thursday nudge is due in the week from [weekStart]: Thursday
+/// 09:00 UTC, as the job's cron says.
+DateTime nudgeDueAt(DateTime weekStart) =>
+    weekStartOf(weekStart).add(const Duration(days: 3, hours: 9));
+
+/// Writes [circle]'s nudge for [week] when its log is on and one of
+/// [words] has not been modelled yet. True when a row was added.
+Future<bool> _writeNudge(
+  Session session,
+  UuidValue circle,
+  List<FocusWord> words,
+  DateTime week,
+  DateTime at,
+) async {
+  if (words.isEmpty) return false;
+  // Without the log nobody can tell whether a word was modelled.
+  final setting = await WordLogSetting.db.findFirstRow(
+    session,
+    where: (t) => t.circleSpace.equals(circle),
+  );
+  if (setting == null || !setting.enabled) return false;
+  final counts = await modelledAndSaid(session, circle, week, {
+    for (final word in words) word.tileId,
+  });
+  final quiet = words.where((word) => counts[word.tileId]!.$1 == 0);
+  if (quiet.isEmpty) return false;
+  final rows = await FocusNudge.db.insert(
+    session,
+    [
+      FocusNudge(
+        circleSpace: circle,
+        weekStart: week,
+        tileId: quiet.first.tileId,
+        createdAt: at,
+      ),
+    ],
+    ignoreConflicts: true,
+  );
+  return rows.isNotEmpty;
+}
+
 /// This week's nudge for [circleSpace], or null when there is none, its
 /// word is no longer a focus word or on a board, or someone has modelled it
-/// since.
+/// since. From Thursday 09:00 UTC a nudge the job has not written yet is
+/// written here first, so it works where future calls do not run.
 Future<FocusNudgeInfo?> nudgeFor(
   Session session,
   UuidValue circleSpace, {
   DateTime? now,
 }) async {
-  final week = weekStartOf(now ?? DateTime.now());
-  final nudge = await FocusNudge.db.findFirstRow(
+  final at = (now ?? DateTime.now()).toUtc();
+  final week = weekStartOf(at);
+  Future<FocusNudge?> stored() => FocusNudge.db.findFirstRow(
     session,
     where: (t) => t.circleSpace.equals(circleSpace) & t.weekStart.equals(week),
   );
-  if (nudge == null) return null;
+  var found = await stored();
+  if (found == null && !at.isBefore(nudgeDueAt(week))) {
+    // Due, but the job has not run (a plan with no future calls): do its
+    // work for this circle now, the same way and as safely.
+    final words = await focusWordsOf(session, circleSpace, at);
+    await _writeNudge(session, circleSpace, words, week, at);
+    found = await stored();
+  }
+  if (found == null) return null;
+  final nudge = found;
   final pin = await FocusWord.db.findFirstRow(
     session,
     where: (t) =>

@@ -204,12 +204,18 @@ void main() {
           );
           await model(circle, go, 1);
 
-          expect(
-            await endpoints.focus.nudge(circle.guardian.session, circle.space),
-            isNull,
-          );
-          final first = await writeFocusNudges(session);
-          expect(first, greaterThanOrEqualTo(1));
+          // Before Thursday nobody is nudged yet; from Thursday asking writes
+          // the nudge itself (the next test covers that).
+          if (DateTime.now().isBefore(nudgeDueAt(thisWeek))) {
+            expect(
+              await endpoints.focus.nudge(
+                circle.guardian.session,
+                circle.space,
+              ),
+              isNull,
+            );
+          }
+          await writeFocusNudges(session);
           await writeFocusNudges(session);
           final rows = await FocusNudge.db.find(
             session,
@@ -232,6 +238,33 @@ void main() {
           );
         },
       );
+
+      test('when Thursday has come and the job has not run then asking for '
+          'the nudge writes it, and before Thursday it does not.', () async {
+        final circle = await logging();
+        final [help] = await circles.addTiles(circle, ['help']);
+        await endpoints.focus.setWords(circle.guardian.session, circle.space, [
+          FocusWordInfo(tileId: help.id!, tip: '', weekStart: thisWeek),
+        ]);
+        final due = nudgeDueAt(thisWeek);
+        expect(
+          await nudgeFor(
+            session,
+            circle.space,
+            now: due.subtract(const Duration(minutes: 1)),
+          ),
+          isNull,
+        );
+        final nudge = await nudgeFor(session, circle.space, now: due);
+        expect(nudge?.label, 'help');
+        final again = await nudgeFor(session, circle.space, now: due);
+        expect(again?.label, 'help');
+        final rows = await FocusNudge.db.find(
+          session,
+          where: (t) => t.circleSpace.equals(circle.space),
+        );
+        expect(rows, hasLength(1));
+      });
 
       test('when a circle keeps no log then no nudge is written.', () async {
         final circle = await circles.create();
