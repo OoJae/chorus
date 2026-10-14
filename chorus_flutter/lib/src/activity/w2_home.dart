@@ -8,6 +8,8 @@ import 'package:chorus_ui/activity/activity_screen.dart';
 import 'package:chorus_ui/activity/activity_text.dart';
 import 'package:chorus_ui/activity/members_screen.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore;
+import 'package:chorus_ui/contracts_activity.dart';
+import 'package:chorus_ui/contracts_edits.dart';
 import 'package:chorus_ui/editor/word_suggestions_tray.dart';
 import 'package:chorus_ui/features/flags/w2.dart' as w2;
 import 'package:chorus_ui/home/home_actions.dart';
@@ -25,6 +27,14 @@ Widget? w2ActivityBanner({
 }) {
   if (!w2.activityFeedEnabled || userId == null) return null;
   final parts = w2PartsFor(selected, userId);
+  // Left out, not drawn empty, while there is nothing new: home spaces
+  // every note it is given.
+  final seen = parts.seen;
+  if (!seen.loaded) return null;
+  final edits = store is EditLog ? (store as EditLog).edits : <EditFacts>[];
+  if (changesSince(activityOf(store.tiles, edits), seen.known) == 0) {
+    return null;
+  }
   return ActivityBanner(
     key: ValueKey('w2-banner-${selected.spaceUuid.uuid}'),
     store: store,

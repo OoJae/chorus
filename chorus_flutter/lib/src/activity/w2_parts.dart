@@ -6,8 +6,11 @@
 /// home shows what works without them.
 library;
 
+import 'dart:async';
+
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts_activity.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../screens/support/circle_cache_none.dart'
     if (dart.library.io) '../../screens/support/circle_cache_io.dart'
@@ -30,7 +33,7 @@ class W2Parts {
   W2Parts._(this.seen, this.suggestions, this.members, this.sitterTaps);
 
   /// When "What changed" was last opened on this device.
-  final ActivitySeen seen;
+  final DeviceActivitySeen seen;
 
   /// Null when the app has no server to ask.
   final WordSuggestions? suggestions;
@@ -43,14 +46,30 @@ class W2Parts {
 
 final Map<String, W2Parts> _parts = {};
 
+/// Where tests keep the last looks instead of this device's storage.
+@visibleForTesting
+({
+  Future<String?> Function(String name) read,
+  Future<void> Function(String name, String text) write,
+})?
+w2LooksStorage;
+
 /// The parts of [circle] for [userId], the same object on every call for
 /// the same circle, adult and role.
 W2Parts w2PartsFor(CircleInfo circle, String userId) {
   final key = '$userId/${circle.spaceUuid.uuid}/${circle.myRole.name}';
   return _parts[key] ??= () {
     final remote = w2RemoteFor?.call(circle, userId);
+    final seen = DeviceActivitySeen(
+      userId: userId,
+      circleId: circle.spaceUuid.uuid,
+      read: w2LooksStorage?.read,
+      write: w2LooksStorage?.write,
+    );
+    // Read now, so home knows by its next build whether to show the banner.
+    unawaited(seen.lastLooked());
     return W2Parts._(
-      DeviceActivitySeen(userId: userId, circleId: circle.spaceUuid.uuid),
+      seen,
       remote?.suggestions,
       remote?.members,
       remote?.sitterTaps,
@@ -61,31 +80,54 @@ W2Parts w2PartsFor(CircleInfo circle, String userId) {
 /// The last look at "What changed", kept on this device per adult and
 /// circle: a small file on phones and desktops, local storage on the web.
 class DeviceActivitySeen implements ActivitySeen {
-  DeviceActivitySeen({required this.userId, required this.circleId});
+  DeviceActivitySeen({
+    required this.userId,
+    required this.circleId,
+    Future<String?> Function(String name)? read,
+    Future<void> Function(String name, String text)? write,
+  }) : _read = read ?? platform.readText,
+       _write = write ?? platform.writeText;
+
+  final Future<String?> Function(String name) _read;
+  final Future<void> Function(String name, String text) _write;
 
   final String userId;
   final String circleId;
   DateTime? _known;
+  bool _loaded = false;
+
+  /// True once the last look has been read (or turned out never saved).
+  bool get loaded => _loaded;
+
+  /// The last look as read or written here; null when never.
+  DateTime? get known => _known;
 
   String get _name => 'chorus_activity_seen_${userId}_$circleId.txt';
 
   @override
   Future<DateTime?> lastLooked() async {
-    final known = _known;
-    if (known != null) return known;
+    if (_loaded) return _known;
+    DateTime? read;
     try {
-      final text = await platform.readText(_name);
-      return _known = text == null ? null : DateTime.tryParse(text.trim());
+      final text = await _read(_name);
+      read = text == null ? null : DateTime.tryParse(text.trim());
     } catch (_) {
-      return null;
+      read = null;
     }
+    // A look written while this read was waiting is newer.
+    if (!_loaded) {
+      _known ??= read;
+      _loaded = true;
+    }
+    return _known;
   }
 
   @override
   Future<void> markLooked(DateTime at) async {
     _known = at.toUtc();
+    _loaded = true;
     try {
-      await platform.writeText(_name, at.toUtc().toIso8601String());
+      await _write(_name, at.toUtc().toIso8601String());
     } catch (_) {
       // Storage refused: it holds for this run only.
     }

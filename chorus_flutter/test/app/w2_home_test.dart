@@ -7,7 +7,9 @@ import 'package:chorus_flutter/src/activity/w2_parts.dart';
 import 'package:chorus_ui/activity/activity_screen.dart';
 import 'package:chorus_ui/activity/activity_text.dart';
 import 'package:chorus_ui/activity/members_screen.dart';
+import 'package:chorus_ui/contracts.dart' show BoardStore;
 import 'package:chorus_ui/contracts_activity.dart';
+import 'package:chorus_ui/contracts_edits.dart' show EditFacts;
 import 'package:chorus_ui/editor/word_suggestions_tray.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/fakes_activity.dart';
@@ -27,15 +29,24 @@ void main() {
     ]);
     w2RemoteFor = (circle, userId) =>
         (suggestions: suggestions, members: members, sitterTaps: null);
+    final looks = <String, String>{};
+    w2LooksStorage = (
+      read: (name) async => looks[name],
+      write: (name, text) async => looks[name] = text,
+    );
   });
 
-  tearDown(() => w2RemoteFor = null);
+  tearDown(() {
+    w2RemoteFor = null;
+    w2LooksStorage = null;
+  });
 
   Future<void> pumpHome(
     WidgetTester tester,
     CircleInfo selected,
-    String userId,
-  ) async {
+    String userId, {
+    BoardStore? store,
+  }) async {
     final workspace = FakeWorkspace();
     await pumpScreen(
       tester,
@@ -43,7 +54,7 @@ void main() {
         circles: [selected],
         selected: selected,
         onSelect: (_) {},
-        store: workspace.boardStore(selected),
+        store: store ?? workspace.boardStore(selected),
         sync: workspace.sync,
         speech: FakeSpeech(),
         gateway: FakeGateway(),
@@ -93,6 +104,32 @@ void main() {
     await tester.ensureVisible(find.text(activityTitle));
     expect(find.text(activityTitle), findsOneWidget);
     expect(find.text(membersTitle), findsNothing);
+  });
+
+  testWidgets('the banner counts changes not yet looked at, and opens the '
+      'feed', (tester) async {
+    final store = FakeActivityStore.seeded();
+    final cup = store.tiles.first;
+    EditFacts rename(String id) => EditFacts(
+      id: id,
+      tileId: cup.id,
+      prop: 'label',
+      oldValue: 'a',
+      newValue: cup.label,
+      reason: 'edit',
+      actorId: 'r',
+      actorName: 'Ms Rivera',
+      editedAt: DateTime.now().toUtc(),
+    );
+    await pumpHome(tester, circle(), 'w2-banner', store: store);
+    expect(find.text(sinceLastLookedText(1)), findsNothing);
+    // The next change home hears of shows the banner.
+    store.edits = [rename('e1')];
+    await tester.pumpAndSettle();
+    expect(find.text(sinceLastLookedText(1)), findsOneWidget);
+    await tester.tap(find.text(sinceLastLookedAction));
+    await tester.pumpAndSettle();
+    expect(find.byType(ActivityScreen), findsOneWidget);
   });
 
   test('role names are plain', () {
