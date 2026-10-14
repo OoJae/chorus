@@ -103,6 +103,7 @@ String renderViewOnlyPage(
     ..write('<p>${escapeHtml(boardCredit)}</p>\n')
     ..write('</footer>\n<script>\n')
     ..write(_script)
+    ..write(reportTaps ? _reportScript : '')
     ..write('</script>\n</body>\n</html>\n');
   return out.toString();
 }
@@ -276,30 +277,12 @@ const String _script = r'''
     synth.addEventListener('voiceschanged', chooseVoice);
   }
 
-  // Only the tapped cell goes back, and only when the circle keeps a word
-  // log; the answer is never read.
-  var reporting = document.body.getAttribute('data-report') === '1';
-  var tapUrl = location.pathname.replace(/\/+$/, '') + '/tap';
-  function report(cell) {
-    if (!reporting || !cell || !window.fetch) return;
-    try {
-      fetch(tapUrl, {
-        method: 'POST',
-        body: cell,
-        credentials: 'omit',
-        keepalive: true,
-        headers: { 'Content-Type': 'text/plain' }
-      }).catch(function () {});
-    } catch (e) {}
-  }
-
   var tiles = document.querySelectorAll('.tile');
   for (var t = 0; t < tiles.length; t++) {
     tiles[t].addEventListener('click', function () {
       var text = this.getAttribute('data-say');
       addWord(text);
       speak(text);
-      report(this.getAttribute('data-cell'));
     });
   }
 
@@ -313,5 +296,32 @@ const String _script = r'''
     turn++;
     if (synth) synth.cancel();
   });
+})();
+''';
+
+/// Sent only on a page whose circle keeps a word log: each tap posts the
+/// tapped cell, and nothing else, to the page's own `/tap`. The answer is
+/// never read.
+const String _reportScript = r'''
+(function () {
+  'use strict';
+  if (!window.fetch) return;
+  var url = location.pathname.replace(/[/]+$/, '') + '/tap';
+  var tiles = document.querySelectorAll('.tile');
+  for (var t = 0; t < tiles.length; t++) {
+    tiles[t].addEventListener('click', function () {
+      var cell = this.getAttribute('data-cell');
+      if (!cell) return;
+      try {
+        fetch(url, {
+          method: 'POST',
+          body: cell,
+          credentials: 'omit',
+          keepalive: true,
+          headers: { 'Content-Type': 'text/plain' }
+        }).catch(function () {});
+      } catch (e) {}
+    });
+  }
 })();
 ''';
