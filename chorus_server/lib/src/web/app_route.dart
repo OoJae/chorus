@@ -53,7 +53,7 @@ void registerSiteRoutes(
         maxAge: const Duration(minutes: 5),
       ),
     ),
-    '$landingMount/**',
+    landingMount,
   );
 
   // The app reads its server's address from here, relative to its base
