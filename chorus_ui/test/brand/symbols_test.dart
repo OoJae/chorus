@@ -10,8 +10,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // These tests describe every picture on show; with a feature flag off,
+  // some are hidden on purpose.
+  const allOn = coreSymbolsEnabled && readyMadeBoardsEnabled;
+  const skipReason = 'a symbol feature flag is off';
 
   test('every listed word resolves to its picture in this package', () {
+    if (!allOn) return markTestSkipped(skipReason);
     expect(starterSymbolWords, hasLength(36));
     expect(readyBoardSymbolWords, hasLength(92));
     expect(symbolWords, hasLength(128));
@@ -28,6 +33,7 @@ void main() {
   test(
     'every picture loads through the asset bundle, at each density',
     () async {
+      if (!allOn) return markTestSkipped(skipReason);
       // This package's own tests run it as the app, so the bundle lists the
       // files under their own paths: the picture must be found that way too,
       // or every board in these tests and in main_fake loses its pictures.
@@ -77,7 +83,7 @@ void main() {
   });
 
   test('every starter word shows a picture, the 13 added ones included', () {
-    expect(coreSymbolsEnabled, isTrue);
+    if (!coreSymbolsEnabled) return markTestSkipped(skipReason);
     expect(addedCoreSymbols, hasLength(13));
     expect(chorusDrawnSymbols, hasLength(8));
     expect(symbolWords, containsAll(addedCoreSymbols));
@@ -140,7 +146,10 @@ void main() {
     );
     expect(find.textContaining('licensed CC BY-SA 4.0'), findsOneWidget);
     expect(find.text(mulberrySymbolsCredit), findsOneWidget);
-    expect(find.text(chorusSymbolsCredit), findsOneWidget);
+    expect(
+      find.text(chorusSymbolsCredit),
+      coreSymbolsEnabled ? findsOneWidget : findsNothing,
+    );
     expect(chorusSymbolsCredit, contains('the Chorus authors'));
     for (final word in chorusDrawnSymbols) {
       expect(chorusSymbolsCredit, contains(word), reason: word);

@@ -12,6 +12,7 @@ import 'package:chorus_ui/brand/test_fonts.dart';
 import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/fakes.dart';
+import 'package:chorus_ui/features/flags/w7.dart';
 import 'package:chorus_ui/onboarding/launch_reveal.dart';
 import 'package:chorus_ui/onboarding/onboarding_view.dart';
 import 'package:chorus_ui/theme.dart';
@@ -184,9 +185,11 @@ void main() {
         'stop': (1, 2),
       },
     );
-    for (final word in ['I', 'want', 'more', 'help', 'go', 'stop']) {
+    for (final word in ['I', 'want', 'more', 'help', 'go']) {
       expect(cells[word]!.image, isNotNull, reason: word);
     }
+    // "stop" gained its picture with every starter word's.
+    expect(cells['stop']!.image, coreSymbolsEnabled ? isNotNull : isNull);
   });
 
   testWidgets('each tile is drawn in its family colour', (tester) async {

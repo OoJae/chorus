@@ -36,6 +36,13 @@ const Map<String, String> _oneFamily = {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  if (!readyMadeBoardsEnabled) {
+    test('with the feature off, the board menu does not offer it', () {
+      expect(offerReadyBoards(canAddBoards: true), isFalse);
+    });
+    return;
+  }
+
   test('the feature is on, and there are six boards with distinct names', () {
     expect(readyMadeBoardsEnabled, isTrue);
     expect(readyBoards.map((b) => b.name), [
