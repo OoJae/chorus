@@ -54,18 +54,28 @@ void main() {
     ]);
   });
 
-  test('parseIdeas refuses fewer than three words', () {
+  test('parseIdeas keeps a short answer and refuses an empty one', () {
+    WordSuggestion one(String label) => WordSuggestion(
+      label: label,
+      speech: label,
+      colorKey: 'noun',
+      alternatives: [],
+    );
     expect(
-      () => parseIdeas(
+      parseIdeas(
         ideasReply([
           {
-            'label': 'a',
-            'speech': 'a',
+            'label': 'ball',
+            'speech': 'ball',
             'colorKey': 'noun',
             'properName': false,
           },
         ]).body,
-      ),
+      ).map((i) => i.label),
+      ['ball'],
+    );
+    expect(
+      () => parseIdeas(ideasReply([]).body),
       failsWith(SuggestFailure.unreadable),
     );
   });

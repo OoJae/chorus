@@ -481,7 +481,9 @@ String _tidy(String raw, int max) {
 /// How long the ideas for one photo are kept.
 const ideasCacheLifetime = Duration(days: 1);
 
-/// Fewest and most ideas returned for one photo.
+/// Fewest and most ideas asked for one photo. A reply with fewer than
+/// [minIdeas] usable words is still shown, as long as it has one: the
+/// adult is better served by one good word than by none.
 const minIdeas = 3;
 const maxIdeas = 6;
 
@@ -613,8 +615,7 @@ List<WordSuggestion> _cachedIdeas(String json) {
 /// Reads the model's reply [body] into 3 to 6 ideas, each with a colour key
 /// from [suggestColorKeys] and no duplicates.
 ///
-/// Throws `unreadable` when the model declined or gave fewer than
-/// [minIdeas] usable words.
+/// Throws `unreadable` when the model declined or gave no usable word.
 List<WordSuggestion> parseIdeas(String body) {
   final unreadable = _fail(SuggestFailure.unreadable);
   final Object? message;
@@ -662,6 +663,6 @@ List<WordSuggestion> parseIdeas(String body) {
     );
     if (ideas.length == maxIdeas) break;
   }
-  if (ideas.length < minIdeas) throw unreadable;
+  if (ideas.isEmpty) throw unreadable;
   return ideas;
 }
