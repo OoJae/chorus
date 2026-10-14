@@ -15,6 +15,8 @@ import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
     as _i1jjj2rd;
+import 'package:chorus_server/src/generated/wordsettings/word_translation.dart'
+    as _iv8bzygo;
 import 'package:serverpod/protocol.dart' as _isp;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
@@ -57,6 +59,12 @@ import 'wordlog/word_log_setting.dart' as _i8exouxb;
 import 'wordlog/word_log_status.dart' as _i5lyi3mq;
 import 'wordlog/word_use_entry.dart' as _in1k2ibs;
 import 'wordlog/word_use_record.dart' as _iqz5pl6l;
+import 'wordsettings/circle_language.dart' as _i1rpqem2;
+import 'wordsettings/second_language.dart' as _inhgof02;
+import 'wordsettings/tile_setting.dart' as _ikem9wvw;
+import 'wordsettings/tile_translation.dart' as _imk02hea;
+import 'wordsettings/word_settings_exception.dart' as _imidna6o;
+import 'wordsettings/word_translation.dart' as _iupvr1f2;
 export 'boards/board.dart';
 export 'boards/tile.dart';
 export 'boards/tile_edit.dart';
@@ -91,6 +99,12 @@ export 'wordlog/word_log_setting.dart';
 export 'wordlog/word_log_status.dart';
 export 'wordlog/word_use_entry.dart';
 export 'wordlog/word_use_record.dart';
+export 'wordsettings/circle_language.dart';
+export 'wordsettings/second_language.dart';
+export 'wordsettings/tile_setting.dart';
+export 'wordsettings/tile_translation.dart';
+export 'wordsettings/word_settings_exception.dart';
+export 'wordsettings/word_translation.dart';
 export 'sync_tables.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
@@ -293,6 +307,68 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'spaceUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'circle_language',
+      dartName: 'CircleLanguage',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'languageCode',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'languageName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'circle_language_space_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
             ),
           ],
           type: 'btree',
@@ -896,6 +972,154 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'tile_setting',
+      dartName: 'TileSetting',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tileId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'hidden',
+          columnType: _isp.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'tile_setting_space_tile_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'tileId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'tile_translation',
+      dartName: 'TileTranslation',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'tileId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'languageCode',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'label',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'speech',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'changedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'tile_translation_space_tile_lang_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'tileId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'languageCode',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'weekly_summary',
       dartName: 'WeeklySummary',
       schema: 'public',
@@ -1210,6 +1434,24 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iqz5pl6l.WordUseRecord) {
       return _iqz5pl6l.WordUseRecord.fromJson(data) as T;
     }
+    if (t == _i1rpqem2.CircleLanguage) {
+      return _i1rpqem2.CircleLanguage.fromJson(data) as T;
+    }
+    if (t == _inhgof02.SecondLanguage) {
+      return _inhgof02.SecondLanguage.fromJson(data) as T;
+    }
+    if (t == _ikem9wvw.TileSetting) {
+      return _ikem9wvw.TileSetting.fromJson(data) as T;
+    }
+    if (t == _imk02hea.TileTranslation) {
+      return _imk02hea.TileTranslation.fromJson(data) as T;
+    }
+    if (t == _imidna6o.WordSettingsException) {
+      return _imidna6o.WordSettingsException.fromJson(data) as T;
+    }
+    if (t == _iupvr1f2.WordTranslation) {
+      return _iupvr1f2.WordTranslation.fromJson(data) as T;
+    }
     if (t == _is.getType<_i3lcnjeo.Board?>()) {
       return (data != null ? _i3lcnjeo.Board.fromJson(data) : null) as T;
     }
@@ -1324,6 +1566,31 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _iqz5pl6l.WordUseRecord.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_i1rpqem2.CircleLanguage?>()) {
+      return (data != null ? _i1rpqem2.CircleLanguage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_inhgof02.SecondLanguage?>()) {
+      return (data != null ? _inhgof02.SecondLanguage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ikem9wvw.TileSetting?>()) {
+      return (data != null ? _ikem9wvw.TileSetting.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_imk02hea.TileTranslation?>()) {
+      return (data != null ? _imk02hea.TileTranslation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_imidna6o.WordSettingsException?>()) {
+      return (data != null
+              ? _imidna6o.WordSettingsException.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_iupvr1f2.WordTranslation?>()) {
+      return (data != null ? _iupvr1f2.WordTranslation.fromJson(data) : null)
+          as T;
+    }
     if (t == List<_i5nn4t9p.MemberInfo>) {
       return (data as List)
               .map((e) => deserialize<_i5nn4t9p.MemberInfo>(e))
@@ -1357,6 +1624,16 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == List<_i1jjj2rd.WordUseEntry>) {
       return (data as List)
               .map((e) => deserialize<_i1jjj2rd.WordUseEntry>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_is.UuidValue>) {
+      return (data as List).map((e) => deserialize<_is.UuidValue>(e)).toList()
+          as T;
+    }
+    if (t == List<_iv8bzygo.WordTranslation>) {
+      return (data as List)
+              .map((e) => deserialize<_iv8bzygo.WordTranslation>(e))
               .toList()
           as T;
     }
@@ -1411,6 +1688,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i5lyi3mq.WordLogStatus => 'WordLogStatus',
       _in1k2ibs.WordUseEntry => 'WordUseEntry',
       _iqz5pl6l.WordUseRecord => 'WordUseRecord',
+      _i1rpqem2.CircleLanguage => 'CircleLanguage',
+      _inhgof02.SecondLanguage => 'SecondLanguage',
+      _ikem9wvw.TileSetting => 'TileSetting',
+      _imk02hea.TileTranslation => 'TileTranslation',
+      _imidna6o.WordSettingsException => 'WordSettingsException',
+      _iupvr1f2.WordTranslation => 'WordTranslation',
       _ => null,
     };
   }
@@ -1493,6 +1776,18 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'WordUseEntry';
       case _iqz5pl6l.WordUseRecord():
         return 'WordUseRecord';
+      case _i1rpqem2.CircleLanguage():
+        return 'CircleLanguage';
+      case _inhgof02.SecondLanguage():
+        return 'SecondLanguage';
+      case _ikem9wvw.TileSetting():
+        return 'TileSetting';
+      case _imk02hea.TileTranslation():
+        return 'TileTranslation';
+      case _imidna6o.WordSettingsException():
+        return 'WordSettingsException';
+      case _iupvr1f2.WordTranslation():
+        return 'WordTranslation';
     }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -1627,6 +1922,24 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'WordUseRecord') {
       return deserialize<_iqz5pl6l.WordUseRecord>(data['data']);
     }
+    if (dataClassName == 'CircleLanguage') {
+      return deserialize<_i1rpqem2.CircleLanguage>(data['data']);
+    }
+    if (dataClassName == 'SecondLanguage') {
+      return deserialize<_inhgof02.SecondLanguage>(data['data']);
+    }
+    if (dataClassName == 'TileSetting') {
+      return deserialize<_ikem9wvw.TileSetting>(data['data']);
+    }
+    if (dataClassName == 'TileTranslation') {
+      return deserialize<_imk02hea.TileTranslation>(data['data']);
+    }
+    if (dataClassName == 'WordSettingsException') {
+      return deserialize<_imidna6o.WordSettingsException>(data['data']);
+    }
+    if (dataClassName == 'WordTranslation') {
+      return deserialize<_iupvr1f2.WordTranslation>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
       return _iais.Protocol().deserializeByClassName(data);
@@ -1703,6 +2016,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _i8exouxb.WordLogSetting.t;
       case _iqz5pl6l.WordUseRecord:
         return _iqz5pl6l.WordUseRecord.t;
+      case _i1rpqem2.CircleLanguage:
+        return _i1rpqem2.CircleLanguage.t;
+      case _ikem9wvw.TileSetting:
+        return _ikem9wvw.TileSetting.t;
+      case _imk02hea.TileTranslation:
+        return _imk02hea.TileTranslation.t;
     }
     return null;
   }

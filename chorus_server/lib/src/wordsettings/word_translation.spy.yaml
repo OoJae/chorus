@@ -1,0 +1,7 @@
+### One word in the circle's second language, as the app sees it.
+class: WordTranslation
+fields:
+  tileId: UuidValue
+  languageCode: String
+  label: String
+  speech: String?

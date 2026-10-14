@@ -32,6 +32,7 @@ import 'src/suggest/server_word_suggester.dart';
 import 'src/sync/chorus_session.dart';
 import 'src/tabs/one_tab_gate.dart';
 import 'src/tabs/tab_workspaces.dart';
+import 'src/wordsettings/word_settings_wiring.dart';
 
 class ChorusApp extends StatefulWidget {
   const ChorusApp({super.key});
@@ -336,6 +337,9 @@ class SessionWorkspace implements Workspace {
       summary: features?.summary,
       sharing: features?.sharing,
       boards: features?.boards,
+      hiddenWords: features?.wordSettings?.hiddenWords,
+      languages: features?.wordSettings?.languages,
+      languageVoice: languageVoiceFor(_speech),
     );
   }
 

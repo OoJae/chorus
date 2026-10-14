@@ -71,6 +71,7 @@ class EditorGrid extends StatefulWidget {
     this.dimTiles = false,
     this.media,
     this.hiddenIds = const {},
+    this.decorateTile,
   });
 
   final BoardFacts board;
@@ -95,6 +96,9 @@ class EditorGrid extends StatefulWidget {
 
   /// Tiles kept out of sight in their cells, while a card flies to them.
   final Set<String> hiddenIds;
+
+  /// Draws marks on a tile, e.g. a word hidden for now. Null draws none.
+  final Widget Function(TileFacts tile, Widget view)? decorateTile;
 
   @override
   State<EditorGrid> createState() => EditorGridState();
@@ -194,8 +198,9 @@ class EditorGridState extends State<EditorGrid> {
       pictures: pictures,
       onTap: onTile == null ? null : () => onTile(tile),
     );
-    if (!widget.hiddenIds.contains(tile.id)) return view;
-    return Opacity(opacity: 0, child: view);
+    final marked = widget.decorateTile?.call(tile, view) ?? view;
+    if (!widget.hiddenIds.contains(tile.id)) return marked;
+    return Opacity(opacity: 0, child: marked);
   }
 }
 

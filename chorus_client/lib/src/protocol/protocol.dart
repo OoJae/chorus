@@ -15,6 +15,8 @@ import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
     as _iyisc6zi;
+import 'package:chorus_client/src/protocol/wordsettings/word_translation.dart'
+    as _ia8zarzx;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
@@ -47,6 +49,9 @@ import 'wordlog/word_log_exception.dart' as _i163yf92;
 import 'wordlog/word_log_failure.dart' as _i352cmsp;
 import 'wordlog/word_log_status.dart' as _i5lyi3mq;
 import 'wordlog/word_use_entry.dart' as _in1k2ibs;
+import 'wordsettings/second_language.dart' as _inhgof02;
+import 'wordsettings/word_settings_exception.dart' as _imidna6o;
+import 'wordsettings/word_translation.dart' as _iupvr1f2;
 export 'boards/board.dart';
 export 'boards/tile.dart';
 export 'boards/tile_edit.dart';
@@ -71,6 +76,9 @@ export 'wordlog/word_log_exception.dart';
 export 'wordlog/word_log_failure.dart';
 export 'wordlog/word_log_status.dart';
 export 'wordlog/word_use_entry.dart';
+export 'wordsettings/second_language.dart';
+export 'wordsettings/word_settings_exception.dart';
+export 'wordsettings/word_translation.dart';
 export 'client.dart';
 export 'sync_tables.dart';
 
@@ -573,6 +581,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _in1k2ibs.WordUseEntry) {
       return _in1k2ibs.WordUseEntry.fromJson(data) as T;
     }
+    if (t == _inhgof02.SecondLanguage) {
+      return _inhgof02.SecondLanguage.fromJson(data) as T;
+    }
+    if (t == _imidna6o.WordSettingsException) {
+      return _imidna6o.WordSettingsException.fromJson(data) as T;
+    }
+    if (t == _iupvr1f2.WordTranslation) {
+      return _iupvr1f2.WordTranslation.fromJson(data) as T;
+    }
     if (t == _isc.getType<_i3lcnjeo.Board?>()) {
       return (data != null ? _i3lcnjeo.Board.fromJson(data) : null) as T;
     }
@@ -653,6 +670,20 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_in1k2ibs.WordUseEntry?>()) {
       return (data != null ? _in1k2ibs.WordUseEntry.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_inhgof02.SecondLanguage?>()) {
+      return (data != null ? _inhgof02.SecondLanguage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_imidna6o.WordSettingsException?>()) {
+      return (data != null
+              ? _imidna6o.WordSettingsException.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_iupvr1f2.WordTranslation?>()) {
+      return (data != null ? _iupvr1f2.WordTranslation.fromJson(data) : null)
+          as T;
+    }
     if (t == List<_i5nn4t9p.MemberInfo>) {
       return (data as List)
               .map((e) => deserialize<_i5nn4t9p.MemberInfo>(e))
@@ -686,6 +717,16 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<_iyisc6zi.WordUseEntry>) {
       return (data as List)
               .map((e) => deserialize<_iyisc6zi.WordUseEntry>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_isc.UuidValue>) {
+      return (data as List).map((e) => deserialize<_isc.UuidValue>(e)).toList()
+          as T;
+    }
+    if (t == List<_ia8zarzx.WordTranslation>) {
+      return (data as List)
+              .map((e) => deserialize<_ia8zarzx.WordTranslation>(e))
               .toList()
           as T;
     }
@@ -727,6 +768,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _i352cmsp.WordLogFailure => 'WordLogFailure',
       _i5lyi3mq.WordLogStatus => 'WordLogStatus',
       _in1k2ibs.WordUseEntry => 'WordUseEntry',
+      _inhgof02.SecondLanguage => 'SecondLanguage',
+      _imidna6o.WordSettingsException => 'WordSettingsException',
+      _iupvr1f2.WordTranslation => 'WordTranslation',
       _ => null,
     };
   }
@@ -789,6 +833,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'WordLogStatus';
       case _in1k2ibs.WordUseEntry():
         return 'WordUseEntry';
+      case _inhgof02.SecondLanguage():
+        return 'SecondLanguage';
+      case _imidna6o.WordSettingsException():
+        return 'WordSettingsException';
+      case _iupvr1f2.WordTranslation():
+        return 'WordTranslation';
     }
     className = _iaic.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -888,6 +938,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'WordUseEntry') {
       return deserialize<_in1k2ibs.WordUseEntry>(data['data']);
+    }
+    if (dataClassName == 'SecondLanguage') {
+      return deserialize<_inhgof02.SecondLanguage>(data['data']);
+    }
+    if (dataClassName == 'WordSettingsException') {
+      return deserialize<_imidna6o.WordSettingsException>(data['data']);
+    }
+    if (dataClassName == 'WordTranslation') {
+      return deserialize<_iupvr1f2.WordTranslation>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);

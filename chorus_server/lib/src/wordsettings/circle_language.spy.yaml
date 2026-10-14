@@ -1,0 +1,17 @@
+### A circle's second (home) language, e.g. Yoruba. Server-only. A circle
+### with no row has none.
+class: CircleLanguage
+table: circle_language
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  ### A BCP 47 language code, e.g. `yo`, `es`, `fr`.
+  languageCode: String
+  ### The language's name as the adults wrote it, e.g. "Yoruba".
+  languageName: String
+  changedBy: UuidValue
+  changedAt: DateTime
+indexes:
+  circle_language_space_idx:
+    fields: circleSpace
+    unique: true

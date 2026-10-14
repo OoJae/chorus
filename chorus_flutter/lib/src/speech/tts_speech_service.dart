@@ -265,4 +265,79 @@ class TtsSpeechService implements SpeechService {
     } catch (_) {}
     _speaking.value = false;
   }
+
+  /// Speaks [text] with this device's voice for [languageTag] (a circle's
+  /// second language, e.g. `yo` or `es`), then goes back to [language] for
+  /// the next word. Completes with false, having said nothing, when the
+  /// device has no voice of its own for that language. Never throws.
+  Future<bool> speakIn(String languageTag, String text) async {
+    if (text.trim().isEmpty) return true;
+    final mine = ++_utterance;
+    await warmUp();
+    final tts = _tts;
+    if (tts == null || mine != _utterance) return false;
+    try {
+      final voices = await tts.getVoices;
+      final voice = voiceForLanguage(
+        voices is List ? voices : const [],
+        languageTag,
+        _onlineVoices(),
+      );
+      if (voice == null) return false;
+      if (_web) {
+        await _stopInBrowser(tts, mine);
+      } else {
+        await tts.stop();
+      }
+      if (mine != _utterance) return true;
+      await tts.setLanguage(voice['locale']!);
+      await tts.setVoice(voice);
+      // The next word in [language] chooses its own voice again.
+      _voiceChosen = false;
+      await tts.speak(text);
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      try {
+        await tts.setLanguage(language);
+      } catch (_) {}
+      if (mine == _utterance) _speaking.value = false;
+    }
+  }
+
+  /// The voice on this device for [languageTag] in [voices] (as the engine
+  /// lists them), or null when there is none. A voice named in [online], or
+  /// listed but not downloaded, is never chosen.
+  @visibleForTesting
+  static Map<String, String>? voiceForLanguage(
+    List<Object?> voices,
+    String languageTag,
+    Set<String> online,
+  ) {
+    final wanted = languageTag.toLowerCase().replaceAll('_', '-');
+    final base = wanted.split('-').first;
+    final usable = [
+      for (final voice in voices)
+        if (voice is Map &&
+            !online.contains('${voice['name'] ?? ''}') &&
+            !'${voice['features'] ?? ''}'.split('\t').contains('notInstalled'))
+          (
+            name: '${voice['name'] ?? ''}',
+            locale: '${voice['locale'] ?? ''}',
+          ),
+    ];
+    for (final fits in <bool Function(String locale)>[
+      (locale) => locale == wanted,
+      (locale) => locale == base || locale.startsWith('$base-'),
+    ]) {
+      for (final voice in usable) {
+        final locale = voice.locale.toLowerCase().replaceAll('_', '-');
+        if (voice.name.isNotEmpty && fits(locale)) {
+          return {'name': voice.name, 'locale': voice.locale};
+        }
+      }
+    }
+    return null;
+  }
 }

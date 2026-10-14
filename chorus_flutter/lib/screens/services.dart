@@ -7,6 +7,8 @@ library;
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncStatus;
 import 'package:chorus_ui/contracts_boards.dart';
+import 'package:chorus_ui/contracts_hidden.dart';
+import 'package:chorus_ui/contracts_language.dart';
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
@@ -78,6 +80,9 @@ class CircleServices {
     this.summary,
     this.sharing,
     this.boards,
+    this.hiddenWords,
+    this.languages,
+    this.languageVoice,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -123,6 +128,15 @@ class CircleServices {
   /// a screen holding the store may use that instead; both write the same
   /// replica.
   final BoardManager? boards;
+
+  /// Words hidden from the child's board for now, kept on this device.
+  final HiddenWords? hiddenWords;
+
+  /// The circle's second language and its words, kept on this device.
+  final HomeLanguages? languages;
+
+  /// The device's voices for the second language.
+  final LanguageVoice? languageVoice;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();
