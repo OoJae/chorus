@@ -91,7 +91,7 @@ Notes for running the beats:
 
 You need two people's worth of devices. Either:
 
-- **Two browser profiles** (for example a normal window and a second profile or another browser; two tabs in one profile share a sign-in and will not work as two adults), or
+- **Two browser profiles** (for example a normal window and a second profile or another browser; Chorus runs in one tab per profile, so a second tab shows "Chorus is open in another tab" and cannot be a second adult), or
 - **One browser plus the Android APK.**
 
 Going offline:
@@ -105,7 +105,7 @@ Steps:
 2. **Add a word.** On A, open the editor, tap an empty cell and add a word. Watch it appear on B. In talker mode it first shows "1 word waiting" and lands when the board is idle.
 3. **Go offline in both.** Take A and B offline. The status chip on each should say it is offline and that changes are saved on the device.
 4. **Fill the same empty cell.** On A, add "park" to an empty cell. On B, add "swing" to that same cell. Each device shows its own word in the cell.
-5. **Reconnect.** Bring both back online. If the chip does not return to up to date within about 20 seconds, press "Sync now".
+5. **Reconnect.** Bring both back online. If the chip does not return to up to date within about 20 seconds, press "Sync now" in the chip (it is there while the chip reads "Reconnecting" or "Offline").
 6. **See "Needs a home".** On both devices one word holds the cell and the other is listed under "Needs a home". No other tile has moved. Tap the waiting word and then an empty cell to give it a home.
 
 What you should not see: either word disappearing, or any tile that was on the board before step 4 in a different cell afterwards.
