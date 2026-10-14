@@ -55,12 +55,6 @@ void main() {
   });
 
   test('parseIdeas keeps a short answer and refuses an empty one', () {
-    WordSuggestion one(String label) => WordSuggestion(
-      label: label,
-      speech: label,
-      colorKey: 'noun',
-      alternatives: [],
-    );
     expect(
       parseIdeas(
         ideasReply([
