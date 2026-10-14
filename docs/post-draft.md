@@ -114,7 +114,7 @@ The first two, and four more gaps, are written up as draft issues for the Server
 - Source, MIT: https://github.com/OoJae/chorus
 - Demo film (1:35): https://youtu.be/JDv5pPvsrA8
 
-The starter board is adapted from the 36-word Universal Core vocabulary, Center for Literacy and Disability Studies, UNC-Chapel Hill, CC BY-SA 4.0. The code was written with Claude Code under my direction.
+The starter board is adapted from the 36-word Universal Core vocabulary, Center for Literacy and Disability Studies, UNC-Chapel Hill, CC BY-SA 4.0.
 
 ## Short version (LinkedIn)
 
@@ -124,7 +124,7 @@ For "Build Something Real: The Serverpod Hackathon" I built Chorus, an offline-f
 
 Two adults, both offline, fill the same empty cell. The offline sync module keeps both rows. The earlier write keeps the cell. The later row's key gets a `__conflict__` suffix, and the app lists that word under "Needs a home" instead of showing an error. The child's screen holds a snapshot and swaps only at a safe moment, so nothing moves under a finger. My tests run against real Postgres and SQLite replicas, and I have checked both behaviours on a real phone and a browser on Serverpod Cloud (one account on both). "Try a clash" lets you see it on one device.
 
-Plainly: the child is a persona, no family or clinician has used it, and mature tools exist in this space. Built with Claude Code.
+Plainly: the child is a persona, no family or clinician has used it, and mature tools exist in this space.
 
 Code: https://github.com/OoJae/chorus
 Try it: https://chorus.serverpod.space
