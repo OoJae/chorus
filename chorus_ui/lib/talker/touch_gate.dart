@@ -11,7 +11,8 @@ import '../contracts_device.dart';
 import '../device/device_settings_scope.dart';
 import '../features/flags/w3.dart';
 
-/// Wraps one word's tap. [builder] gets the tap to give the tile.
+/// Wraps one word's tap. [builder] gets the tap to give the tile, and the
+/// haptic the tile should play on its own taps.
 ///
 /// With the device's touch settings as they have always been (or the
 /// feature off) the tile gets [onActivate] itself and nothing changes.
@@ -36,9 +37,14 @@ class TouchGate extends StatefulWidget {
   });
 
   final VoidCallback onActivate;
-  final Widget Function(VoidCallback onTap) builder;
 
-  /// Felt when a word speaks from a hold (the tile plays its own on a tap).
+  /// With touch as always, the tile gets [onActivate] and [haptic] itself.
+  /// Otherwise it gets the gate's tap and no haptic: the gate plays
+  /// [haptic] only when the word really speaks, so a touch that is ignored
+  /// is not felt as a word.
+  final Widget Function(VoidCallback onTap, ChorusHaptic? haptic) builder;
+
+  /// Felt each time the word speaks.
   final ChorusHaptic? haptic;
 
   @override
@@ -66,10 +72,10 @@ class _TouchGateState extends State<TouchGate> {
     super.dispose();
   }
 
-  void _speak({bool haptic = false}) {
+  void _speak() {
     final clock = _clock;
     if (clock != null && !clock.allow(_settings.repeatGuard)) return;
-    if (haptic) ChorusHaptics.play(widget.haptic);
+    ChorusHaptics.play(widget.haptic);
     widget.onActivate();
   }
 
@@ -79,13 +85,13 @@ class _TouchGateState extends State<TouchGate> {
     final hold = _settings.holdTime;
     _held = hold == Duration.zero;
     if (_held) {
-      if (!_settings.selectOnRelease) _speak(haptic: true);
+      if (!_settings.selectOnRelease) _speak();
       return;
     }
     _holdTimer = Timer(hold, () {
       if (!mounted || _pointer == null) return;
       _held = true;
-      if (!_settings.selectOnRelease) _speak(haptic: true);
+      if (!_settings.selectOnRelease) _speak();
     });
   }
 
@@ -121,13 +127,15 @@ class _TouchGateState extends State<TouchGate> {
         ? DeviceSettingsScope.of(context)
         : const DeviceSettings();
     _clock = DeviceSettingsScope.clockOf(context);
-    if (_settings.plainTouch) return widget.builder(widget.onActivate);
+    if (_settings.plainTouch) {
+      return widget.builder(widget.onActivate, widget.haptic);
+    }
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: _down,
       onPointerUp: (event) => _up(event, lifted: true),
       onPointerCancel: (event) => _up(event, lifted: false),
-      child: widget.builder(_tileTapped),
+      child: widget.builder(_tileTapped, null),
     );
   }
 }

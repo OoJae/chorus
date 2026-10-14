@@ -717,13 +717,13 @@ class _BoardGridState extends State<_BoardGrid> {
         fade: _arriving.contains(tile.id),
         child: TouchGate(
           onActivate: () => widget.onTap(tile),
-          builder: (onTap) => TileView(
+          builder: (onTap, haptic) => TileView(
             tile: tile,
             media: widget.media,
             highlighted: glowing,
             labelSize: labelSize,
             pictures: pictures,
-            haptic: ChorusHaptic.wordTapped,
+            haptic: haptic,
             onTap: onTap,
             semanticLabel: tileSemanticLabel(tile),
           ),
