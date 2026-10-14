@@ -4,15 +4,16 @@ one for a blog or dev.to, a short one for LinkedIn, and one for X. Delete this
 comment before publishing. When posting, tag Serverpod's own account on each
 platform.
 
-Status of every statement: 14 Oct 2026, 16:20 UTC. Facts come from
-docs/device-log.md, docs/spike-results.md and the tests in chorus_server/test/.
-A behaviour is called "checked" only where the device log has a row for it.
-The log records the phone checks of 13 October as driven over adb and the
-Edge checks of that evening as driven through the browser's automation
-extension; only the no-network check of 14 October is recorded as done by
-hand. So the text says "on real devices", never "by hand". Every check so far
-used one account on both devices; two different accounts on two devices are
-not yet in the log.
+Status of every statement: 14 Oct 2026, 17:55 UTC. Facts come from
+docs/device-log.md (up to the demo sign-in at about 17:45 UTC),
+docs/spike-results.md and the tests in chorus_server/test/. A behaviour is
+called "checked" only where the device log has a row for it. The log records
+the phone checks of 13 October as driven over adb and the Edge checks of that
+evening as driven through the browser's automation extension, and does not say
+how every later check was driven. So the text says "on real devices", never
+"by hand". Every check so far used one
+account on both devices; two different accounts on two devices are not yet in
+the log.
 
 These sentences go stale if the log changes:
 - Long version, "Two claims on one cell": "Every run so far used one account
@@ -20,20 +21,22 @@ These sentences go stale if the log changes:
   accounts.
 - Short version: "(one account on both)". Delete it at the same time.
 
-In the text, TODO(owner) appears once, for the video link at the end of the
-long version.
+The text itself has nothing left to fill in.
+TODO(owner): post each version, tagging Serverpod's own account, and delete
+this comment first.
 
 The code excerpts are copied unchanged, indentation included, from
 chorus_server/lib/src/boards/tile.spy.yaml (lines 12 to 18),
 chorus_server/test/sync/cell_conflict_test.dart (lines 105 and 106) and
-chorus_shared/lib/src/reconcile_snapshot.dart (lines 254 to 260).
+chorus_shared/lib/src/reconcile_snapshot.dart (lines 254 to 260), and were
+checked again against commit 2e912cb.
 -->
 
 # Two offline adults, one cell
 
 ## Long version (blog or dev.to)
 
-I built Chorus for "Build Something Real: The Serverpod Hackathon". It is an offline-first talking picture board for a non-speaking child, written in Flutter on Serverpod 4.0.4 and the experimental `serverpod_offline_sync` module, 0.0.10. The child taps words on a grid and the device speaks them. Adults around her edit the board from their own devices.
+I built Chorus for "Build Something Real: The Serverpod Hackathon". It is an offline-first talking picture board for a non-speaking child, written in Flutter on Serverpod 4.0.4 and the experimental `serverpod_offline_sync` module, 0.0.10. The child taps words on a grid and the device speaks them, even with no network. Adults around her edit the board from their own devices.
 
 The child is a persona. No child, family or clinician has used Chorus, and I make no clinical claims. Mature AAC apps exist, among them CoughDrop, AsTeRICS Grid, Proloquo2Go and TD Snap. I have not found one that shows what happens when two adults change the same board offline, or that lets you try it on one device.
 
@@ -64,7 +67,7 @@ When they sync, the engine keeps both rows. The earlier write keeps the cell, wh
           expect(keys[c.later.id!.uuid], contested, reason: where);
 ```
 
-I have also run it on real devices on Serverpod Cloud, an Android phone and a desktop browser, both with the app's "Work offline" switch on. One word kept the cell and the other showed under "Needs a home" on both. Every run so far used one account on both devices. `docs/device-log.md` lists what I have checked on hardware.
+I have also run it five times on real devices on Serverpod Cloud, an Android phone and a desktop browser, both with the app's "Work offline" switch on, the last time on the final build. Each time one word kept the cell and the other showed under "Needs a home" on both. In the first two runs the browser needed a reload to show it, because two of its tabs were sharing one local database; with one tab it showed by itself. Every run so far used one account on both devices. `docs/device-log.md` lists what I have checked on hardware.
 
 ### From a suffix to a tray
 
@@ -84,7 +87,7 @@ bool isSafePoint(
     activity.sinceLastTouch >= quiet;
 ```
 
-On the phone it did just that: with two words in the sentence strip, a word added in the browser showed as "1 waiting" and did not land. When the strip was cleared, it appeared in its cell within a few seconds, and nothing else moved.
+On the phone it did just that, twice on 14 October: with two words in the sentence strip, a word added in the browser showed as "1 waiting" and did not land. When the strip was cleared, it appeared in its cell within a few seconds, and nothing else moved.
 
 One merge I had not planned for: when the word holding a contested cell is removed, the engine gives the freed cell to the waiting word by itself. To the child that is a cell changing meaning, so the snapshot holds it for an adult.
 
@@ -107,8 +110,9 @@ The first two, and four more gaps, are written up as draft issues for the Server
 ### Links
 
 - Chorus on Serverpod Cloud: https://chorus.serverpod.space (the web app is at https://chorus.serverpod.space/app/)
+- Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`; debug-signed, Android 7.0 or later)
 - Source, MIT: https://github.com/OoJae/chorus
-- Demo video: TODO(owner): link
+- Demo film (1:35): https://youtu.be/JDv5pPvsrA8
 
 The starter board is adapted from the 36-word Universal Core vocabulary, Center for Literacy and Disability Studies, UNC-Chapel Hill, CC BY-SA 4.0. The code was written with Claude Code under my direction.
 
@@ -124,6 +128,7 @@ Plainly: the child is a persona, no family or clinician has used it, and mature 
 
 Code: https://github.com/OoJae/chorus
 Try it: https://chorus.serverpod.space
+Film (1:35): https://youtu.be/JDv5pPvsrA8
 
 #Serverpod #Flutter #Dart
 

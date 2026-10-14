@@ -1,4 +1,4 @@
-> Owner: paste everything below the line into the "Most Valuable Feedback" form. First resolve the one TODO(owner), the Cloud plan name. Every device result below has a row in `docs/device-log.md`; keep it that way if you add one.
+> Owner: paste everything below the line into the "Most Valuable Feedback" form. Every device result below has a row in `docs/device-log.md`; keep it that way if you add one.
 
 ---
 
@@ -6,7 +6,7 @@
 
 ## Summary
 
-Chorus is an offline-first talking picture board for a non-speaking child: the child's device speaks from a local replica while adults edit the board from their own devices. It is built on Serverpod 4.0.4, `serverpod_offline_sync` 0.0.10 and Flutter 3.47.7, deployed on Serverpod Cloud (TODO(owner): plan name) at https://chorus.serverpod.space, and has been run in a desktop browser and on a physical Android phone. Each finding names the test in https://github.com/OoJae/chorus, the source file, or the device check behind it. Findings 1, 5, 6 and 7, and one request to hold incoming changes, are also written up as six draft issues in `docs/upstream-issues.md`, most with a repro test.
+Chorus is an offline-first talking picture board for a non-speaking child: the child's device speaks from a local replica while adults edit the board from their own devices. It is built on Serverpod 4.0.4, `serverpod_offline_sync` 0.0.10 and Flutter 3.47.7, deployed on Serverpod Cloud (Starter plan, Europe) at https://chorus.serverpod.space, and has been run in a desktop browser and on a physical Android phone. Each finding names the test in https://github.com/OoJae/chorus, the source file, or the device check behind it. Findings 1, 5, 6 and 7, and one request to hold incoming changes, are also written up as six draft issues in `docs/upstream-issues.md`, most with a repro test.
 
 ## What worked well
 
@@ -14,8 +14,9 @@ Chorus is an offline-first talking picture board for a non-speaking child: the c
 - Emailed sign-up codes worked on Cloud with no configuration.
 - Tests need no Docker: `database.dataPath` gives an embedded Postgres.
 - The module ran on a physical Android phone (arm64, release build) and in a browser, where the SQLite replica persists in IndexedDB. A board created in the browser reached the phone through sync.
-- Unique conflicts resolve identically on the server and every replica (T1 below), in automated tests against real Postgres and SQLite. On real devices on Cloud, a phone and a browser that filled the same cell offline both ended with one word in the cell and the other parked (four runs, one account on both devices; see finding 11 for why the browser needed a reload in the first two).
+- Unique conflicts resolve identically on the server and every replica (T1 below), in automated tests against real Postgres and SQLite. On real devices on Cloud, a phone and a browser that filled the same cell offline both ended with one word in the cell and the other parked (five runs, the last on the final build, one account on both devices; see finding 11 for why the browser needed a reload in the first two).
 - `spaces.grant` plus `transactionForUser` let the server act as a member. Chorus's "Try a clash" has a server-side practice partner fill a cell while the user's device works offline; on Cloud its word was on the server in about four seconds, and the clash resolved as above.
+- A streaming endpoint relayed live pointing and presence between the browser and the phone on Cloud: a word found in the browser glowed on the phone's board about two seconds later, and the browser's editor showed "Parent is looking at the board" while the phone had it open (one account on both).
 - One server serves a static landing page at `/`, the Flutter web app at `/app/` and token pages beside them, each with its own headers. Checked on Cloud.
 - Direct uploads from the browser to Cloud storage worked on Cloud (`requestUpload`, `PUT` to storage, `confirmUpload`, all 200).
 - After an offline collision every node agreed after two one-shot sync rounds, as expected: the device that syncs first learns of the other's write on its next sync.
