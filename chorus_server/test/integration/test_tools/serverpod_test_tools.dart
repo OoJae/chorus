@@ -1303,6 +1303,43 @@ class _SuggestEndpoint {
       }
     });
   }
+
+  _ida.Future<List<_iknl7ub9.WordSuggestion>> ideasFromPhoto(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue circleSpace,
+    String imageSha256,
+    String locale,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'suggest',
+            method: 'ideasFromPhoto',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'suggest',
+          methodName: 'ideasFromPhoto',
+          parameters: _ist.testObjectToJson({
+            'circleSpace': circleSpace,
+            'imageSha256': imageSha256,
+            'locale': locale,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iknl7ub9.WordSuggestion>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _SummaryEndpoint {

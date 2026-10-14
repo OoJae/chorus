@@ -26,4 +26,20 @@ class SuggestEndpoint extends Endpoint {
     await requireMember(session, circleSpace, editing: true);
     return suggestFromPhoto(session, circleSpace, imageSha256, locale);
   }
+
+  /// Suggests 3 to 6 words across word types (things, actions, describing
+  /// words), each with a part-of-speech colour key, for the circle's
+  /// verified image [imageSha256]. Ideas for one photo are kept for a day.
+  /// Editing roles only. Nothing is placed: an adult confirms each word.
+  ///
+  /// Throws [SuggestException] as [fromPhoto] does.
+  Future<List<WordSuggestion>> ideasFromPhoto(
+    Session session,
+    UuidValue circleSpace,
+    String imageSha256,
+    String locale,
+  ) async {
+    await requireMember(session, circleSpace, editing: true);
+    return suggestIdeasFromPhoto(session, circleSpace, imageSha256, locale);
+  }
 }

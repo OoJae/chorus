@@ -660,6 +660,26 @@ class EndpointSuggest extends _isc.EndpointRef {
       'locale': locale,
     },
   );
+
+  /// Suggests 3 to 6 words across word types (things, actions, describing
+  /// words), each with a part-of-speech colour key, for the circle's
+  /// verified image [imageSha256]. Ideas for one photo are kept for a day.
+  /// Editing roles only. Nothing is placed: an adult confirms each word.
+  ///
+  /// Throws [SuggestException] as [fromPhoto] does.
+  _ida.Future<List<_igbppnkp.WordSuggestion>> ideasFromPhoto(
+    _isc.UuidValue circleSpace,
+    String imageSha256,
+    String locale,
+  ) => caller.callServerEndpoint<List<_igbppnkp.WordSuggestion>>(
+    'suggest',
+    'ideasFromPhoto',
+    {
+      'circleSpace': circleSpace,
+      'imageSha256': imageSha256,
+      'locale': locale,
+    },
+  );
 }
 
 /// "This week": what the word log says about one week, for the adults who

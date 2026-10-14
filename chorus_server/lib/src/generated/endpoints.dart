@@ -804,6 +804,37 @@ class Endpoints extends _is.EndpointDispatch {
                     params['locale'],
                   ),
         ),
+        'ideasFromPhoto': _is.MethodConnector(
+          name: 'ideasFromPhoto',
+          params: {
+            'circleSpace': _is.ParameterDescription(
+              name: 'circleSpace',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'imageSha256': _is.ParameterDescription(
+              name: 'imageSha256',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'locale': _is.ParameterDescription(
+              name: 'locale',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['suggest'] as _idurguj6.SuggestEndpoint)
+                  .ideasFromPhoto(
+                    session,
+                    params['circleSpace'],
+                    params['imageSha256'],
+                    params['locale'],
+                  ),
+        ),
       },
     );
     connectors['summary'] = _is.EndpointConnector(

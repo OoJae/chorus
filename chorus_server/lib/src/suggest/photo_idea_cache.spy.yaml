@@ -1,0 +1,16 @@
+### Ideas the model gave for one photo, kept for a day so asking again costs
+### nothing. Server-only; holds words, never the photo.
+class: PhotoIdeaCache
+table: photo_idea_cache
+serverOnly: true
+fields:
+  circleSpace: UuidValue
+  imageSha256: String
+  locale: String
+  ### The ideas as a JSON list of WordSuggestion objects.
+  ideasJson: String
+  createdAt: DateTime
+indexes:
+  photo_idea_cache_key_idx:
+    fields: circleSpace, imageSha256, locale
+    unique: true

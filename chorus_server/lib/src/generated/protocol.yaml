@@ -36,6 +36,7 @@ sharing:
   - exportUrl:
 suggest:
   - fromPhoto:
+  - ideasFromPhoto:
 summary:
   - week:
 wordSuggestion:

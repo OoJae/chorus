@@ -15,6 +15,8 @@ import 'package:chorus_server/src/generated/circles/circle_info.dart'
     as _iun4jhfl;
 import 'package:chorus_server/src/generated/circles/member_info.dart'
     as _isrvpywl;
+import 'package:chorus_server/src/generated/suggest/word_suggestion.dart'
+    as _iknl7ub9;
 import 'package:chorus_server/src/generated/word_suggestions/suggested_word_info.dart'
     as _igagi3at;
 import 'package:chorus_server/src/generated/wordlog/word_use_entry.dart'
@@ -49,6 +51,7 @@ import 'printing/shared_snapshot.dart' as _if9s8td9;
 import 'printing/snapshot_kind.dart' as _iergzj3e;
 import 'sharing/view_only_link.dart' as _iveyennw;
 import 'suggest/ai_usage.dart' as _inv1atzh;
+import 'suggest/photo_idea_cache.dart' as _ix1g4tqw;
 import 'suggest/suggest_exception.dart' as _iw5bueja;
 import 'suggest/suggest_failure.dart' as _iv4peolp;
 import 'suggest/word_suggestion.dart' as _ifctwajg;
@@ -85,6 +88,7 @@ export 'printing/shared_snapshot.dart';
 export 'printing/snapshot_kind.dart';
 export 'sharing/view_only_link.dart';
 export 'suggest/ai_usage.dart';
+export 'suggest/photo_idea_cache.dart';
 export 'suggest/suggest_exception.dart';
 export 'suggest/suggest_failure.dart';
 export 'suggest/word_suggestion.dart';
@@ -536,6 +540,76 @@ class Protocol extends _is.DatabaseSerializationManager {
           ],
           type: 'btree',
           isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'photo_idea_cache',
+      dartName: 'PhotoIdeaCache',
+      schema: 'public',
+      module: 'chorus',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'circleSpace',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'imageSha256',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'locale',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'ideasJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'photo_idea_cache_key_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'circleSpace',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'imageSha256',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'locale',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
           isPrimary: false,
         ),
       ],
@@ -1284,6 +1358,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _inv1atzh.AiUsage) {
       return _inv1atzh.AiUsage.fromJson(data) as T;
     }
+    if (t == _ix1g4tqw.PhotoIdeaCache) {
+      return _ix1g4tqw.PhotoIdeaCache.fromJson(data) as T;
+    }
     if (t == _iw5bueja.SuggestException) {
       return _iw5bueja.SuggestException.fromJson(data) as T;
     }
@@ -1395,6 +1472,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_inv1atzh.AiUsage?>()) {
       return (data != null ? _inv1atzh.AiUsage.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ix1g4tqw.PhotoIdeaCache?>()) {
+      return (data != null ? _ix1g4tqw.PhotoIdeaCache.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_iw5bueja.SuggestException?>()) {
       return (data != null ? _iw5bueja.SuggestException.fromJson(data) : null)
           as T;
@@ -1484,6 +1565,12 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_iknl7ub9.WordSuggestion>) {
+      return (data as List)
+              .map((e) => deserialize<_iknl7ub9.WordSuggestion>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_igagi3at.SuggestedWordInfo>) {
       return (data as List)
               .map((e) => deserialize<_igagi3at.SuggestedWordInfo>(e))
@@ -1535,6 +1622,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iergzj3e.SnapshotKind => 'SnapshotKind',
       _iveyennw.ViewOnlyLink => 'ViewOnlyLink',
       _inv1atzh.AiUsage => 'AiUsage',
+      _ix1g4tqw.PhotoIdeaCache => 'PhotoIdeaCache',
       _iw5bueja.SuggestException => 'SuggestException',
       _iv4peolp.SuggestFailure => 'SuggestFailure',
       _ifctwajg.WordSuggestion => 'WordSuggestion',
@@ -1607,6 +1695,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'ViewOnlyLink';
       case _inv1atzh.AiUsage():
         return 'AiUsage';
+      case _ix1g4tqw.PhotoIdeaCache():
+        return 'PhotoIdeaCache';
       case _iw5bueja.SuggestException():
         return 'SuggestException';
       case _iv4peolp.SuggestFailure():
@@ -1733,6 +1823,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'AiUsage') {
       return deserialize<_inv1atzh.AiUsage>(data['data']);
     }
+    if (dataClassName == 'PhotoIdeaCache') {
+      return deserialize<_ix1g4tqw.PhotoIdeaCache>(data['data']);
+    }
     if (dataClassName == 'SuggestException') {
       return deserialize<_iw5bueja.SuggestException>(data['data']);
     }
@@ -1845,6 +1938,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _if9s8td9.SharedSnapshot.t;
       case _inv1atzh.AiUsage:
         return _inv1atzh.AiUsage.t;
+      case _ix1g4tqw.PhotoIdeaCache:
+        return _ix1g4tqw.PhotoIdeaCache.t;
       case _ikaxfpae.WeeklySummary:
         return _ikaxfpae.WeeklySummary.t;
       case _io8ht510.SuggestedWord:

@@ -15,6 +15,8 @@ import 'package:chorus_client/src/protocol/circles/circle_info.dart'
     as _icfd3qx2;
 import 'package:chorus_client/src/protocol/circles/member_info.dart'
     as _iw7jhh88;
+import 'package:chorus_client/src/protocol/suggest/word_suggestion.dart'
+    as _igbppnkp;
 import 'package:chorus_client/src/protocol/word_suggestions/suggested_word_info.dart'
     as _iov4dup2;
 import 'package:chorus_client/src/protocol/wordlog/word_use_entry.dart'
@@ -699,6 +701,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<_iw7jhh88.MemberInfo>) {
       return (data as List)
               .map((e) => deserialize<_iw7jhh88.MemberInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_igbppnkp.WordSuggestion>) {
+      return (data as List)
+              .map((e) => deserialize<_igbppnkp.WordSuggestion>(e))
               .toList()
           as T;
     }
