@@ -27,7 +27,7 @@ To see the child's side, go back home and click "Open Maya's board". Tap words t
 
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
-- Android APK: https://github.com/OoJae/chorus/releases/latest. TODO(owner): publish the release with the APK tonight. Until then this link shows no release.
+- Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`; debug-signed, Android 7.0 or later).
 - Video (1:50, with a voice-over): TODO(owner): link. The narration is in [docs/voiceover.md](docs/voiceover.md).
 - Code: https://github.com/OoJae/chorus
 - A longer walkthrough, with two adults in two windows: [docs/TRY-IT.md](docs/TRY-IT.md)
@@ -86,8 +86,8 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 
 **Modelling: adults show words on the board as they talk**
 
-- **"Show words on the board".** An adult taps words in the editor and they glow on the child's board over the live stream. These taps count as modelled, not said. Counting was checked. The glow reaching another device has not been checked on Cloud.
-- **Word finder.** "Find a word": typing "help" gave "Home board · row 2, column 5" with a small map. "Show on Maya's board" makes that word glow on her board. Finding was checked. The glow on another device was not.
+- **"Show words on the board".** An adult taps words in the editor and they glow on the child's board over the live stream. These taps count as modelled, not said. Counting was checked, and the glow reached the phone on Cloud on 14 October.
+- **Word finder.** "Find a word": typing "help" gave "Home board · row 2, column 5" with a small map. "Show on Maya's board" made "help" glow on the phone's board a moment later (checked on Cloud, 14 October).
 - **Modelled and said.** With the word log on, "This week" counts the words adults modelled apart from the words the child said, for example "help: modelled 1 · said 1". Checked.
 - **Focus words.** Up to three "Focus words" a week, each with a tip for the adults ("At snack time: 'help open?'"), shown as "Words of the week". Checked. Each Thursday at 09:00 UTC, a note on home names a focus word nobody has modelled yet that week. The note is built and tested, and the first one is due on Thursday 15 October.
 - **"Listen".** An adult turns on "Listen" and talks, and the words on the board glow as they are said. It works in the web app only, using the browser's speech recognition. Built and tested.
@@ -113,7 +113,7 @@ Each item says how far it was checked. "Checked" means it was seen working on a 
 | Sync client | [`replica_service.dart`](chorus_flutter/lib/src/sync/replica_service.dart), [`sync_supervisor.dart`](chorus_flutter/lib/src/sync/sync_supervisor.dart) | One `transactionForUser` write queue. Around it, Chorus adds reconnect with backoff, a clock check before sync (the module refuses drift over one minute; Chorus warns at 45 seconds) and the status chip. |
 | Auth with emailed codes | [`server.dart`](chorus_server/lib/server.dart) | Sign-up with a code sent through Serverpod Cloud's email. |
 | Endpoints | [`lib/src/`](chorus_server/lib/src/) | Circles and invitations, members, the word log, suggestions, practice, devices ([`device_seen_endpoint.dart`](chorus_server/lib/src/trust/device_seen_endpoint.dart)), scenes, copies, voices, quick phrases, languages and word settings, focus words and reports. |
-| Streaming method | [`live_endpoint.dart`](chorus_server/lib/src/live/live_endpoint.dart) | Live pointing, presence and shared sentences, relayed between members and never stored. Built and tested; none has been checked between two devices on Cloud yet. |
+| Streaming method | [`live_endpoint.dart`](chorus_server/lib/src/live/live_endpoint.dart) | Live pointing, presence and shared sentences, relayed between members and never stored. The glow and the presence line were checked between Edge and the phone on Cloud on 14 October; shared sentences were not. |
 | File storage | [`media_endpoint.dart`](chorus_server/lib/src/media/media_endpoint.dart) | Photos and recorded voices, held in private storage. Each file is named by its SHA-256 and checked on the server. |
 | Future calls | [`scheduled_jobs.dart`](chorus_server/lib/src/jobs/scheduled_jobs.dart) | The weekly summary (Mondays 02:00 UTC), the Thursday focus-word note (09:00 UTC) and a daily clean-up of expired links (03:30 UTC). They need a Cloud plan that runs future calls. None had come due by 14 October; the first, the clean-up, is due at 03:30 UTC on 15 October. Without the jobs, a week's summary is worked out when it is asked for and the Thursday note is written when home first asks after 09:00. The clean-up has no such fallback, but an expired link is refused either way. |
 | Web server routes | [`app_route.dart`](chorus_server/lib/src/web/app_route.dart), [`app_config_route.dart`](chorus_server/lib/src/web/routes/app_config_route.dart), [`print_routes.dart`](chorus_server/lib/src/printing/print_routes.dart), [`sharing_routes.dart`](chorus_server/lib/src/sharing/sharing_routes.dart), [`progress_routes.dart`](chorus_server/lib/src/progress/progress_routes.dart) | The landing page at `/`, the Flutter app at `/app/`, and four token pages: `/print/<token>`, `/b/<token>` (view-only), `/export/<token>` (.obf) and `/report/<token>`. |
@@ -171,14 +171,15 @@ Every check below was made against the Serverpod Cloud deployment. The devices w
 | 14 Oct, 08:15–08:45 | `46f3f13` | phone and Edge (one tab) | "Work offline" held. The clash showed on both devices with no reload (4.8 s). With airplane mode on and Wi-Fi off, the phone spoke each tapped word and reopened its board, and the chip came back by itself once Wi-Fi was on. |
 | 14 Oct, 12:50–13:20 | `2b38bd7` | phone and Edge | The redesign with Mulberry pictures. The photo suggestion through MiMo. The word log and "This week". The view-only board, opened in a browser with no account. Export and import of .obf files (the import reached the phone). Adding, renaming and archiving a board. The paper copy. A new word held back on the phone ("1 waiting") until the strip was cleared. The clash between the phone and Edge again. |
 | 14 Oct, 15:25–16:20 | `b41ac5c` | Edge only | The landing page at `/` and the app at `/app/`. A picture on every core word. "Try a clash". "What changed" and "Undo". The chip's words, "Who is up to date" for this device, and "Under the hood". The word finder. "Hide for now" and "Show everything". Quick phrases, word endings and the keyboard. The ready-made Feelings board. Named copies. Yoruba labels. Two-switch scanning. Modelled and said, and focus words. The progress report, picture scenes and photo ideas. |
+| 14 Oct, 16:35–17:20 | `e6e924a` | phone and Edge | The fixed build. The new APK on the phone: its status row and a picture on every word. The word finder's glow reached the phone; the presence line read "Parent is looking at the board". A word added in Edge waited behind "1 waiting" on the phone until the strip was cleared, then landed. The phone and Edge, both working offline, filled the same spot: after reconnecting, one word kept it and the other waited under "Needs a home · 7" on both. |
 
 Not yet checked on any device (built and tested only):
 
-- Anything in the 15:25 build on the phone. The phone still had the 13:02 APK at 16:20 UTC.
 - Two different accounts on two devices. Every check used one account. Joining with an invitation code is covered by endpoint tests and sync test T8 only.
 - The demo sign-ins on Cloud.
 - An offline word uploading after a real loss of network. That was checked only with "Work offline".
-- Live pointing and the word finder's glow reaching another device, the presence line, other devices in "Who is up to date", recorded voices, and "Replaced changes" with restore.
+- Other devices in "Who is up to date", recorded voices, and "Replaced changes" with restore.
+- On the phone: hiding a word, a second language, the word tools, scanning and scenes (each was checked in Edge; the phone's new status row was seen).
 - The Thursday note, the circle's voice on another device, the touch settings in use, keyguard mode and its template, "Share the sentence" and "Recent", a sitter's taps in "What changed", "Listen", "Put back" from a copy, and speech in Yoruba.
 - One-switch scanning (two switches were checked), changing the quick phrases, the five ready-made boards other than Feelings, the word tools behind a long press on a phone, and a read-only partner's "Suggest a word".
 - Placing a waiting word from the tray on Cloud. It was checked only on a local server.
@@ -237,10 +238,10 @@ Deploy with `serverpod cloud deploy` from `chorus_server`. [`scloud.yaml`](choru
 
 | Suite | Command | Tests |
 |---|---|---|
-| Server: endpoints, sync, routes, jobs | `cd chorus_server && dart test --concurrency=1` | 235 |
+| Server: endpoints, sync, routes, jobs | `cd chorus_server && dart test --concurrency=1` | 243 |
 | Shared rules | `cd chorus_shared && dart test` | 397 |
-| Screens | `cd chorus_ui && flutter test` | 797 |
-| App | `cd chorus_flutter && flutter test` | 554 |
+| Screens | `cd chorus_ui && flutter test` | 828 |
+| App | `cd chorus_flutter && flutter test` | 556 |
 
 These counts are from 14 October 2026, on the merged tree, and every suite passes. The server suite runs on an embedded PostgreSQL. It needs the `test:` passwords from the build steps above, or the same values as environment variables (CI sets them that way); without them `demo_seed_test.dart` does not load. The sync tests run against real SQLite replicas. CI analyses and tests the server package only.
 
@@ -264,7 +265,7 @@ These counts are from 14 October 2026, on the merged tree, and every suite passe
 
 ## Privacy
 
-- The child's sentences are not stored. The word log is off until a guardian turns it on. It keeps only which word was spoken and when, never a label or a sentence, and it shows counts, not transcripts. "Delete the word log" removes it, with the weeks worked out from it.
+- The child's sentences are not stored. The word log is off until a guardian turns it on. It keeps only which word was spoken and when, never a label or a sentence, and it shows counts, not transcripts. "Delete the word log" removes it, with the weeks worked out from it, the words a sitter tapped and every progress-report link.
 - "Private" on the child's board pauses the word log and sharing on that device.
 - Sentences leave the device only while a guardian has "Share what is said" on for it, or when an adult presses "Share the sentence", which hands the sentence to the share sheet or copies it. Shared with "Share what is said", they are relayed to the members who are connected and are never stored. "Recent" sentences stay in memory until the app closes.
 - Photos are shrunk on the device (512 pixels for a word, 1280 for a scene) and saved again as JPEG. EXIF data, including any location, is removed. They sit in private storage behind links that last five minutes.

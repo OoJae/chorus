@@ -12,8 +12,6 @@ real", and "the newest features on the phone" leaves the last sentence.
 
 TODO(owner) marks what only you can supply:
 - Video: paste the link to the 1:50 film.
-- APK: publish the GitHub release with the APK tonight, then delete
-  "TODO(owner): not published yet;" so the line is the link alone.
 - Demo password: say how judges get it, in the submission text only. Never
   write it in this file or anywhere in the repository. Sign in once as
   demo.parent before submitting, or the demo board does not exist.
@@ -55,7 +53,7 @@ Chorus is an offline-first talking picture board for a non-speaking child, built
 
 - Landing page: https://chorus.serverpod.space/
 - App: https://chorus.serverpod.space/app/ ("Make a board for my child", then "Try a demo board")
-- Android APK: TODO(owner): not published yet; https://github.com/OoJae/chorus/releases/latest
+- Android APK: https://github.com/OoJae/chorus/releases/latest
 - Code: https://github.com/OoJae/chorus
 - Walkthrough: https://github.com/OoJae/chorus/blob/main/docs/TRY-IT.md
 - Video: TODO(owner): link

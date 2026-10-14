@@ -7,7 +7,7 @@ means there is a line for it in docs/device-log.md. Anything else described
 here is built and has automated tests, and says so where it matters.
 
 Before the submission tag:
-- resolve the TODO(owner) markers: the APK release (two places), the film
+- resolve the TODO(owner) markers: the film
   link and the demo password in the submission text;
 - sign in once as demo.parent@chorus.example, so the demo board exists;
 - when phone checks of the new APK are logged in device-log.md, update the
@@ -23,7 +23,7 @@ Maya, the child in the demo, is a persona. No child, parent or clinician has use
 
 - Landing page: https://chorus.serverpod.space/
 - Web app: https://chorus.serverpod.space/app/
-- Android APK: https://github.com/OoJae/chorus/releases/latest. TODO(owner): the release is published on the evening of 14 October; until then this page has no APK.
+- Android APK: https://github.com/OoJae/chorus/releases/latest (release `submission-v1`, file `chorus.apk`).
 - Film (1:50): TODO(owner): link.
 - Demo sign-ins: `demo.parent@chorus.example` (guardian), `demo.therapist@chorus.example` (therapist, can edit), `demo.partner@chorus.example` (read-only partner: views the board and can suggest a word). The password is in our submission text. TODO(owner): put the demo password in the submission text.
 - What was checked on real hardware, and what was not: [`device-log.md`](device-log.md)
@@ -121,7 +121,7 @@ In a wide window, the keys for word endings, quick phrases and the keyboard sit 
 
 Status at 16:20 UTC on 14 October 2026: on one phone (a Xiaomi on Android 16), earlier builds were installed, received a board made in the browser through the sync module, and spoke with no network at all (airplane mode on and Wi-Fi off), also after the app was closed and opened again (13 and 14 October). The APK in the release is a later build and has not yet been checked on a phone.
 
-1. **Install.** On the phone, open https://github.com/OoJae/chorus/releases/latest and download the APK. TODO(owner): until the release is up, this page has no APK; delete this sentence once it is. Android asks you to allow installs from this source: the build is signed with a debug key and does not come from a store. It needs Android 7.0 or later. If Google Play Protect warns about the app, look in its dialog for the choice to install anyway.
+1. **Install.** On the phone, open https://github.com/OoJae/chorus/releases/latest and download the APK. Android asks you to allow installs from this source: the build is signed with a debug key and does not come from a store. It needs Android 7.0 or later. If Google Play Protect warns about the app, look in its dialog for the choice to install anyway.
 
 2. **Sign in.** Open Chorus and tap "I already have one". Sign in with the email address and password from part A, or with a demo sign-in. No account yet? Tap "Make a board for my child" and sign up as in part A step 2 (sign-up has been checked in a browser, not yet on a phone). You see "Maya's board", and the chip settles on "Everyone's up to date". The board was made in the browser and reached the phone's own SQLite database through the sync module.
 
