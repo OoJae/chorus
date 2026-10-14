@@ -184,7 +184,8 @@ class WordLogEndpoint extends Endpoint {
   }
 
   /// Removes the circle's whole word log for good, with the weeks worked
-  /// out from it. Guardians only. Returns how many words went.
+  /// out from it, the words sitters tapped and every progress report link.
+  /// Guardians only. Returns how many words went.
   ///
   /// It also moves the log's start to now, so words a device still holds
   /// from before the delete are not taken when it sends them (see
@@ -217,6 +218,19 @@ class WordLogEndpoint extends Endpoint {
         transaction: transaction,
       );
       await WeeklySummary.db.deleteWhere(
+        session,
+        where: (t) => t.circleSpace.equals(circleSpace),
+        transaction: transaction,
+      );
+      // What the log fed: the words sitters tapped on the view-only page,
+      // and the progress report links, which keep the week's words and
+      // counts as they were when the link was made.
+      await SitterTap.db.deleteWhere(
+        session,
+        where: (t) => t.circleSpace.equals(circleSpace),
+        transaction: transaction,
+      );
+      await ProgressReportLink.db.deleteWhere(
         session,
         where: (t) => t.circleSpace.equals(circleSpace),
         transaction: transaction,

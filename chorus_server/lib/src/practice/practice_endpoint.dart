@@ -21,8 +21,9 @@ class PracticeEndpoint extends Endpoint {
   /// How the partner is named on every device.
   static const String partnerName = 'Practice partner';
 
-  /// The most words the partner adds to one circle in one hour.
-  static const int hourlyLimit = 5;
+  /// The most words the partner adds to one circle in one hour. Judges
+  /// share the demo circle, so it is roomy enough for many of them.
+  static const int hourlyLimit = 30;
 
   /// What the partner puts down, in this order: the first one not already
   /// on the board.
@@ -147,6 +148,30 @@ class PracticeEndpoint extends Endpoint {
           ),
           transaction: tx,
         );
+        // Its first values as `add` edits, as a device logs a word added by
+        // hand, so "What changed" shows who added it.
+        for (final (prop, value) in [
+          ('label', word.label),
+          ('cellKey', cellKey),
+          ('colorKey', word.colorKey),
+        ]) {
+          await TileEdit.db.insertRow(
+            session,
+            TileEdit(
+              circleId: circleSpace,
+              tileId: tile.id!,
+              prop: prop,
+              oldValue: null,
+              newValue: value,
+              baseEditId: null,
+              reason: 'add',
+              actorId: partner,
+              actorName: partnerName,
+              editedAt: now,
+            ),
+            transaction: tx,
+          );
+        }
         return PracticeWord(
           tileId: tile.id!,
           label: tile.label,

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../brand/haptics.dart';
 import '../brand/tokens.dart';
 import '../contracts_activity.dart';
+import '../features/flags/w2.dart' as w2;
 import 'activity_screen.dart' show ActorBadge;
 
 /// Title of the screen and of its home entry.
@@ -40,11 +41,19 @@ String removeMemberExplanation(String name) =>
 String memberRemovedMessage(String name) => '$name was removed.';
 
 /// The circle's members. A guardian sees "Remove from circle" on everyone
-/// but themselves.
+/// but themselves, when [offerRemove] is on.
 class MembersScreen extends StatefulWidget {
-  const MembersScreen({super.key, required this.members});
+  const MembersScreen({
+    super.key,
+    required this.members,
+    this.offerRemove = w2.removeFromCircleEnabled,
+  });
 
   final CircleMembers members;
+
+  /// Whether "Remove from circle" is offered at all. Defaults to the W2
+  /// flag `removeFromCircleEnabled`.
+  final bool offerRemove;
 
   @override
   State<MembersScreen> createState() => _MembersScreenState();
@@ -134,7 +143,8 @@ class _MembersScreenState extends State<MembersScreen> {
               leading: ExcludeSemantics(child: ActorBadge(name: member.name)),
               title: Text(member.isMe ? '${member.name} (you)' : member.name),
               subtitle: Text(member.roleName),
-              trailing: widget.members.canRemove && !member.isMe
+              trailing:
+                  widget.offerRemove && widget.members.canRemove && !member.isMe
                   ? TextButton(
                       onPressed: () => _remove(member),
                       child: Text(

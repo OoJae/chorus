@@ -128,6 +128,25 @@ void main() {
           gridOf(board.id, tiles, [board])[(0, 1)]?.label,
           'swing',
         );
+        // It logs its first values as `add` edits, as a device does, so
+        // "What changed" names the partner.
+        final adds = [
+          for (final edit in await guardian.edits(circle))
+            if (edit.tileId == word.tileId) edit,
+        ];
+        expect(
+          {for (final edit in adds) edit.prop: edit.newValue},
+          {
+            'label': 'swing',
+            'cellKey': placedKey(board.id, 0, 1),
+            'colorKey': 'noun',
+          },
+        );
+        for (final edit in adds) {
+          expect(edit.reason, 'add');
+          expect(edit.actorName, 'Practice partner');
+          expect(edit.oldValue, isNull);
+        }
       },
     );
 
@@ -185,28 +204,28 @@ void main() {
       expect(await world.serverTiles(circle), isEmpty);
     });
 
-    test('when a circle has had five practice words in the hour then the '
-        'sixth is refused with tooMany.', () async {
+    test('when a circle has had thirty practice words in the hour then the '
+        'next is refused with tooMany.', () async {
       final [guardian] = await world.users(['Guardian']);
       final circle = await world.circle(guardian);
       final board = await world.emptyBoard(circle, guardian, [guardian]);
       final id = UuidValue.fromString(board.id);
-      for (var col = 0; col < 5; col++) {
+      for (var i = 0; i < 30; i++) {
         await guardian.client.practice.partnerWord(
           circle,
           id,
-          placedKey(board.id, 0, col),
+          placedKey(board.id, i ~/ 6, i % 6),
         );
       }
       await expectLater(
         guardian.client.practice.partnerWord(
           circle,
           id,
-          placedKey(board.id, 1, 0),
+          placedKey(board.id, 5, 0),
         ),
         practiceFails(PracticeFailure.tooMany),
       );
-      expect(await world.serverTiles(circle), hasLength(5));
+      expect(await world.serverTiles(circle), hasLength(30));
     });
 
     test(

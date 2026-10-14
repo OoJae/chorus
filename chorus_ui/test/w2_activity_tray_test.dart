@@ -11,6 +11,7 @@ import 'package:chorus_ui/editor/tray_panel.dart';
 import 'package:chorus_ui/editor/word_suggestions_tray.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/fakes_activity.dart';
+import 'package:chorus_ui/features/flags/w2.dart' show removeFromCircleEnabled;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -323,7 +324,7 @@ void main() {
         ),
         const CircleMember(userId: 'r', name: 'Ms Rivera', roleName: 'Teacher'),
       ]);
-      await _pump(tester, MembersScreen(members: members));
+      await _pump(tester, MembersScreen(members: members, offerRemove: true));
       expect(find.text('Mum (you)'), findsOneWidget);
       expect(find.text('Remove'), findsOneWidget);
       await tester.tap(find.text('Remove'));
@@ -333,6 +334,23 @@ void main() {
       await tester.pumpAndSettle();
       expect(members.members.map((m) => m.name), ['Mum']);
       expect(find.text(memberRemovedMessage('Ms Rivera')), findsOneWidget);
+    });
+
+    testWidgets('with Remove from circle switched off, a guardian sees the '
+        'list without Remove', (tester) async {
+      expect(removeFromCircleEnabled, isFalse);
+      final members = FakeCircleMembers([
+        const CircleMember(
+          userId: 'me',
+          name: 'Mum',
+          roleName: 'Guardian',
+          isMe: true,
+        ),
+        const CircleMember(userId: 'r', name: 'Ms Rivera', roleName: 'Teacher'),
+      ]);
+      await _pump(tester, MembersScreen(members: members));
+      expect(find.text('Ms Rivera'), findsOneWidget);
+      expect(find.text('Remove'), findsNothing);
     });
 
     testWidgets('others see the list without Remove', (tester) async {
