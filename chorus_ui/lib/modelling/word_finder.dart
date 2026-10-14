@@ -29,8 +29,8 @@ String showOnBoardLabel(String childName) => "Show on $childName's board";
 String shownMessage(String label, String childName) =>
     "'$label' is glowing on $childName's board.";
 
-/// Said when the word is on a board other than the home board: the child's
-/// board rings that board's tab when another board is on show.
+/// Said when the circle has more than one board: the child's board rings
+/// the word's board tab when another board is on show.
 String shownOnTabMessage(String label, String childName, String board) =>
     "'$label' is glowing. If $childName is on another board, the $board tab "
     'glows too.';
@@ -89,12 +89,13 @@ class _WordFinderScreenState extends State<WordFinderScreen> {
     live.sendPulse(find.tile.id);
     final child = widget.store.childName;
     final label = find.tile.label;
+    final boards = widget.store.boards.where((board) => !board.archived);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(
-            find.board.isHome
+            boards.length < 2
                 ? shownMessage(label, child)
                 : shownOnTabMessage(label, child, find.board.name),
           ),

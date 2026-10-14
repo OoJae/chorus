@@ -58,8 +58,25 @@ void main() {
       await tester.tap(find.text(showOnBoardLabel('Maya')).first);
       await tester.pump();
       expect(live.sentPulses, [tileNamed('help').id]);
-      expect(find.text(shownMessage('help', 'Maya')), findsOneWidget);
+      expect(
+        find.text(shownOnTabMessage('help', 'Maya', 'Home')),
+        findsOneWidget,
+      );
       // Lets the glow and the message run out.
+      await tester.pump(const Duration(seconds: 10));
+    });
+
+    testWidgets('with one board the message names no tab', (tester) async {
+      store = FakeBoardStore.seeded(withWordsBoard: false);
+      setScreen(tester, const Size(400, 800));
+      await tester.pumpWidget(
+        featureApp(WordFinderScreen(store: store, live: live)),
+      );
+      await tester.enterText(find.byType(TextField), 'help');
+      await tester.pump();
+      await tester.tap(find.text(showOnBoardLabel('Maya')).first);
+      await tester.pump();
+      expect(find.text(shownMessage('help', 'Maya')), findsOneWidget);
       await tester.pump(const Duration(seconds: 10));
     });
 
