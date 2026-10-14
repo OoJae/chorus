@@ -1,9 +1,11 @@
 // The status chip: what it says in each state, and when it offers a retry.
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> _pump(
@@ -96,6 +98,68 @@ void main() {
     });
   });
 
+  group('its look', () {
+    for (final dark in [false, true]) {
+      testWidgets('speaks in the status face, in ink on the surface, with '
+          'no colour of its own (${dark ? 'dark' : 'light'})', (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: dark ? chorusDarkTheme() : chorusTheme(),
+            home: Scaffold(
+              body: Center(
+                child: SyncChip(sync: FakeSyncStatus(state: SyncState.offline)),
+              ),
+            ),
+          ),
+        );
+        final colors = dark ? ChorusColors.dark : ChorusColors.light;
+        final words = tester.widget<Text>(
+          find.text('Offline, saved on this device'),
+        );
+        expect(words.style!.fontFamily, ChorusType.status.fontFamily);
+        expect(words.style!.fontSize, ChorusType.status.fontSize);
+        expect(words.style!.color, colors.ink);
+        final icon = tester.widget<Icon>(find.byType(Icon));
+        expect(icon.color, colors.ink);
+        expect(icon.icon, Icons.phone_android_rounded);
+        final face = tester.widget<Container>(
+          find
+              .descendant(
+                of: find.byType(SyncChip),
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        final decoration = face.decoration! as BoxDecoration;
+        expect(decoration.color, colors.surface);
+        expect((decoration.border! as Border).top.color, colors.ink);
+      });
+    }
+
+    testWidgets('every state has a rounded icon', (tester) async {
+      final sync = FakeSyncStatus();
+      await _pump(tester, sync);
+      for (final state in SyncState.values) {
+        sync.state = state;
+        await tester.pump();
+        final icon = tester.widget<Icon>(find.byType(Icon)).icon!;
+        expect(
+          [
+            Icons.check_circle_rounded,
+            Icons.upload_rounded,
+            Icons.sync_rounded,
+            Icons.phone_android_rounded,
+            Icons.schedule_rounded,
+            Icons.system_update_rounded,
+            Icons.block_rounded,
+          ],
+          contains(icon),
+          reason: '$state',
+        );
+      }
+    });
+  });
+
   group('as an icon', () {
     for (final state in SyncState.values) {
       final offered = _retryable.contains(state);
@@ -115,5 +179,55 @@ void main() {
         await tester.pump(const Duration(seconds: 3));
       });
     }
+  });
+
+  testWidgets('as an icon it is a 48 dp target, the floor for a touch', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      FakeSyncStatus(state: SyncState.offline),
+      compact: true,
+    );
+    final size = tester.getSize(find.byType(SyncChip));
+    expect(size.width, greaterThanOrEqualTo(ChorusSpace.minTarget));
+    expect(size.height, greaterThanOrEqualTo(ChorusSpace.minTarget));
+  });
+
+  testWidgets('at twice the text size on a narrow phone the words wrap '
+      'instead of being cut', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final sync = FakeSyncStatus(state: SyncState.offline);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: chorusTheme(),
+        home: MediaQuery.withClampedTextScaling(
+          minScaleFactor: 2,
+          maxScaleFactor: 2,
+          child: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: SyncChip(sync: sync),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final label = syncLabel(sync);
+    final words = tester.renderObject<RenderParagraph>(find.text(label));
+    expect(words.didExceedMaxLines, isFalse);
+    final lines = words
+        .getBoxesForSelection(
+          TextSelection(baseOffset: 0, extentOffset: label.length),
+        )
+        .map((box) => box.top)
+        .toSet();
+    expect(lines.length, greaterThan(1));
+    expect(tester.takeException(), isNull);
   });
 }

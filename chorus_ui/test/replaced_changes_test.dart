@@ -23,8 +23,15 @@ class _LoggedStore extends FakeBoardStore implements EditLog {
 
   TileFacts named(String label) => tiles.singleWhere((t) => t.label == label);
 
-  EditFacts _append(String tileId, String prop, String? from, String? to,
-      {required String by, String? base, String reason = 'edit'}) {
+  EditFacts _append(
+    String tileId,
+    String prop,
+    String? from,
+    String? to, {
+    required String by,
+    String? base,
+    String reason = 'edit',
+  }) {
     final edit = EditFacts(
       id: 'edit-${_edits.length}',
       tileId: tileId,
@@ -51,14 +58,27 @@ class _LoggedStore extends FakeBoardStore implements EditLog {
     final before = tiles.singleWhere((t) => t.id == tileId).label;
     final base = _newest(tileId, 'label');
     await updateTile(tileId, label: label);
-    _append(tileId, 'label', before, label,
-        by: myName, base: base, reason: reason ?? 'edit');
+    _append(
+      tileId,
+      'label',
+      before,
+      label,
+      by: myName,
+      base: base,
+      reason: reason ?? 'edit',
+    );
     notifyListeners();
   }
 
   /// An edit that arrived by merge and did not win: the tile is untouched.
-  void remoteEdit(String tileId, String prop, String? from, String? to,
-      {required String by, String? base}) {
+  void remoteEdit(
+    String tileId,
+    String prop,
+    String? from,
+    String? to, {
+    required String by,
+    String? base,
+  }) {
     _append(tileId, prop, from, to, by: by, base: base);
     notifyListeners();
   }
@@ -73,15 +93,16 @@ class _LoggedStore extends FakeBoardStore implements EditLog {
 }
 
 void main() {
-  Future<void> pump(WidgetTester tester, BoardStore store,
-          {String? boardId}) =>
-      tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: ReplacedChangesPanel(store: store, boardId: boardId),
+  Future<void> pump(WidgetTester tester, BoardStore store, {String? boardId}) =>
+      tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ReplacedChangesPanel(store: store, boardId: boardId),
+            ),
           ),
         ),
-      ));
+      );
 
   /// Mum renamed "like" to "biscuit"; Teacher, not having seen that, had
   /// renamed it to "snack" and lost.
@@ -96,7 +117,8 @@ void main() {
     return store;
   }
 
-  const sentence = 'Teacher changed this word to "snack" without seeing '
+  const sentence =
+      'Teacher changed this word to "snack" without seeing '
       'Mum\'s change. Mum\'s "biscuit" was kept.';
 
   testWidgets('shows nothing for a store without an edit log', (tester) async {
@@ -114,28 +136,48 @@ void main() {
     expect(find.byType(Text), findsNothing);
   });
 
-  testWidgets('lists a replaced change in plain words with one Restore',
-      (tester) async {
+  testWidgets('lists a replaced change in plain words with one Restore', (
+    tester,
+  ) async {
     final store = await overwritten();
     await pump(tester, store);
 
-    expect(find.text('Replaced changes (1)'), findsOneWidget);
+    expect(find.text('Replaced changes · 1'), findsOneWidget);
     expect(find.text('$sentence Use "snack" instead?'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Restore'), findsOneWidget);
   });
 
-  testWidgets('given a board, lists only the replaced changes to its words',
-      (tester) async {
+  testWidgets('says the earlier version is kept and can be put back', (
+    tester,
+  ) async {
+    final store = await overwritten();
+    await pump(tester, store);
+
+    expect(
+      find.text(
+        'Two people changed the same thing at once, so only one change '
+        'could stay. The earlier version is kept here, so it can be put '
+        'back.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Nothing was thrown away'), findsNothing);
+  });
+
+  testWidgets('given a board, lists only the replaced changes to its words', (
+    tester,
+  ) async {
     final store = await overwritten();
     await pump(tester, store, boardId: store.wordsBoardId);
     expect(find.byType(Text), findsNothing);
 
     await pump(tester, store, boardId: store.homeBoardId);
-    expect(find.text('Replaced changes (1)'), findsOneWidget);
+    expect(find.text('Replaced changes · 1'), findsOneWidget);
   });
 
-  testWidgets('Restore puts the replaced word back and the entry goes',
-      (tester) async {
+  testWidgets('Restore puts the replaced word back and the entry goes', (
+    tester,
+  ) async {
     final store = await overwritten();
     await pump(tester, store);
 
@@ -145,13 +187,14 @@ void main() {
     expect(store.tiles.where((t) => t.label == 'snack'), hasLength(1));
     expect(store.tiles.where((t) => t.label == 'biscuit'), isEmpty);
     expect(store.edits.last.reason, restoreReason);
-    expect(find.text('Replaced changes (1)'), findsNothing);
+    expect(find.text('Replaced changes · 1'), findsNothing);
     expect(find.text('Restore'), findsNothing);
     expect(find.text('"snack" is back.'), findsOneWidget);
   });
 
-  testWidgets('appears when a merge brings a replaced change in',
-      (tester) async {
+  testWidgets('appears when a merge brings a replaced change in', (
+    tester,
+  ) async {
     final store = _LoggedStore();
     final id = store.named('like').id;
     await store.rename(id, 'biscuit');
@@ -163,23 +206,34 @@ void main() {
     expect(find.text('Restore'), findsOneWidget);
   });
 
-  testWidgets('a three-way overwrite lists both replaced words',
-      (tester) async {
+  testWidgets('a three-way overwrite lists both replaced words', (
+    tester,
+  ) async {
     final store = await overwritten();
-    store.remoteEdit(store.named('biscuit').id, 'label', 'like', 'treat',
-        by: 'Gran');
+    store.remoteEdit(
+      store.named('biscuit').id,
+      'label',
+      'like',
+      'treat',
+      by: 'Gran',
+    );
     await pump(tester, store);
 
-    expect(find.text('Replaced changes (2)'), findsOneWidget);
+    expect(find.text('Replaced changes · 2'), findsOneWidget);
     expect(find.text('Restore'), findsNWidgets(2));
-    expect(find.textContaining('Gran changed this word to "treat"'),
-        findsOneWidget);
-    expect(find.textContaining('Teacher changed this word to "snack"'),
-        findsOneWidget);
+    expect(
+      find.textContaining('Gran changed this word to "treat"'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Teacher changed this word to "snack"'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('a partner sees what happened but cannot restore',
-      (tester) async {
+  testWidgets('a partner sees what happened but cannot restore', (
+    tester,
+  ) async {
     final store = await overwritten(role: CircleRole.partner);
     await pump(tester, store);
 
@@ -188,7 +242,8 @@ void main() {
   });
 
   testWidgets('a refused restore says so and keeps the entry', (tester) async {
-    final store = await overwritten()..failRestore = true;
+    final store = await overwritten()
+      ..failRestore = true;
     await pump(tester, store);
 
     await tester.tap(find.text('Restore'));
@@ -208,22 +263,24 @@ void main() {
     );
 
     EditFacts edit(String id, String by, String prop, String? to) => EditFacts(
-          id: id,
-          tileId: 't',
-          prop: prop,
-          newValue: to,
-          reason: 'edit',
-          actorId: 'user-$by',
-          actorName: by,
-          editedAt: DateTime.utc(2026),
-        );
+      id: id,
+      tileId: 't',
+      prop: prop,
+      newValue: to,
+      reason: 'edit',
+      actorId: 'user-$by',
+      actorName: by,
+      editedAt: DateTime.utc(2026),
+    );
 
     test('speech: a cleared value reads as the word itself', () {
-      final text = replacedChangeText(Overwrite(
-        lost: edit('a', 'Teacher', 'speech', 'a biscuit please'),
-        kept: edit('b', 'Mum', 'speech', null),
-        tile: tile,
-      ));
+      final text = replacedChangeText(
+        Overwrite(
+          lost: edit('a', 'Teacher', 'speech', 'a biscuit please'),
+          kept: edit('b', 'Mum', 'speech', null),
+          tile: tile,
+        ),
+      );
       expect(
         text,
         'Teacher changed what this word says to "a biscuit please" without '
@@ -233,11 +290,13 @@ void main() {
     });
 
     test('colour', () {
-      final text = replacedChangeText(Overwrite(
-        lost: edit('a', 'Teacher', 'colorKey', 'verb'),
-        kept: edit('b', 'Mum', 'colorKey', null),
-        tile: tile,
-      ));
+      final text = replacedChangeText(
+        Overwrite(
+          lost: edit('a', 'Teacher', 'colorKey', 'verb'),
+          kept: edit('b', 'Mum', 'colorKey', null),
+          tile: tile,
+        ),
+      );
       expect(
         text,
         'Teacher changed this word\'s colour to the verb colour without '
@@ -247,11 +306,13 @@ void main() {
     });
 
     test('one adult on two devices is not told about "their own change"', () {
-      final text = replacedChangeText(Overwrite(
-        lost: edit('a', 'Mum', 'label', 'snack'),
-        kept: edit('b', 'Mum', 'label', 'biscuit'),
-        tile: tile,
-      ));
+      final text = replacedChangeText(
+        Overwrite(
+          lost: edit('a', 'Mum', 'label', 'snack'),
+          kept: edit('b', 'Mum', 'label', 'biscuit'),
+          tile: tile,
+        ),
+      );
       expect(
         text,
         'Mum changed this word to "snack" on another device. '

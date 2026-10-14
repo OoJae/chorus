@@ -9,8 +9,11 @@ import 'package:chorus_flutter/src/live/chorus_live_session.dart';
 import 'package:chorus_flutter/screens/signed_in_shell.dart';
 import 'package:chorus_shared/chorus_shared.dart' show BoardFacts;
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncState;
+import 'package:chorus_ui/brand/pressable_surface.dart';
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
+import 'package:chorus_ui/home/home.dart';
 import 'package:chorus_ui/fakes_media.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
@@ -138,7 +141,7 @@ void main() {
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Edit board'));
+      await tester.tap(find.text(editWordsLabel));
       await tester.pumpAndSettle();
       await tester.tap(find.text('My words'));
       await tester.pumpAndSettle();
@@ -251,7 +254,7 @@ void main() {
       // Nothing is joined from the home screen.
       expect(opened, isEmpty);
 
-      await tester.tap(find.text('Talker'));
+      await tester.tap(find.text(openBoardLabel('Maya')));
       await tester.pumpAndSettle();
       final talker = tester.widget<TalkerScreen>(find.byType(TalkerScreen));
       expect(talker.live, isNotNull);
@@ -269,7 +272,7 @@ void main() {
       expect(find.byType(TalkerScreen), findsNothing);
       expect(cancelled, 1);
 
-      await tester.tap(find.text('Edit board'));
+      await tester.tap(find.text(editWordsLabel));
       await tester.pumpAndSettle();
       final editor = tester.widget<EditorScreen>(find.byType(EditorScreen));
       expect(editor.live, isNotNull);
@@ -317,16 +320,23 @@ void main() {
 
     /// The title is given at least its own width, so none of it is cut.
     void expectWholeTitle(WidgetTester tester) {
-      final title = tester.renderObject<RenderParagraph>(find.text('Chorus'));
+      final title = tester.renderObject<RenderParagraph>(
+        find.text("Maya's board"),
+      );
+      expect(title.didExceedMaxLines, isFalse);
       expect(
         title.size.width,
-        greaterThanOrEqualTo(title.getMaxIntrinsicWidth(double.infinity)),
+        greaterThanOrEqualTo(
+          title.getMinIntrinsicWidth(double.infinity) - 0.01,
+        ),
       );
     }
 
+    // The old app bar is gone: home is full bleed, the chip at the top of
+    // the card and the display title under it.
     for (final which in ['offline', 'working offline']) {
-      testWidgets('on a phone (360x820, $which) the chip has a row under the '
-          'title, and nothing overflows', (tester) async {
+      testWidgets('on a phone (360x820, $which) the chip is at the top, '
+          'within the margins, and nothing overflows', (tester) async {
         final sync = await widest(which);
         await pumpHome(tester, circle(), sync: sync);
         tester.view.physicalSize = const Size(360, 820);
@@ -335,16 +345,12 @@ void main() {
 
         expect(find.text(syncLabel(sync)), findsOneWidget);
         expectWholeTitle(tester);
-        final title = tester.getRect(find.text('Chorus'));
+        final title = tester.getRect(find.text("Maya's board"));
         final chip = tester.getRect(find.byType(SyncChip));
-        expect(chip.top, greaterThanOrEqualTo(title.bottom));
-        expect(chip.left, 16);
-        expect(chip.right, lessThanOrEqualTo(360 - 16));
-        expect(
-          chip.bottom,
-          lessThanOrEqualTo(tester.getRect(find.byType(AppBar)).bottom),
-          reason: 'it is still part of the bar',
-        );
+        expect(chip.bottom, lessThanOrEqualTo(title.top));
+        expect(chip.left, ChorusSpace.marginPhone);
+        expect(chip.right, lessThanOrEqualTo(360 - ChorusSpace.marginPhone));
+        expect(chip.top, lessThan(80), reason: 'at the top of the screen');
         expect(
           find.text('Sync now'),
           which == 'offline' ? findsOneWidget : findsNothing,
@@ -352,16 +358,18 @@ void main() {
       });
     }
 
-    testWidgets('on a wider screen the chip stays beside the title, which '
-        'stays whole', (tester) async {
+    testWidgets('on a wider screen the chip is still at the top and the '
+        'title stays whole', (tester) async {
       final sync = await widest('offline');
       await pumpHome(tester, circle(), sync: sync);
+      tester.view.physicalSize = const Size(1280, 800);
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expectWholeTitle(tester);
-      final title = tester.getRect(find.text('Chorus'));
+      final title = tester.getRect(find.text("Maya's board"));
       final chip = tester.getRect(find.byType(SyncChip));
-      expect(chip.left, greaterThan(title.right));
-      expect(chip.center.dy, moreOrLessEquals(title.center.dy, epsilon: 1));
+      expect(chip.bottom, lessThanOrEqualTo(title.top));
+      expect(chip.left, moreOrLessEquals(title.left, epsilon: 1));
     });
 
     testWidgets('on a phone the sharing switch and the rest of a guardian\'s '
@@ -408,8 +416,8 @@ void main() {
 
     expect(find.text("Maya's board"), findsOneWidget);
     for (final label in [
-      'Talker',
-      'Edit board',
+      openBoardLabel('Maya'),
+      editWordsLabel,
       'Invite someone',
       'Credits',
       'Sign out',
@@ -427,16 +435,21 @@ void main() {
   ) async {
     await pumpHome(tester, circle(role: CircleRole.partner, myName: 'Gran'));
 
-    expect(find.text('View board'), findsOneWidget);
-    expect(find.text('Edit board'), findsNothing);
+    expect(find.text(viewBoardLabel('Maya')), findsOneWidget);
+    expect(find.text(openBoardLabel('Maya')), findsNothing);
+    expect(find.text(editWordsLabel), findsNothing);
     expect(find.text('Invite someone'), findsNothing);
-    expect(find.text('Talker'), findsOneWidget);
+
+    // Viewing is the child's board itself.
+    await tester.tap(find.text(viewBoardLabel('Maya')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TalkerScreen), findsOneWidget);
   });
 
   testWidgets('a therapist can edit but not invite', (tester) async {
     await pumpHome(tester, circle(role: CircleRole.therapist));
 
-    expect(find.text('Edit board'), findsOneWidget);
+    expect(find.text(editWordsLabel), findsOneWidget);
     expect(find.text('Invite someone'), findsNothing);
   });
 
@@ -506,14 +519,7 @@ void main() {
     expect(find.textContaining('could not check in'), findsOneWidget);
     // The board saved on the device still opens.
     expect(
-      tester
-          .widget<FilledButton>(
-            find.ancestor(
-              of: find.text('Talker'),
-              matching: find.bySubtype<FilledButton>(),
-            ),
-          )
-          .onPressed,
+      tester.widget<PressableSurface>(find.byKey(HomeActions.openKey)).onTap,
       isNotNull,
     );
     await tester.tap(find.text('Retry'));
@@ -533,16 +539,11 @@ void main() {
 
     expect(find.textContaining('There is no board here yet'), findsOneWidget);
     expect(
-      tester
-          .widget<FilledButton>(
-            find.ancestor(
-              of: find.text('Talker'),
-              matching: find.bySubtype<FilledButton>(),
-            ),
-          )
-          .onPressed,
+      tester.widget<PressableSurface>(find.byKey(HomeActions.openKey)).onTap,
       isNull,
     );
+    // The hero keeps the board's space, grey and still.
+    expect(find.byKey(HomeHero.skeletonKey), findsOneWidget);
     await tester.tap(find.text('Retry'));
     expect(retries, 1);
   });

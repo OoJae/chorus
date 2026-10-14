@@ -2,15 +2,25 @@
 library;
 
 import 'package:chorus_client/chorus_client.dart';
+import 'package:chorus_ui/brand/haptics.dart';
+import 'package:chorus_ui/brand/mark.dart';
+import 'package:chorus_ui/brand/motion.dart';
+import 'package:chorus_ui/brand/pressable_surface.dart';
+import 'package:chorus_ui/brand/tokens.dart';
+import 'package:chorus_ui/onboarding/fill_or_scroll.dart';
 import 'package:flutter/material.dart';
 
 import 'messages.dart';
 import 'services.dart';
-import 'status_views.dart';
 
-/// Offers three ways to get a board: start one, join one with a code, or
-/// try a demo. Each only makes the server call; the caller prepares the
-/// board once [onCircle] hands it the new circle.
+/// Asks "Who is the board for?" and offers three ways to get one, as large
+/// choices in the thumb zone: make one, join one with a code, or try a
+/// demo. Each only makes the server call; the caller prepares the board
+/// once [onCircle] hands it the new circle.
+///
+/// While a call runs the choices stay where they are, dimmed, with a line
+/// above them saying what is happening; a failure takes that line's place,
+/// with Retry.
 class FirstRunScreen extends StatefulWidget {
   const FirstRunScreen({
     super.key,
@@ -55,6 +65,7 @@ class _FirstRunScreenState extends State<FirstRunScreen> {
       widget.onCircle(circle);
     } catch (error) {
       if (!mounted) return;
+      ChorusHaptics.failed();
       setState(() {
         _busy = null;
         _error = failureMessage(error);
@@ -68,7 +79,7 @@ class _FirstRunScreenState extends State<FirstRunScreen> {
     final answers = await showDialog<(String, String)>(
       context: context,
       builder: (_) => const _TwoFieldDialog(
-        title: 'Start a board',
+        title: 'Make a board',
         firstLabel: "Child's name",
         secondLabel: 'Your name',
         secondHint: 'For example: Mum',
@@ -77,7 +88,7 @@ class _FirstRunScreenState extends State<FirstRunScreen> {
     );
     if (answers == null) return;
     await _run(
-      'Starting the board…',
+      'Making the board…',
       () => widget.gateway.createCircle(
         childName: answers.$1,
         displayName: answers.$2,
@@ -115,81 +126,242 @@ class _FirstRunScreenState extends State<FirstRunScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colors = ChorusColors.of(context);
     final busy = _busy;
+    final error = _error;
     final retry = _failed;
+    final size = MediaQuery.sizeOf(context);
+    final margin = ChorusSpace.margin(size.width);
+    // Side by side where a row of three still leaves each a good width: a
+    // phone on its side, a tablet, a desktop window.
+    final across = size.width >= 720 && size.width > size.height;
+    // A phone on its side: less height for the heading and the cards.
+    final short = size.height < 500;
+    // On a phone the choices wait in the thumb zone at the bottom; on a
+    // tablet or a desktop the heading and choices sit together in the
+    // middle.
+    final thumbZone = size.shortestSide < ChorusSpace.wideFrom;
+    final enabled = busy == null;
+    final choices = [
+      _Choice(
+        icon: Icons.child_care_rounded,
+        title: 'Make a board',
+        detail: 'It starts with 36 everyday words.',
+        primary: true,
+        across: across,
+        short: short,
+        onTap: enabled ? _start : null,
+      ),
+      _Choice(
+        icon: Icons.vpn_key_rounded,
+        title: 'Join with a code',
+        detail: 'Use the code someone in the circle sent you.',
+        across: across,
+        short: short,
+        onTap: enabled ? _join : null,
+      ),
+      _Choice(
+        icon: Icons.play_circle_outline_rounded,
+        title: 'Try a demo board',
+        detail: 'A board for a pretend child called Maya.',
+        across: across,
+        short: short,
+        onTap: enabled ? _demo : null,
+      ),
+    ];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chorus'),
+        title: const ChorusLockup(size: 22),
         automaticallyImplyLeading: widget.addingAnother,
         actions: [
           if (widget.onSignOut != null)
             TextButton(
-              onPressed: busy == null ? widget.onSignOut : null,
+              onPressed: enabled ? widget.onSignOut : null,
               child: const Text('Sign out'),
             ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
-        child: busy != null
-            ? LoadingView(message: busy)
-            : Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 520),
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Text(
-                        widget.addingAnother
-                            ? 'Add another board'
-                            : 'Welcome to Chorus',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'A talking picture board that a child and the '
-                        'adults around them share. It speaks with no '
-                        'signal.',
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 20),
-                      if (_error != null)
-                        _ErrorCard(
-                          message: _error!,
-                          onRetry: retry == null
-                              ? null
-                              : () => _run(_failedBusy, retry),
-                        ),
-                      BigButton(
-                        icon: Icons.child_care,
-                        label: 'Start a board for my child',
-                        onPressed: _start,
-                      ),
-                      BigButton(
-                        icon: Icons.vpn_key,
-                        label: 'Join with a code',
-                        onPressed: _join,
-                        primary: false,
-                      ),
-                      BigButton(
-                        icon: Icons.play_circle_outline,
-                        label: 'Try a demo board',
-                        onPressed: _demo,
-                        primary: false,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'The demo makes a board for a pretend child called '
-                        'Maya. Everyone you invite to a board can see all '
-                        'of it.',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
+        top: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: across ? 1040 : 560),
+            child: FillOrScroll(
+              padding: EdgeInsets.fromLTRB(margin, 8, margin, 16),
+              children: [
+                if (!thumbZone) const Spacer(flex: 2),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    widget.addingAnother
+                        ? 'Who is the new board for?'
+                        : 'Who is the board for?',
+                    textScaler: ChorusType.displayScaler(context),
+                    style:
+                        (short
+                                ? ChorusType.frauncesAt(
+                                    ChorusType.display,
+                                    40,
+                                    42,
+                                  )
+                                : ChorusType.display)
+                            .copyWith(color: colors.ink),
                   ),
                 ),
-              ),
+                if (thumbZone) const Spacer(),
+                SizedBox(height: thumbZone ? 24 : 40),
+                // Above the choices, so they do not move when it comes or
+                // goes.
+                if (busy != null)
+                  _BusyLine(message: busy)
+                else if (error != null)
+                  _ErrorCard(
+                    message: error,
+                    onRetry: retry == null
+                        ? null
+                        : () => _run(_failedBusy, retry),
+                  ),
+                if (across)
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final (i, choice) in choices.indexed) ...[
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(child: choice),
+                        ],
+                      ],
+                    ),
+                  )
+                else
+                  for (final (i, choice) in choices.indexed) ...[
+                    if (i > 0) const SizedBox(height: 12),
+                    choice,
+                  ],
+                const SizedBox(height: 16),
+                Text(
+                  'Everyone you invite to a board can see all of it.',
+                  style: ChorusType.body.copyWith(color: colors.inkMuted),
+                ),
+                if (!thumbZone) const Spacer(flex: 3),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One way to get a board: a large laminated card that presses. The first
+/// is ink, the others outlined; each is dimmed while another is working.
+class _Choice extends StatelessWidget {
+  const _Choice({
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.onTap,
+    this.primary = false,
+    this.across = false,
+    this.short = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String detail;
+  final VoidCallback? onTap;
+  final bool primary;
+
+  /// One of a row: the card as tall as the row, and the icon above the
+  /// words unless the screen is [short].
+  final bool across;
+
+  /// A screen with little height: the icon stays beside the words.
+  final bool short;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
+    final face = primary ? colors.ink : colors.surface;
+    final ink = primary ? colors.card : colors.ink;
+    const radius = ChorusSpace.buttonRadius;
+    final words = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: ChorusType.headline.copyWith(color: ink)),
+        const SizedBox(height: 2),
+        Text(
+          detail,
+          style: ChorusType.body.copyWith(
+            fontSize: 16,
+            height: 22 / 16,
+            color: ink,
+          ),
+        ),
+      ],
+    );
+    final mark = Icon(icon, size: 28, color: ink);
+    final content = across && !short
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [mark, const SizedBox(height: 12), words],
+          )
+        : Row(
+            children: [
+              mark,
+              const SizedBox(width: 16),
+              Expanded(child: words),
+            ],
+          );
+    final card = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: primary ? null : Border.all(color: colors.ink, width: 1.5),
+      ),
+      child: Padding(padding: const EdgeInsets.all(16), child: content),
+    );
+    return AnimatedOpacity(
+      opacity: onTap == null ? 0.5 : 1,
+      duration: ChorusMotion.duration(context, ChorusMotion.toggleDuration),
+      child: PressableSurface(
+        onTap: onTap,
+        color: face,
+        edgeColor: primary ? null : colors.ink,
+        foregroundColor: ink,
+        borderRadius: radius,
+        // The outline follows the face to its edges.
+        child: across
+            ? SizedBox.expand(child: card)
+            : SizedBox(width: double.infinity, child: card),
+      ),
+    );
+  }
+}
+
+/// What is being done, in place of a failure, while the choices wait.
+class _BusyLine extends StatelessWidget {
+  const _BusyLine({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Row(
+          children: [
+            const SizedBox.square(
+              dimension: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message, style: ChorusType.body)),
+          ],
+        ),
       ),
     );
   }
@@ -204,26 +376,31 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface,
-          width: 1.5,
+    final colors = ChorusColors.of(context);
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(ChorusSpace.buttonRadius),
+          border: Border.all(color: colors.alert, width: 1.5),
         ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(message, style: Theme.of(context).textTheme.bodyLarge),
-          ),
-          if (onRetry != null)
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-        ],
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline_rounded),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(message, style: ChorusType.body),
+              ),
+            ),
+            if (onRetry != null)
+              TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
       ),
     );
   }

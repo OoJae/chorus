@@ -26,6 +26,10 @@ class ChorusReveal extends StatefulWidget {
 
   static const Duration duration = Duration(milliseconds: 900);
 
+  /// How much of [size] the mark takes at the first frame, so a screen can
+  /// match it to the system splash's mark.
+  static const double markShare = 0.42;
+
   /// The drawing, for tests that look at its frame.
   @visibleForTesting
   static const Key paintKey = ValueKey('ChorusReveal.paint');
@@ -126,8 +130,8 @@ class RevealPainter extends CustomPainter {
     final mark = MarkGeometry.tilesIn(
       Rect.fromCenter(
         center: box.center,
-        width: side * 0.42,
-        height: side * 0.42,
+        width: side * ChorusReveal.markShare,
+        height: side * ChorusReveal.markShare,
       ),
     );
     final gap = side * 0.024;

@@ -4,6 +4,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../brand/haptics.dart';
+import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_edits.dart';
 import 'tray_panel.dart' show notSavedMessage;
@@ -50,6 +52,15 @@ String _valueText(Overwrite overwrite, String? value) {
   };
 }
 
+/// Says, under the heading, that a replaced change is not lost.
+const String replacedChangesIntro =
+    'Two people changed the same thing at once, so only one change could '
+    'stay. The earlier version is kept here, so it can be put back.';
+
+/// The panel's heading for [count] replaced changes, in the status face as
+/// the tray's is: "Replaced changes · 1".
+String replacedChangesTitle(int count) => 'Replaced changes · $count';
+
 /// Lists every edit that was replaced by one made without sight of it, with
 /// a one-tap Restore. Rebuilds whenever [store] changes.
 ///
@@ -81,7 +92,7 @@ class ReplacedChangesPanel extends StatelessWidget {
               : store.tiles.where((tile) => tile.boardId == boardId),
         );
         if (overwrites.isEmpty) return const SizedBox.shrink();
-        final theme = Theme.of(context);
+        final colors = ChorusColors.of(context);
         final canEdit = store.role.canEdit;
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -89,15 +100,22 @@ class ReplacedChangesPanel extends StatelessWidget {
           children: [
             Semantics(
               header: true,
-              child: Text(
-                'Replaced changes (${overwrites.length})',
-                style: theme.textTheme.titleLarge,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: ChorusSpace.minTarget,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    replacedChangesTitle(overwrites.length),
+                    style: ChorusType.status.copyWith(color: colors.ink),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Two people changed the same thing at once, so only one change '
-              'could stay. Nothing was thrown away.',
+            Text(
+              replacedChangesIntro,
+              style: ChorusType.body.copyWith(color: colors.inkMuted),
             ),
             for (final overwrite in overwrites)
               _ReplacedCard(
@@ -123,6 +141,7 @@ class ReplacedChangesPanel extends StatelessWidget {
       await log.restore(overwrite);
     } on Object {
       // The word was removed, or the role changed, meanwhile.
+      ChorusHaptics.failed();
       messenger?.showSnackBar(const SnackBar(content: Text(notSavedMessage)));
       return;
     }
@@ -147,29 +166,42 @@ class _ReplacedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colors = ChorusColors.of(context);
     final onRestore = this.onRestore;
-    return Card.outlined(
-      margin: const EdgeInsets.only(top: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(overwrite.tile.label, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(replacedChangeText(overwrite, ask: onRestore != null)),
-            if (onRestore != null) ...[
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.tonal(
-                  onPressed: onRestore,
-                  child: const Text('Restore'),
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(ChorusSpace.buttonRadius),
+          border: Border.all(color: colors.line),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                overwrite.tile.label,
+                style: ChorusType.headline.copyWith(color: colors.ink),
               ),
+              const SizedBox(height: 4),
+              Text(
+                replacedChangeText(overwrite, ask: onRestore != null),
+                style: ChorusType.body.copyWith(color: colors.ink),
+              ),
+              if (onRestore != null) ...[
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton(
+                    onPressed: onRestore,
+                    child: const Text('Restore'),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

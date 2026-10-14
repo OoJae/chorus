@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:chorus_client/chorus_client.dart' hide CircleRole;
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:chorus_ui/contracts.dart';
+import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_media.dart';
 import 'package:flutter/foundation.dart';
 import 'package:serverpod_database/serverpod_database.dart';
@@ -30,10 +31,11 @@ abstract final class EditReason {
   static const restore = restoreReason;
 }
 
-/// The [BoardStore] of one circle on this device.
+/// The [BoardStore] of one circle on this device. Boards are added,
+/// renamed, archived and imported through it too ([BoardManager]).
 class ReplicaBoardStore extends BoardStore
     with EditLogStore
-    implements TileMediaWriter {
+    implements TileMediaWriter, BoardManager {
   /// [circleId] is the UUID of the circle's sync space; every row of the
   /// circle carries it. [revision] is listened to and each change triggers a
   /// re-read. [onDispose] lets the owner forget the store.
@@ -444,6 +446,224 @@ class ReplicaBoardStore extends BoardStore
       return;
     }
     await refresh();
+  }
+
+  // ---- Boards ------------------------------------------------------------
+
+  /// A new board is a plain synced row in the circle's space, the size of
+  /// the starter board, never the home board.
+  @override
+  Future<String> addBoard(String name) async {
+    _requireEditor();
+    final tidy = _requireBoardName(name);
+    final id = UuidValue.fromString(const Uuid().v7());
+    await _replica.write(
+      circleId,
+      (tx) => _insertBoard(tx, id, tidy, _now().toUtc()),
+    );
+    await refresh();
+    return idOf(id);
+  }
+
+  /// Names only the name column, so a rename on one device and an archive
+  /// on another both survive the merge.
+  @override
+  Future<void> renameBoard(String boardId, String name) async {
+    _requireEditor();
+    final tidy = _requireBoardName(name);
+    final id = _boardUuid(boardId);
+    try {
+      await _replica.write(circleId, (tx) async {
+        final board = await Board.db.findFirstRow(
+          _replica.session,
+          where: (t) => t.id.equals(id) & t.circleId.equals(circleId),
+          transaction: tx,
+        );
+        if (board == null || board.archivedAt != null) {
+          throw ArgumentError.value(boardId, 'boardId', 'No such board');
+        }
+        if (board.name == tidy) throw const _NothingToWrite();
+        await Board.db.updateRow(
+          _replica.session,
+          board.copyWith(name: tidy),
+          columns: (t) => [t.name],
+          transaction: tx,
+        );
+      });
+    } on _NothingToWrite {
+      return;
+    }
+    await refresh();
+  }
+
+  /// Sets the board's `archivedAt`, and archives each of its words as
+  /// [archiveTile] does (flag and tray key in one update, one edit-log
+  /// row each), all in one transaction. Nothing is deleted.
+  @override
+  Future<void> archiveBoard(String boardId) async {
+    _requireEditor();
+    final id = _boardUuid(boardId);
+    await _replica.write(circleId, (tx) async {
+      final rows = await Board.db.find(
+        _replica.session,
+        where: (t) => t.circleId.equals(circleId),
+        transaction: tx,
+      );
+      final board = rows.where((row) => idOf(row.id!) == idOf(id)).firstOrNull;
+      if (board == null) {
+        throw ArgumentError.value(boardId, 'boardId', 'No such board');
+      }
+      // Read inside the transaction: a board archived on this device a
+      // moment ago counts, so the last board in use always stays.
+      final problem = archiveProblem(
+        boardFacts(board),
+        rows.map(boardFacts),
+      );
+      if (problem != null) throw StateError(problem);
+
+      final at = _now().toUtc();
+      await Board.db.updateRow(
+        _replica.session,
+        board.copyWith(archivedAt: at),
+        columns: (t) => [t.archivedAt],
+        transaction: tx,
+      );
+      final words = await Tile.db.find(
+        _replica.session,
+        where: (t) => t.circleId.equals(circleId) & t.boardId.equals(id),
+        transaction: tx,
+      );
+      for (final tile in words) {
+        if (tile.archivedAt != null) continue;
+        final tileId = tile.id!;
+        final waiting = trayKey(idOf(tileId));
+        final hadCell = CellKey.parse(tile.cellKey) != TrayCell(idOf(tileId));
+        await Tile.db.updateRow(
+          _replica.session,
+          tile.copyWith(archivedAt: at, cellKey: waiting),
+          columns: (t) => [t.archivedAt, if (hadCell) t.cellKey],
+          transaction: tx,
+        );
+        await _log(tx, tileId, EditReason.archive, at, [
+          ('archivedAt', null, at.toIso8601String()),
+          if (hadCell) ('cellKey', loggedKey(tile.cellKey), waiting),
+        ]);
+      }
+    });
+    await refresh();
+  }
+
+  /// One transaction: the board, then each word that fits in the cell it
+  /// had in the file, keyed with [placedKey] and logged as an added word.
+  /// The board is new, so every cell is free.
+  @override
+  Future<BoardImport> importBoard(ObfBoard board) async {
+    _requireEditor();
+    final (:fitted, :leftOver) = obfPlacements(
+      board,
+      rows: starterRows,
+      cols: starterCols,
+    );
+    final id = UuidValue.fromString(const Uuid().v7());
+    final boardKey = idOf(id);
+    await _replica.write(circleId, (tx) async {
+      final rows = await Board.db.find(
+        _replica.session,
+        where: (t) => t.circleId.equals(circleId),
+        transaction: tx,
+      );
+      final at = _now().toUtc();
+      await _insertBoard(
+        tx,
+        id,
+        importedBoardName(board.name, rows.map(boardFacts)),
+        at,
+      );
+      if (fitted.isEmpty) return;
+      final tiles = <Tile>[];
+      final edits = <TileEdit>[];
+      for (final word in fitted) {
+        final tileId = UuidValue.fromString(const Uuid().v7());
+        final cellKey = placedKey(boardKey, word.row, word.col);
+        final speech = _blankToNull(word.speech);
+        final colour = _blankToNull(word.colorKey);
+        tiles.add(
+          Tile(
+            id: tileId,
+            circleId: circleId,
+            boardId: id,
+            cellKey: cellKey,
+            label: word.label,
+            speech: speech,
+            colorKey: colour,
+            noLog: false,
+            createdBy: _replica.userId,
+            createdByName: myName,
+            createdAt: at,
+          ),
+        );
+        // As addTile logs a new word: no earlier edits to point at.
+        for (final (prop, value) in [
+          ('label', word.label),
+          ('cellKey', cellKey),
+          if (speech != null) ('speech', speech),
+          if (colour != null) ('colorKey', colour),
+        ]) {
+          edits.add(
+            TileEdit(
+              circleId: circleId,
+              tileId: tileId,
+              prop: prop,
+              newValue: value,
+              reason: EditReason.add,
+              actorId: _replica.userId,
+              actorName: myName,
+              editedAt: at,
+            ),
+          );
+        }
+      }
+      await Tile.db.insert(_replica.session, tiles, transaction: tx);
+      await TileEdit.db.insert(_replica.session, edits, transaction: tx);
+    });
+    await refresh();
+    return BoardImport(boardId: boardKey, leftOut: leftOver);
+  }
+
+  Future<void> _insertBoard(
+    Transaction tx,
+    UuidValue id,
+    String name,
+    DateTime at,
+  ) => Board.db.insertRow(
+    _replica.session,
+    Board(
+      id: id,
+      circleId: circleId,
+      name: name,
+      rows: starterRows,
+      cols: starterCols,
+      isHome: false,
+      createdAt: at,
+    ),
+    transaction: tx,
+  );
+
+  /// [name] tidied, or [ArgumentError] with the reason in words.
+  static String _requireBoardName(String name) {
+    final problem = boardNameProblem(name);
+    if (problem != null) throw ArgumentError.value(name, 'name', problem);
+    return tidyBoardName(name);
+  }
+
+  /// A board id as the replica keys it; [ArgumentError] for one that is
+  /// not a UUID, which no board of this circle can have.
+  static UuidValue _boardUuid(String boardId) {
+    try {
+      return UuidValue.withFormatValidation(boardId.toLowerCase());
+    } on FormatException {
+      throw ArgumentError.value(boardId, 'boardId', 'No such board');
+    }
   }
 
   // ---- Helpers -----------------------------------------------------------

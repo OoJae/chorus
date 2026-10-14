@@ -1,27 +1,33 @@
-/// Home for one circle: the large actions an adult chooses from.
+/// Home for one circle: the child's board as an object, in reach, and the
+/// adult's quiet list under it.
 library;
 
 import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_shared/chorus_shared.dart'
-    show BoardFacts, boardToPrint, printSnapshotJson;
+    show BoardFacts, boardToPrint, gridOf, printSnapshotJson;
+import 'package:chorus_ui/brand/motion.dart';
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
 import 'package:chorus_ui/contracts_live.dart';
 import 'package:chorus_ui/contracts_media.dart';
+import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/credits/credits_screen.dart';
 import 'package:chorus_ui/editor/editor_screen.dart';
+import 'package:chorus_ui/features/features.dart';
+import 'package:chorus_ui/home/home.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../src/live/live_scope.dart';
+import '../src/sharing/share_link.dart';
 import '../src/sync/replica_board_store.dart';
 import 'invite_screen.dart';
 import 'messages.dart';
 import 'services.dart';
-import 'status_views.dart';
 
 /// Label of the action that makes a printable page of the board.
 const String printCopyLabel = 'Print a paper copy';
@@ -35,6 +41,24 @@ const String printCopyFailedMessage =
 const String printCopyOfflineMessage =
     'The paper copy needs a connection. Switch off "Work offline" and try '
     'again.';
+
+/// The primary action on home: opens the child's board.
+String openBoardLabel(String childName) => "Open $childName's board";
+
+/// The primary action for a read-only partner.
+String viewBoardLabel(String childName) => "View $childName's board";
+
+/// Opens the editor; not offered to a read-only partner.
+const String editWordsLabel = 'Edit words';
+
+/// Adds a circle: another child, not another board of this child.
+const String addAnotherChildLabel = "Add or join another child's board";
+
+/// Opens the view-only page for a babysitter.
+const String shareViewOnlyLabel = 'Share a view-only board';
+
+/// Opens the word log settings and "This week".
+const String wordLogLabel = 'Word log and this week';
 
 /// Whether this device has finished getting a circle's board ready.
 enum CircleReadiness { preparing, ready, failed }
@@ -70,24 +94,30 @@ class HomeScreen extends StatelessWidget {
   final CircleReadiness readiness;
   final VoidCallback onRetryReady;
   final VoidCallback onSignOut;
+
+  /// Adds or joins another child's circle.
   final VoidCallback? onAddBoard;
 
-  /// Photos and voices, the live session, the word suggestion and the
-  /// paper copy of the selected circle. Null leaves all of them out.
+  /// Photos and voices, the live session, the word suggestion, the paper
+  /// copy, the word log, sharing and board management of the selected
+  /// circle. Null leaves all of them out.
   final CircleServices? services;
 
-  void _open(BuildContext context, Widget screen, {bool fullscreen = false}) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: fullscreen,
-        builder: (_) => screen,
-      ),
-    );
+  void _open(BuildContext context, Widget screen) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => screen));
   }
 
+  /// The child's board, flying in from the hero: see [BoardRoute].
   void _openTalker(BuildContext context) {
     final services = this.services;
     final makeLive = services?.live;
+    final reduced = ChorusMotion.reduced(context);
+    final board = heroBoardOf(store);
+    // The tag pairs the hero with the talker's grid; under reduced motion
+    // home has no hero, so nothing flies.
+    final heroTag = board == null || reduced ? null : boardHeroTag(board.id);
     // The talker blocks system back; its held leave control calls onExit.
     Widget talker(LiveSession? live) => Builder(
       builder: (talkerContext) => TalkerScreen(
@@ -97,25 +127,76 @@ class HomeScreen extends StatelessWidget {
         live: live,
         media: services?.media,
         speaker: services?.speaker,
+        wordLog: services?.wordLog,
+        heroTag: heroTag,
         onExit: () => Navigator.of(talkerContext).pop(),
       ),
     );
+    Navigator.of(context).push(
+      BoardRoute<void>(
+        reducedMotion: reduced,
+        builder: (_) => makeLive == null
+            ? talker(null)
+            // The live session lasts exactly as long as the board is open.
+            : LiveScope(
+                create: () => makeLive(forTalker: true),
+                builder: (_, live) => talker(live),
+              ),
+      ),
+    );
+  }
+
+  /// "Share a view-only board": a speaking page of the board home shows,
+  /// for a babysitter.
+  void _shareViewOnly(BuildContext context, BoardSharing sharing) {
+    final board = heroBoardOf(store);
+    if (board == null) return;
     _open(
       context,
-      // The live session lasts exactly as long as the board is open.
-      makeLive == null
-          ? talker(null)
-          : LiveScope(
-              create: () => makeLive(forTalker: true),
-              builder: (_, live) => talker(live),
-            ),
-      fullscreen: true,
+      ShareViewOnlyScreen(
+        sharing: sharing,
+        board: board,
+        childName: selected.childName,
+        onShare: systemShareLink(),
+        sync: sync,
+      ),
     );
+  }
+
+  /// "Word log and this week": the log's settings, which lead on to the
+  /// week; or the week alone where the circle has no log here.
+  void _openWordLog(BuildContext context) {
+    final services = this.services;
+    final log = services?.wordLog;
+    final summary = services?.summary;
+    if (log != null) {
+      _open(
+        context,
+        WordLogScreen(
+          log: log,
+          childName: selected.childName,
+          summary: summary,
+          store: store,
+          sync: sync,
+        ),
+      );
+    } else if (summary != null) {
+      _open(
+        context,
+        ThisWeekScreen(
+          source: summary,
+          childName: selected.childName,
+          tiles: store.tiles,
+          role: store.role,
+        ),
+      );
+    }
   }
 
   void _openEditor(BuildContext context) {
     final services = this.services;
     final makeLive = services?.live;
+    final sharing = services?.sharing;
     Widget editor(LiveSession? live) => EditorScreen(
       store: store,
       sync: sync,
@@ -128,6 +209,19 @@ class HomeScreen extends StatelessWidget {
       onPrint: services?.publishBoard == null
           ? null
           : (board) => _printCopy(context, board: board),
+      // So is the .obf file.
+      onExport: sharing == null
+          ? null
+          : (board) => _open(
+              context,
+              ExportObfScreen(
+                sharing: sharing,
+                board: board,
+                childName: selected.childName,
+                onShare: systemShareLink(),
+                sync: sync,
+              ),
+            ),
     );
     _open(
       context,
@@ -182,208 +276,185 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final canInvite = selected.myRole == CircleRole.guardian;
     final canEdit = selected.myRole != CircleRole.partner;
-    final width = MediaQuery.sizeOf(context).width;
-    // On a phone the chip's longer words ("Working offline, saved on this
-    // device") would push the title out of the bar, so there the chip has a
-    // row of its own under the title.
-    final chipUnderTitle = width < 600;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chorus'),
-        actions: [
-          if (!chipUnderTitle)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Center(
-                // Room is kept for the title, even with large text.
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: width - 240),
-                  child: SyncChip(sync: sync),
-                ),
-              ),
-            ),
-        ],
-        bottom: chipUnderTitle
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(56),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: SyncChip(sync: sync),
-                  ),
-                ),
-              )
-            : null,
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: ListenableBuilder(
-              listenable: store,
-              builder: (context, _) {
-                // A board already on this device can be used straight away,
-                // whatever the network is doing.
-                final hasBoard = store.boards.any((board) => !board.archived);
-                // The replica's own store says when it has read this device;
-                // any other store (tests, fakes) is read from the start.
-                final current = store;
-                final loaded =
-                    current is! ReplicaBoardStore || current.hasLoaded;
-                final services = this.services;
-                final media = services?.media;
-                return ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Text(
-                      "${selected.childName}'s board",
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'You are ${selected.myDisplayName} '
-                      '(${roleLabel(selected.myRole)}).',
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    if (circles.length > 1) ...[
-                      const SizedBox(height: 12),
-                      _CircleSwitcher(
-                        circles: circles,
-                        selected: selected,
-                        onSelect: onSelect,
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    _ReadinessNote(
-                      readiness: readiness,
-                      hasBoard: hasBoard,
-                      loaded: loaded,
-                      childName: selected.childName,
-                      onRetry: onRetryReady,
-                    ),
-                    BigButton(
-                      icon: Icons.record_voice_over,
-                      label: 'Talker',
-                      onPressed: hasBoard ? () => _openTalker(context) : null,
-                    ),
-                    BigButton(
-                      icon: canEdit ? Icons.edit : Icons.grid_view,
-                      label: canEdit ? 'Edit board' : 'View board',
-                      onPressed: hasBoard ? () => _openEditor(context) : null,
-                    ),
-                    if (media != null) _WaitingUploads(media: media),
-                    ListenableBuilder(
-                      listenable: sync,
-                      builder: (context, _) => SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Work offline'),
-                        subtitle: const Text(
-                          'Pauses sync on this device. Changes are kept here '
-                          'and sent when you switch it back.',
-                        ),
-                        value: sync.workingOffline,
-                        onChanged: (value) =>
-                            unawaited(sync.setWorkingOffline(value)),
-                      ),
-                    ),
-                    if (canInvite)
-                      BigButton(
-                        icon: Icons.person_add_alt,
-                        label: 'Invite someone',
-                        primary: false,
-                        onPressed: () => _open(
-                          context,
-                          InviteScreen(gateway: gateway, circle: selected),
-                        ),
-                      ),
-                    if (services?.publishBoard != null)
-                      BigButton(
-                        icon: Icons.print_outlined,
-                        label: printCopyLabel,
-                        primary: false,
-                        onPressed: hasBoard ? () => _printCopy(context) : null,
-                      ),
-                    // Sharing is a guardian's choice, made here and never on
-                    // the child's board, which can only turn it off.
-                    if (canInvite && services?.live != null)
-                      ShareSaidSwitch(
-                        userId: services!.userId,
-                        circleId: selected.spaceUuid.uuid,
-                        childName: selected.childName,
-                      ),
-                    BigButton(
-                      icon: Icons.info_outline,
-                      label: 'Credits',
-                      primary: false,
-                      onPressed: () => _open(context, const CreditsScreen()),
-                    ),
-                    BigButton(
-                      icon: Icons.logout,
-                      label: 'Sign out',
-                      primary: false,
-                      onPressed: onSignOut,
-                    ),
-                    if (onAddBoard != null)
-                      TextButton(
-                        onPressed: onAddBoard,
-                        child: const Text('Add or join another board'),
-                      ),
-                  ],
-                );
-              },
-            ),
+    final childName = selected.childName;
+    return ListenableBuilder(
+      listenable: store,
+      builder: (context, _) {
+        // A board already on this device can be used straight away,
+        // whatever the network is doing.
+        final hasBoard = store.boards.any((board) => !board.archived);
+        // The replica's own store says when it has read this device; any
+        // other store (tests, fakes) is read from the start.
+        final current = store;
+        final loaded = current is! ReplicaBoardStore || current.hasLoaded;
+        final board = heroBoardOf(store);
+        final noWords =
+            board != null &&
+            gridOf(board.id, store.tiles, store.boards).isEmpty;
+        final services = this.services;
+        final open = hasBoard ? () => _openTalker(context) : null;
+
+        final readinessNote = _readinessNote(
+          context,
+          hasBoard: hasBoard,
+          loaded: loaded,
+        );
+        return HomeLayout(
+          status: SyncChip(sync: sync),
+          title: "$childName's board",
+          hero: (context, lean) => HomeHero(
+            store: store,
+            childName: childName,
+            media: services?.media,
+            lean: lean,
+            loading: !loaded && !hasBoard,
+            onOpen: open,
           ),
-        ),
-      ),
+          actions: HomeActions(
+            openLabel: canEdit
+                ? openBoardLabel(childName)
+                : viewBoardLabel(childName),
+            onOpen: open,
+            editLabel: canEdit ? editWordsLabel : null,
+            onEdit: hasBoard ? () => _openEditor(context) : null,
+          ),
+          notes: [
+            ?readinessNote,
+            if (noWords)
+              HomeNote(
+                icon: const Icon(Icons.grid_view_rounded),
+                message: canEdit
+                    ? "There are no words on $childName's board yet. Add "
+                          'the first ones with Edit words.'
+                    : "There are no words on $childName's board yet. They "
+                          'appear here when someone in the circle adds them.',
+              ),
+          ],
+          list: _list(context, hasBoard: hasBoard, canInvite: canInvite),
+        );
+      },
     );
   }
-}
 
-/// Says what this device is still doing for the circle, or what failed.
-/// Shows nothing once the circle is ready and its board is here.
-class _ReadinessNote extends StatelessWidget {
-  const _ReadinessNote({
-    required this.readiness,
-    required this.hasBoard,
-    required this.loaded,
-    required this.childName,
-    required this.onRetry,
-  });
+  /// The quiet list, in groups with a hairline between them.
+  List<Widget> _list(
+    BuildContext context, {
+    required bool hasBoard,
+    required bool canInvite,
+  }) {
+    final services = this.services;
+    final media = services?.media;
+    final sharing = services?.sharing;
 
-  final CircleReadiness readiness;
-  final bool hasBoard;
-
-  /// Whether the boards saved on this device have been read yet.
-  final bool loaded;
-  final String childName;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    if (readiness == CircleReadiness.ready && hasBoard) {
-      return const SizedBox.shrink();
-    }
-    if (!loaded && !hasBoard) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2.5),
+    final groups = <List<Widget>>[
+      [
+        ListenableBuilder(
+          listenable: sync,
+          builder: (context, _) => SwitchListTile(
+            secondary: const Icon(Icons.cloud_off_rounded),
+            title: const Text('Work offline'),
+            subtitle: const Text(
+              'Pauses sync on this device. Changes are kept here and sent '
+              'when you switch it back.',
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Text("Opening $childName's board…")),
-          ],
+            value: sync.workingOffline,
+            onChanged: (value) => unawaited(sync.setWorkingOffline(value)),
+          ),
         ),
-      );
+        if (media != null) _WaitingUploads(media: media),
+      ],
+      [
+        if (canInvite)
+          HomeEntry(
+            icon: Icons.person_add_alt_rounded,
+            label: 'Invite someone',
+            onTap: () => _open(
+              context,
+              InviteScreen(gateway: gateway, circle: selected),
+            ),
+          ),
+        if (sharing != null)
+          HomeEntry(
+            icon: Icons.link_rounded,
+            label: shareViewOnlyLabel,
+            onTap: hasBoard ? () => _shareViewOnly(context, sharing) : null,
+          ),
+        if (services?.publishBoard != null)
+          HomeEntry(
+            icon: Icons.print_rounded,
+            label: printCopyLabel,
+            opensScreen: false,
+            onTap: hasBoard ? () => _printCopy(context) : null,
+          ),
+        if (services?.wordLog != null || services?.summary != null)
+          HomeEntry(
+            icon: Icons.bar_chart_rounded,
+            label: wordLogLabel,
+            onTap: () => _openWordLog(context),
+          ),
+        // Sharing is a guardian's choice, made here and never on the
+        // child's board, which can only turn it off.
+        if (canInvite && services?.live != null)
+          ShareSaidSwitch(
+            userId: services!.userId,
+            circleId: selected.spaceUuid.uuid,
+            childName: selected.childName,
+          ),
+      ],
+      [
+        HomeEntry(
+          icon: Icons.info_outline_rounded,
+          label: 'Credits',
+          onTap: () => _open(context, const CreditsScreen()),
+        ),
+        HomeEntry(
+          icon: Icons.logout_rounded,
+          label: 'Sign out',
+          opensScreen: false,
+          onTap: onSignOut,
+        ),
+      ],
+      [
+        _CircleSwitcher(
+          circles: circles,
+          selected: selected,
+          onSelect: onSelect,
+        ),
+        if (onAddBoard != null)
+          HomeEntry(
+            icon: Icons.add_rounded,
+            label: addAnotherChildLabel,
+            onTap: onAddBoard,
+          ),
+      ],
+    ];
+    return [
+      for (final (i, group) in groups.where((g) => g.isNotEmpty).indexed) ...[
+        if (i > 0) const Divider(height: 33, indent: 16, endIndent: 16),
+        ...group,
+      ],
+    ];
+  }
+
+  /// What this device is still doing for the circle, or what failed; null
+  /// once the circle is ready and its board is here.
+  Widget? _readinessNote(
+    BuildContext context, {
+    required bool hasBoard,
+    required bool loaded,
+  }) {
+    if (readiness == CircleReadiness.ready && hasBoard) return null;
+    final childName = selected.childName;
+    final working = ChorusMotion.reduced(context)
+        ? const Icon(Icons.hourglass_empty_rounded)
+        : const SizedBox.square(
+            dimension: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          );
+    if (!loaded && !hasBoard) {
+      return HomeNote(icon: working, message: "Opening $childName's board…");
     }
     final failed = readiness == CircleReadiness.failed;
     // Ready with no board: an invited adult whose device is ahead of the
@@ -406,41 +477,23 @@ class _ReadinessNote extends StatelessWidget {
           : "This device could not get $childName's board yet. Check the "
                 'connection.';
     }
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface,
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          if (failed)
-            const Icon(Icons.error_outline)
-          else if (waiting)
-            const Icon(Icons.hourglass_empty)
-          else
-            const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 3),
-            ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(message, style: Theme.of(context).textTheme.bodyLarge),
-          ),
-          if (failed || waiting)
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-        ],
-      ),
+    return HomeNote(
+      alert: failed,
+      icon: failed
+          ? const Icon(Icons.error_outline_rounded)
+          : waiting
+          ? const Icon(Icons.hourglass_empty_rounded)
+          : working,
+      message: message,
+      action: failed || waiting
+          ? TextButton(onPressed: onRetryReady, child: const Text('Retry'))
+          : null,
     );
   }
 }
 
-/// Chooses between the adult's circles.
+/// Who the adult is in this circle, and the other children's boards they
+/// help with.
 class _CircleSwitcher extends StatelessWidget {
   const _CircleSwitcher({
     required this.circles,
@@ -454,17 +507,34 @@ class _CircleSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final circle in circles)
-          ChoiceChip(
-            label: Text(circle.childName),
-            selected: circle.spaceUuid == selected.spaceUuid,
-            onSelected: (_) => onSelect(circle),
+    final colors = ChorusColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'You are ${selected.myDisplayName} '
+            '(${roleLabel(selected.myRole)}).',
+            style: ChorusType.body.copyWith(color: colors.inkMuted),
           ),
-      ],
+          if (circles.length > 1) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: ChorusSpace.targetGap,
+              runSpacing: ChorusSpace.targetGap,
+              children: [
+                for (final circle in circles)
+                  ChoiceChip(
+                    label: Text(circle.childName),
+                    selected: circle.spaceUuid == selected.spaceUuid,
+                    onSelected: (_) => onSelect(circle),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -483,22 +553,14 @@ class _WaitingUploads extends StatelessWidget {
       builder: (context, _) {
         final waiting = media.pendingUploads;
         if (waiting <= 0) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              const Icon(Icons.cloud_upload_outlined),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  waiting == 1
-                      ? '1 photo or recording is waiting to be sent from '
-                            'this device.'
-                      : '$waiting photos or recordings are waiting to be '
-                            'sent from this device.',
-                ),
-              ),
-            ],
+        return ListTile(
+          leading: const Icon(Icons.cloud_upload_rounded),
+          title: Text(
+            waiting == 1
+                ? '1 photo or recording is waiting to be sent from this '
+                      'device.'
+                : '$waiting photos or recordings are waiting to be sent '
+                      'from this device.',
           ),
         );
       },
@@ -551,7 +613,10 @@ class _PaperCopyDialog extends StatelessWidget {
                       const SizedBox(height: 12),
                       SelectableText(
                         address,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                        style: ChorusType.status.copyWith(
+                          fontSize: 15,
+                          height: 20 / 15,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       const Text(

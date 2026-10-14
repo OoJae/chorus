@@ -42,6 +42,10 @@ bool offersSyncNow(SyncStatus sync) =>
 /// Says in plain words whether this device is in step with the others, and
 /// offers "Sync now" where trying again can help: see [offersSyncNow].
 ///
+/// It speaks in the status face (IBM Plex Mono), the machine's voice, in ink
+/// on the surface colour: no state has a colour of its own, as colour on a
+/// Chorus screen belongs to words.
+///
 /// With [compact] it is the state's icon alone in a 48dp target, for a row
 /// with no room for the words: the words are its tooltip and what a screen
 /// reader says, and a tap retries whenever "Sync now" would be offered.
@@ -59,15 +63,15 @@ class SyncChip extends StatelessWidget {
       listenable: sync,
       builder: (context, _) {
         final colors = ChorusColors.of(context);
-        final state = sync.state;
+        final icon = _icon(sync.state, sync.hasUnsent, sync.workingOffline);
         final canRetry = offersSyncNow(sync);
         final label = syncLabel(sync);
-        if (compact) {
-          void retry() {
-            // Failures show up as the next state; nothing to await.
-            sync.syncNow().catchError((Object _) {});
-          }
+        void retry() {
+          // Failures show up as the next state; nothing to await.
+          sync.syncNow().catchError((Object _) {});
+        }
 
+        if (compact) {
           return Semantics(
             container: true,
             liveRegion: true,
@@ -77,12 +81,15 @@ class SyncChip extends StatelessWidget {
             onTap: canRetry ? retry : null,
             child: Tooltip(
               message: label,
+              // Reached by Tab and pressed by Enter, with no ripple: on the
+              // child's board nothing spreads or moves.
               child: InkResponse(
                 onTap: canRetry ? retry : null,
                 radius: 24,
+                splashFactory: NoSplash.splashFactory,
                 child: SizedBox(
-                  width: 44,
-                  height: 48,
+                  width: ChorusSpace.minTarget,
+                  height: ChorusSpace.minTarget,
                   child: Center(
                     child: Container(
                       width: 36,
@@ -92,11 +99,7 @@ class SyncChip extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: colors.ink, width: 1.5),
                       ),
-                      child: Icon(
-                        _icon(state, sync.hasUnsent),
-                        size: 18,
-                        color: colors.ink,
-                      ),
+                      child: Icon(icon, size: 18, color: colors.ink),
                     ),
                   ),
                 ),
@@ -104,6 +107,7 @@ class SyncChip extends StatelessWidget {
             ),
           );
         }
+        final style = ChorusType.status.copyWith(color: colors.ink);
         return Semantics(
           container: true,
           liveRegion: true,
@@ -112,40 +116,36 @@ class SyncChip extends StatelessWidget {
             padding: EdgeInsets.only(left: 10, right: canRetry ? 2 : 12),
             decoration: BoxDecoration(
               color: colors.surface,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(ChorusSpace.buttonRadius),
               border: Border.all(color: colors.ink, width: 1.5),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(_icon(state, sync.hasUnsent), size: 18, color: colors.ink),
-                const SizedBox(width: 6),
+                Icon(icon, size: 18, color: colors.ink),
+                const SizedBox(width: 8),
+                // Wraps rather than cut: at a large text size the words
+                // are the whole point of the chip.
                 Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: colors.ink,
-                    ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(label, style: style),
                   ),
                 ),
-                if (canRetry)
+                if (canRetry) ...[
+                  const SizedBox(width: 4),
                   TextButton(
-                    onPressed: () {
-                      // Failures show up as the next state; nothing to await.
-                      sync.syncNow().catchError((Object _) {});
-                    },
+                    onPressed: retry,
                     style: TextButton.styleFrom(
                       minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       // On the chip's own face, not the page.
                       foregroundColor: colors.ink,
+                      textStyle: ChorusType.label,
                     ),
                     child: const Text('Sync now'),
                   ),
+                ],
               ],
             ),
           ),
@@ -154,12 +154,17 @@ class SyncChip extends StatelessWidget {
     );
   }
 
-  static IconData _icon(SyncState state, bool hasUnsent) => switch (state) {
-    SyncState.live => hasUnsent ? Icons.upload : Icons.check_circle,
-    SyncState.connecting || SyncState.backoff => Icons.sync,
-    SyncState.offline || SyncState.signedOut => Icons.phone_android,
-    SyncState.clockSkew => Icons.schedule,
-    SyncState.needsUpdate => Icons.system_update,
-    SyncState.accessLost => Icons.block,
-  };
+  static IconData _icon(SyncState state, bool hasUnsent, bool working) =>
+      working
+      ? Icons.phone_android_rounded
+      : switch (state) {
+          SyncState.live =>
+            hasUnsent ? Icons.upload_rounded : Icons.check_circle_rounded,
+          SyncState.connecting || SyncState.backoff => Icons.sync_rounded,
+          SyncState.offline ||
+          SyncState.signedOut => Icons.phone_android_rounded,
+          SyncState.clockSkew => Icons.schedule_rounded,
+          SyncState.needsUpdate => Icons.system_update_rounded,
+          SyncState.accessLost => Icons.block_rounded,
+        };
 }

@@ -175,6 +175,29 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('with no label of its own, its text names the button: one '
+      'node, one tap action', (tester) async {
+    final semantics = tester.ensureSemantics();
+    var taps = 0;
+    await _pump(
+      tester,
+      PressableSurface(onTap: () => taps++, child: const Text('Speak')),
+    );
+    expect(
+      tester.getSemantics(find.byType(PressableSurface)),
+      isSemantics(
+        label: 'Speak',
+        isButton: true,
+        isEnabled: true,
+        isFocusable: true,
+        hasTapAction: true,
+      ),
+    );
+    tester.semantics.tap(find.semantics.byLabel('Speak'));
+    expect(taps, 1);
+    semantics.dispose();
+  });
+
   testWidgets('it is never smaller than 48 dp', (tester) async {
     await _pump(
       tester,

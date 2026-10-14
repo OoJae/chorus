@@ -2,6 +2,8 @@
 import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart';
+import 'package:chorus_flutter/screens/home_screen.dart'
+    show editWordsLabel, openBoardLabel;
 import 'package:chorus_flutter/screens/signed_in_shell.dart';
 import 'package:chorus_flutter/src/sync/replica_board_store.dart';
 import 'package:chorus_flutter/src/sync/replica_service.dart';
@@ -121,7 +123,7 @@ void main() {
       // Whatever it read while being made and shown on home.
       final atHome = store.refreshes;
 
-      await tester.tap(find.text('Edit board'));
+      await tester.tap(find.text(editWordsLabel));
       await tester.pumpAndSettle();
       expect(find.byType(EditorScreen), findsOneWidget);
       expect(store.refreshes, atHome + 1);
@@ -132,13 +134,13 @@ void main() {
       expect(store.refreshes, atHome + 1, reason: 'nothing on the way back');
 
       // The same store again: it must not open on what it held last time.
-      await tester.tap(find.text('Edit board'));
+      await tester.tap(find.text(editWordsLabel));
       await tester.pumpAndSettle();
       expect(store.refreshes, atHome + 2);
       await tester.pageBack();
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Talker'));
+      await tester.tap(find.text(openBoardLabel('Maya')));
       await tester.pumpAndSettle();
       expect(find.byType(TalkerScreen), findsOneWidget);
       expect(store.refreshes, atHome + 3);
@@ -151,7 +153,7 @@ void main() {
       final atHome = store.refreshes;
 
       store.refreshError = StateError('The replica is closed.');
-      await tester.tap(find.text('Edit board'));
+      await tester.tap(find.text(editWordsLabel));
       await tester.pumpAndSettle();
       expect(store.refreshes, atHome + 1);
       expect(find.byType(EditorScreen), findsOneWidget);

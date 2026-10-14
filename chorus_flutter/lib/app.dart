@@ -6,18 +6,21 @@ import 'dart:async';
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' hide CircleRole;
+import 'package:chorus_ui/onboarding/launch_reveal.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import 'client.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/services.dart';
-import 'screens/sign_in_screen.dart';
 import 'screens/signed_in_shell.dart';
 import 'screens/support/circle_cache.dart';
+import 'src/features/feature_wiring.dart';
 import 'src/live/chorus_live_session.dart';
 import 'src/live/live_settings.dart';
+import 'src/local_flags.dart';
 import 'src/media/cached_media_store.dart';
 import 'src/media/clip_player.dart';
 import 'src/media/device_media_capture.dart';
@@ -72,6 +75,31 @@ class _ChorusAppState extends State<ChorusApp> {
     );
   }
 
+  /// What this device remembers about itself: whether the onboarding
+  /// screen has been shown.
+  final LocalFlags _flags = LocalFlags();
+
+  @override
+  void initState() {
+    super.initState();
+    client.auth.authInfoListenable.addListener(_noteSignedIn);
+    _noteSignedIn();
+  }
+
+  @override
+  void dispose() {
+    client.auth.authInfoListenable.removeListener(_noteSignedIn);
+    super.dispose();
+  }
+
+  /// Someone signed in on this device has passed its first start, even on
+  /// a version without onboarding: signing out leads to sign-in.
+  void _noteSignedIn() {
+    if (client.auth.authInfoListenable.value == null) return;
+    if (_flags.known(LocalFlag.seenOnboarding) ?? false) return;
+    unawaited(_flags.write(LocalFlag.seenOnboarding, true));
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -80,10 +108,18 @@ class _ChorusAppState extends State<ChorusApp> {
       theme: chorusTheme(),
       darkTheme: chorusDarkTheme(),
       themeMode: ThemeMode.system,
+      // After the system splash, the chorus reveal, once per cold start,
+      // over whatever opens underneath: the board is not kept waiting.
+      builder: (context, child) =>
+          LaunchReveal(child: child ?? const SizedBox.shrink()),
       home: ValueListenableBuilder(
         valueListenable: client.auth.authInfoListenable,
         builder: (context, authInfo, _) {
-          if (authInfo == null) return const SignInScreen();
+          // First start: onboarding; every later signed-out start, signing
+          // out included: sign-in.
+          if (authInfo == null) {
+            return SignedOutStart(speech: _speech, flags: _flags);
+          }
           // In a browser only one tab runs the signed-in app: every tab
           // shares the one database on this device.
           return OneTabGate(
@@ -263,6 +299,16 @@ class SessionWorkspace implements Workspace {
     final me = _session.userId.uuid;
     final canEdit = circle.myRole != CircleRole.partner;
     final isGuardian = circle.myRole == CircleRole.guardian;
+    final features = parts.featuresFor(
+      circle.myRole,
+      () => openCircleFeatures(
+        _client,
+        circle: circle,
+        userId: me,
+        sync: sync,
+        openStore: () => _session.boardStore(circle),
+      ),
+    );
     return CircleServices(
       userId: me,
       media: parts.media,
@@ -286,6 +332,10 @@ class SessionWorkspace implements Workspace {
         );
       },
       publishBoard: (boardJson) => _publish(space, boardJson),
+      wordLog: features?.wordLog,
+      summary: features?.summary,
+      sharing: features?.sharing,
+      boards: features?.boards,
     );
   }
 
@@ -362,7 +412,26 @@ class _CircleParts {
   /// The services handed out, by the adult's role when they were asked for.
   final Map<CircleRole, CircleServices> services = {};
 
+  /// The word log, "This week", sharing and board management, for the
+  /// adult's role now. One set per circle: see [FeatureSlot].
+  final FeatureSlot<CircleFeatures> _features = FeatureSlot(
+    (features) => features.dispose(),
+  );
+
+  /// The features for [role], made with [open] the first time and again
+  /// when the adult's role changed. Null when they could not be made: the
+  /// board works without them.
+  CircleFeatures? featuresFor(CircleRole role, CircleFeatures Function() open) {
+    final before = _features.role;
+    if (before != null && before != role) {
+      // The services of the old role hold the features about to go.
+      services.removeWhere((other, _) => other != role);
+    }
+    return _features.forRole(role, open);
+  }
+
   void dispose() {
+    _features.dispose();
     suggester.dispose();
     media.dispose();
   }

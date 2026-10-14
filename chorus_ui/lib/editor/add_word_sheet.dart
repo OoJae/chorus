@@ -8,11 +8,11 @@ import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../brand/haptics.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_media.dart';
 import '../contracts_suggest.dart';
-import '../theme.dart';
 
 /// Shown when the cell was filled between opening the sheet and saving.
 const String spotTakenMessage =
@@ -66,11 +66,12 @@ final List<WordColour> wordColours = [
   WordColour('Person', _knownKey(const ['pronoun', 'person'])),
   WordColour('Question', _knownKey(const ['question'])),
   WordColour('Describing', _knownKey(const ['descriptor', 'adjective'])),
+  WordColour('Not', _knownKey(const ['negation', 'not'])),
   WordColour('Other', _knownKey(const ['determiner', 'other'])),
 ];
 
 /// The first of [candidates] that [colorForKey] has a colour for; the first
-/// candidate if none has, which then draws white.
+/// candidate if none has, which then draws in the plain family.
 String _knownKey(List<String> candidates) => candidates.firstWhere(
   colorForKey.containsKey,
   orElse: () => candidates.first,
@@ -178,10 +179,13 @@ Future<void> showAddWordSheet(
     );
   } on Object {
     // The board was resized or removed, or the role changed, meanwhile.
+    ChorusHaptics.failed();
     messenger?.showSnackBar(const SnackBar(content: Text(wordNotAddedMessage)));
     return;
   }
-  if (!placed) {
+  if (placed) {
+    ChorusHaptics.wordAdded();
+  } else {
     messenger?.showSnackBar(const SnackBar(content: Text(spotTakenMessage)));
   }
   if (draft.imageHash == null && draft.audioHash == null) return;
@@ -380,14 +384,14 @@ class _WordFormState extends State<WordForm> {
             SimpleDialogOption(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const _DialogChoice(
-                Icons.photo_camera_outlined,
+                Icons.photo_camera_rounded,
                 'Take a photo',
               ),
             ),
             SimpleDialogOption(
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const _DialogChoice(
-                Icons.photo_library_outlined,
+                Icons.photo_library_rounded,
                 'Choose a photo',
               ),
             ),
@@ -491,7 +495,7 @@ class _WordFormState extends State<WordForm> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2.5),
                       )
-                    : const Icon(Icons.lightbulb_outline),
+                    : const Icon(Icons.lightbulb_outline_rounded),
                 label: Text(
                   _suggesting ? 'Looking at the photo' : suggestFromPhotoLabel,
                 ),
@@ -692,7 +696,7 @@ class _WordFormState extends State<WordForm> {
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(48, 48),
                     ),
-                    icon: const Icon(Icons.add_a_photo_outlined),
+                    icon: const Icon(Icons.add_a_photo_rounded),
                     label: Text(
                       capture.hasCamera
                           ? 'Take or choose a photo'
@@ -720,7 +724,7 @@ class _WordFormState extends State<WordForm> {
   }
 
   Widget _recordRow(ThemeData theme) {
-    final scheme = theme.colorScheme;
+    final colors = ChorusColors.of(context);
     final hasNew = _newClip != null;
     final hasHeld = _heldAudioHash != null;
     final hasClip = hasNew || hasHeld;
@@ -757,13 +761,15 @@ class _WordFormState extends State<WordForm> {
             onPointerDown: (_) => unawaited(_holdStart()),
             onPointerUp: (_) => _holdEnd(),
             onPointerCancel: (_) => _holdEnd(),
+            // Ink while the microphone is on: the button turns over, as
+            // a held card does. No colour: colour belongs to words.
             child: Material(
-              color: active ? scheme.errorContainer : scheme.surface,
+              color: active ? colors.ink : colors.surface,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ChorusSpace.buttonRadius),
                 side: BorderSide(
-                  color: active ? scheme.error : scheme.outline,
-                  width: active ? 3 : 1,
+                  color: active ? colors.ink : colors.inkMuted,
+                  width: active ? 2 : 1,
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -776,14 +782,18 @@ class _WordFormState extends State<WordForm> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          recording ? Icons.mic : Icons.mic_none,
-                          color: active ? scheme.error : scheme.onSurface,
+                          recording
+                              ? Icons.mic_rounded
+                              : Icons.mic_none_rounded,
+                          color: active ? colors.card : colors.ink,
                         ),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             caption,
-                            style: theme.textTheme.labelLarge,
+                            style: ChorusType.label.copyWith(
+                              color: active ? colors.card : colors.ink,
+                            ),
                           ),
                         ),
                       ],
@@ -797,8 +807,8 @@ class _WordFormState extends State<WordForm> {
                       builder: (context, value, _) => LinearProgressIndicator(
                         value: value,
                         minHeight: 6,
-                        color: scheme.error,
-                        backgroundColor: scheme.errorContainer,
+                        color: colors.card,
+                        backgroundColor: colors.inkMuted,
                       ),
                     ),
                 ],
@@ -815,7 +825,7 @@ class _WordFormState extends State<WordForm> {
                 TextButton.icon(
                   onPressed: _playClip,
                   style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                  icon: const Icon(Icons.play_arrow),
+                  icon: const Icon(Icons.play_arrow_rounded),
                   label: const Text('Play it back'),
                 )
               else
@@ -839,15 +849,21 @@ class _WordFormState extends State<WordForm> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    // A sheet is at most 640 wide: the phone's margin suits it everywhere.
+    const margin = ChorusSpace.marginPhone;
+    final brightness = theme.brightness;
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + keyboard),
+        padding: EdgeInsets.fromLTRB(margin, 0, margin, 16 + keyboard),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(widget.title, style: theme.textTheme.titleLarge),
+              Semantics(
+                header: true,
+                child: Text(widget.title, style: theme.textTheme.titleLarge),
+              ),
               const SizedBox(height: 16),
               TextField(
                 controller: _label,
@@ -857,7 +873,6 @@ class _WordFormState extends State<WordForm> {
                 decoration: InputDecoration(
                   labelText: 'Word',
                   errorText: _labelError,
-                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (_) {
                   if (_labelError != null) setState(() => _labelError = null);
@@ -871,19 +886,24 @@ class _WordFormState extends State<WordForm> {
                 decoration: const InputDecoration(
                   labelText: 'Says something different (optional)',
                   helperText: 'Leave empty to say the word as written.',
-                  border: OutlineInputBorder(),
+                  // Beside the counter it would be cut short on a phone.
+                  helperMaxLines: 5,
                 ),
                 onSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: 12),
               Text('Colour', style: theme.textTheme.titleSmall),
               const SizedBox(height: 4),
+              // Each chip's target is 48dp tall around a 32dp face, so the
+              // rows stand apart without more space between them.
               Wrap(
-                spacing: 8,
+                spacing: ChorusSpace.targetGap,
                 children: [
                   for (final colour in wordColours)
                     ChoiceChip(
-                      avatar: _Swatch(tileColor(colour.key)),
+                      avatar: _Swatch(
+                        TileFamily.forKey(colour.key).colorsFor(brightness),
+                      ),
                       label: Text(colour.name),
                       showCheckmark: false,
                       selected: _colorKey == colour.key,
@@ -906,14 +926,13 @@ class _WordFormState extends State<WordForm> {
                 child: Text(widget.submitLabel),
               ),
               if (widget.onRemove != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: ChorusSpace.targetGap),
                 TextButton.icon(
                   onPressed: widget.onRemove,
                   style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
                     minimumSize: const Size.fromHeight(48),
                   ),
-                  icon: const Icon(Icons.delete_outline),
+                  icon: const Icon(Icons.delete_outline_rounded),
                   label: const Text('Remove from board'),
                 ),
               ],
@@ -956,9 +975,10 @@ class _NoPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     return ColoredBox(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: const Center(child: Icon(Icons.image_outlined)),
+      color: colors.line,
+      child: Center(child: Icon(Icons.image_rounded, color: colors.inkMuted)),
     );
   }
 }
@@ -977,28 +997,41 @@ class _Message extends StatelessWidget {
         liveRegion: true,
         child: Text(
           text,
-          style: TextStyle(color: Theme.of(context).colorScheme.error),
+          style: ChorusType.body.copyWith(
+            color: ChorusColors.of(context).alert,
+          ),
         ),
       ),
     );
   }
 }
 
-/// The colour dot on a picker chip, outlined so white still shows.
+/// The colour on a picker chip: a tiny laminated tile in the word family's
+/// fill, on its darker edge, as the word will look on the board.
 class _Swatch extends StatelessWidget {
-  const _Swatch(this.color);
+  const _Swatch(this.colors);
 
-  final Color color;
+  final TileColors colors;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: ChorusColors.of(context).inkMuted),
+    const corner = BorderRadius.all(Radius.circular(5));
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: 18,
+        height: 18,
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: colors.edge, borderRadius: corner),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.fill,
+                borderRadius: corner,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

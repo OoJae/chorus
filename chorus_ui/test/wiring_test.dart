@@ -11,6 +11,7 @@ import 'package:chorus_ui/fakes_live.dart';
 import 'package:chorus_ui/fakes_media.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
 import 'package:chorus_ui/theme.dart';
+import 'package:chorus_ui/widgets/tile_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -304,7 +305,17 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(Image), findsOneWidget);
+      expect(find.byKey(TileView.photoKey), findsOneWidget);
+      // Its photo, not the symbol for "want".
+      expect(
+        find.descendant(
+          of: find.byWidgetPredicate(
+            (w) => w is TileView && w.tile.label == 'want',
+          ),
+          matching: find.byKey(TileView.symbolKey),
+        ),
+        findsNothing,
+      );
       // The word keeps its cell and its label.
       expect(find.text('want'), findsOneWidget);
     });
@@ -573,7 +584,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(Image), findsOneWidget);
+      expect(find.byKey(TileView.photoKey), findsOneWidget);
 
       await tester.tap(find.text('want'));
       await tester.pumpAndSettle();

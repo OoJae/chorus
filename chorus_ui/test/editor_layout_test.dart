@@ -109,9 +109,12 @@ void main() {
       expect(placed.bottom, moreOrLessEquals(grid.bottom, epsilon: 3));
       expect(placed.right, moreOrLessEquals(grid.right, epsilon: 3));
       expect(message.overlaps(grid), isFalse);
+      // Over the column beside the board, the tray's panel included.
       expect(
         message.left,
-        greaterThanOrEqualTo(tester.getRect(find.text('Needs a home')).left),
+        greaterThanOrEqualTo(
+          tester.getRect(find.byKey(EditorScreen.sideColumnKey)).left,
+        ),
       );
       expect(message.right, lessThanOrEqualTo(1440));
       expect(message.bottom, lessThanOrEqualTo(900));
@@ -119,16 +122,18 @@ void main() {
     });
   });
 
-  testWidgets('on a phone the board and the tray are one page as before, and '
-      'a message spans the bottom', (tester) async {
+  testWidgets('on a phone the board is one page with the tray as a sheet '
+      'along the bottom, and a message spans the bottom', (tester) async {
     await _pump(
       tester,
       EditorScreen(store: FakeBoardStore.seeded(), sync: FakeSyncStatus()),
       const Size(360, 800),
     );
     expect(find.byType(ListView), findsOneWidget);
+    expect(find.byType(DraggableScrollableSheet), findsOneWidget);
     final grid = tester.getRect(find.byType(EditorGrid));
-    expect(grid.width, moreOrLessEquals(360 - 32));
+    // The phone's 20dp margins.
+    expect(grid.width, moreOrLessEquals(360 - 40));
     expect(
       tester.getTopLeft(find.byType(SyncChip)).dy,
       lessThan(grid.top),

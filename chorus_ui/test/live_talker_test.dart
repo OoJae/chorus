@@ -1,4 +1,5 @@
 import 'package:chorus_shared/chorus_shared.dart';
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/contracts.dart';
 import 'package:chorus_ui/contracts_live.dart';
 import 'package:chorus_ui/contracts_media.dart';
@@ -31,8 +32,7 @@ void main() {
   });
 
   group('FakeLiveSession', () {
-    testWidgets('a pulse glows, then fades after livePulseFor',
-        (tester) async {
+    testWidgets('a pulse glows, then fades after livePulseFor', (tester) async {
       final live = FakeLiveSession();
       addTearDown(live.dispose);
       var notified = 0;
@@ -50,8 +50,9 @@ void main() {
       expect(notified, 2);
     });
 
-    testWidgets('a second pulse on the same tile starts the fade over',
-        (tester) async {
+    testWidgets('a second pulse on the same tile starts the fade over', (
+      tester,
+    ) async {
       final live = FakeLiveSession();
       addTearDown(live.dispose);
       live.receivePulse('a');
@@ -116,16 +117,18 @@ void main() {
       expect(live.sentPulses, isEmpty);
     });
 
-    test('with sharing on, a spoken sentence is shared, single taps are not',
-        () async {
-      live.shareSaid = true;
-      final talker = start();
-      talker.tapTile(byLabel('want'));
-      talker.tapTile(byLabel('more'));
-      expect(live.sentSaid, isEmpty);
-      await talker.speakStrip();
-      expect(live.sentSaid, ['want more']);
-    });
+    test(
+      'with sharing on, a spoken sentence is shared, single taps are not',
+      () async {
+        live.shareSaid = true;
+        final talker = start();
+        talker.tapTile(byLabel('want'));
+        talker.tapTile(byLabel('more'));
+        expect(live.sentSaid, isEmpty);
+        await talker.speakStrip();
+        expect(live.sentSaid, ['want more']);
+      },
+    );
 
     test('stopSharingSaid turns sharing off and tells listeners', () async {
       live.shareSaid = true;
@@ -143,11 +146,16 @@ void main() {
       expect(live.sentSaid, isEmpty);
     });
 
-    testWidgets('a pulse reaches pulsing and leaves the snapshot alone',
-        (tester) async {
+    testWidgets('a pulse reaches pulsing and leaves the snapshot alone', (
+      tester,
+    ) async {
       // Disposed by hand: its timer must be gone before the test ends.
       final talker = TalkerController(
-          store: store, speech: speech, live: live, quiet: Duration.zero);
+        store: store,
+        speech: speech,
+        live: live,
+        quiet: Duration.zero,
+      );
       final before = talker.snapshot;
       final want = byLabel('want');
       var notified = 0;
@@ -174,24 +182,26 @@ void main() {
       expect(notified, 0);
     });
 
-    test('a clip-capable speaker is asked for the tile, not the text',
-        () async {
-      final clips = _ClipSpeech();
-      final talker = start(withSpeech: clips);
-      final want = byLabel('want');
-      final more = byLabel('more');
+    test(
+      'a clip-capable speaker is asked for the tile, not the text',
+      () async {
+        final clips = _ClipSpeech();
+        final talker = start(withSpeech: clips);
+        final want = byLabel('want');
+        final more = byLabel('more');
 
-      talker.tapTile(want);
-      expect(clips.clips, [want.id]);
-      expect(clips.spoken, isEmpty);
+        talker.tapTile(want);
+        expect(clips.clips, [want.id]);
+        expect(clips.spoken, isEmpty);
 
-      // One word keeps its recorded voice; a longer sentence is spoken.
-      await talker.speakStrip();
-      expect(clips.clips, [want.id, want.id]);
-      talker.tapTile(more);
-      await talker.speakStrip();
-      expect(clips.spoken, ['want more']);
-    });
+        // One word keeps its recorded voice; a longer sentence is spoken.
+        await talker.speakStrip();
+        expect(clips.clips, [want.id, want.id]);
+        talker.tapTile(more);
+        await talker.speakStrip();
+        expect(clips.spoken, ['want more']);
+      },
+    );
 
     test('never writes to the store', () async {
       live.shareSaid = true;
@@ -212,29 +222,53 @@ void main() {
       tester.view.physicalSize = const Size(1200, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(MaterialApp(
-        home: TalkerScreen(
-          store: store,
-          speech: speech,
-          sync: FakeSyncStatus(),
-          live: live,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TalkerScreen(
+            store: store,
+            speech: speech,
+            sync: FakeSyncStatus(),
+            live: live,
+          ),
         ),
-      ));
+      );
     }
 
     TileView view(WidgetTester tester, String label) => tester.widget<TileView>(
-        find.byWidgetPredicate((w) => w is TileView && w.tile.label == label));
+      find.byWidgetPredicate((w) => w is TileView && w.tile.label == label),
+    );
+
+    /// Colour of the ring drawn over the tile labelled [label].
+    Color ringColour(WidgetTester tester, String label) {
+      final box = tester.widget<DecoratedBox>(
+        find
+            .ancestor(
+              of: find.text(label),
+              matching: find.byWidgetPredicate(
+                (w) =>
+                    w is DecoratedBox &&
+                    w.position == DecorationPosition.foreground,
+              ),
+            )
+            .first,
+      );
+      return ((box.decoration as BoxDecoration).border! as Border).top.color;
+    }
 
     /// Opacity of the ring drawn over the tile labelled [label].
     double ring(WidgetTester tester, String label) {
-      final box = tester.widget<DecoratedBox>(find
-          .ancestor(
-            of: find.text(label),
-            matching: find.byWidgetPredicate((w) =>
-                w is DecoratedBox &&
-                w.position == DecorationPosition.foreground),
-          )
-          .first);
+      final box = tester.widget<DecoratedBox>(
+        find
+            .ancestor(
+              of: find.text(label),
+              matching: find.byWidgetPredicate(
+                (w) =>
+                    w is DecoratedBox &&
+                    w.position == DecorationPosition.foreground,
+              ),
+            )
+            .first,
+      );
       final border = (box.decoration as BoxDecoration).border! as Border;
       return border.top.color.a;
     }
@@ -243,8 +277,9 @@ void main() {
       live = FakeLiveSession();
     });
 
-    testWidgets('a pulsing tile is highlighted until the pulse fades',
-        (tester) async {
+    testWidgets('a pulsing tile is highlighted until the pulse fades', (
+      tester,
+    ) async {
       await open(tester);
       expect(view(tester, 'want').highlighted, isFalse);
       final cell = tester.getRect(find.text('want'));
@@ -261,6 +296,9 @@ void main() {
       expect(first, greaterThan(0.4));
       expect(second, greaterThan(0.4));
       expect(second, isNot(first));
+      // In tile ink, which reads on every family's fill: colour belongs to
+      // words, so the ring has none of its own.
+      expect(ringColour(tester, 'want').withValues(alpha: 1), tileLabelInk);
       // The tile has not moved.
       expect(tester.getRect(find.text('want')), cell);
 
@@ -271,8 +309,9 @@ void main() {
       expect(tester.getRect(find.text('want')), cell);
     });
 
-    testWidgets('a glowing tile can still be tapped and spoken',
-        (tester) async {
+    testWidgets('a glowing tile can still be tapped and spoken', (
+      tester,
+    ) async {
       await open(tester);
       live.receivePulse(byLabel('want').id);
       await tester.pump();
@@ -286,20 +325,22 @@ void main() {
       tester.view.physicalSize = const Size(1200, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(MaterialApp(
-        home: MediaQuery(
-          data: const MediaQueryData(
-            size: Size(1200, 900),
-            disableAnimations: true,
-          ),
-          child: TalkerScreen(
-            store: store,
-            speech: speech,
-            sync: FakeSyncStatus(),
-            live: live,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(1200, 900),
+              disableAnimations: true,
+            ),
+            child: TalkerScreen(
+              store: store,
+              speech: speech,
+              sync: FakeSyncStatus(),
+              live: live,
+            ),
           ),
         ),
-      ));
+      );
       live.receivePulse(byLabel('want').id);
       await tester.pump();
       expect(view(tester, 'want').highlighted, isTrue);
@@ -314,14 +355,15 @@ void main() {
       expect(find.text(sharingSaidMessage), findsNothing);
     });
 
-    testWidgets('the sharing bar shows while on and a tap turns it off',
-        (tester) async {
+    testWidgets('the sharing bar shows while on and a tap turns it off', (
+      tester,
+    ) async {
       live.shareSaid = true;
       await open(tester);
       expect(find.text(sharingSaidMessage), findsOneWidget);
 
       await tester.tap(find.text('want'));
-      await tester.tap(find.byIcon(Icons.volume_up));
+      await tester.tap(find.byIcon(Icons.volume_up_rounded));
       await tester.pump();
       expect(live.sentSaid, ['want']);
 
@@ -330,20 +372,21 @@ void main() {
       expect(live.shareSaid, isFalse);
       expect(find.text(sharingSaidMessage), findsNothing);
 
-      await tester.tap(find.byIcon(Icons.volume_up));
+      await tester.tap(find.byIcon(Icons.volume_up_rounded));
       await tester.pump();
       expect(live.sentSaid, ['want']);
     });
 
-    testWidgets('the board works with no live session at all',
-        (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: TalkerScreen(
-          store: store,
-          speech: speech,
-          sync: FakeSyncStatus(),
+    testWidgets('the board works with no live session at all', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TalkerScreen(
+            store: store,
+            speech: speech,
+            sync: FakeSyncStatus(),
+          ),
         ),
-      ));
+      );
       await tester.tap(find.text('want'));
       await tester.pump();
       expect(speech.spoken, ['want']);

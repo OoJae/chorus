@@ -2,20 +2,25 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:chorus_shared/chorus_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../brand/haptics.dart';
+import '../brand/motion.dart';
+import '../brand/pressable_surface.dart';
 import '../brand/tokens.dart';
 import '../contracts.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
-import '../widgets/board_tabs.dart';
+import '../contracts_wordlog.dart';
 import '../widgets/label_fit.dart';
 import '../widgets/sync_chip.dart';
 import '../widgets/tile_view.dart';
 import 'talker_controller.dart';
+import 'talker_tabs.dart';
 
 /// Shown to adults when speech would need a network.
 const String noOfflineVoiceMessage = 'No offline voice on this device';
@@ -23,9 +28,24 @@ const String noOfflineVoiceMessage = 'No offline voice on this device';
 /// Shown on the child's board for as long as spoken sentences are shared.
 const String sharingSaidMessage = 'Sharing what is said';
 
+/// Shown in place of [sharingSaidMessage] while the board is private.
+const String sharingPausedMessage = 'Not shared while private';
+
 /// Shown beside the status chip for as long as this board is joined to the
 /// circle's live session.
 const String liveConnectedMessage = 'Connected to the circle';
+
+/// Label on the control that pauses the word log and sharing.
+const String privateLabel = 'Private';
+
+/// Said of the private control while it is off.
+const String privateOffMessage =
+    'Private is off. Turn it on to pause the word log and sharing on this '
+    'device';
+
+/// Said of the private control while it is on: the mark that it is.
+const String privateOnMessage =
+    'Private is on. Nothing is logged or shared from this device';
 
 /// How long the leave control and the waiting pill must be held.
 const Duration _holdToConfirm = Duration(seconds: 2);
@@ -65,19 +85,33 @@ TalkerLayout talkerLayoutFor(Size size) {
 
 /// Full-screen talking board.
 ///
+/// It stays still. Nothing on it tilts, slides, bounces or follows a
+/// scroll: a tile sinks on the press spring under the finger (felt as
+/// [ChorusHaptic.wordTapped]), and a word an adult adds fades in where it
+/// lands over [ChorusMotion.wordFade]. That is all the motion there is.
+///
 /// Every cell keeps its row and column whatever the screen size; an empty
 /// cell is a blank gap. Every label on a board is drawn at one size. The
 /// strip, its buttons and the status marks are rearranged for a phone held
-/// upright or on its side; see [TalkerLayout]. Leaving takes a 2-second hold on the leave control,
-/// which calls [onExit].
+/// upright or on its side; see [TalkerLayout]. Leaving takes a 2-second
+/// hold on the leave control, which calls [onExit].
 ///
 /// With a [live] session, a tile an adult taps in model mode on another
 /// device glows here, and while a guardian has sharing on a bar says so; a
 /// tap on the bar turns sharing off. While the session is connected a small
 /// mark in the status row says so.
 ///
+/// With a [wordLog] each tapped word is offered to the log. With a word log
+/// or a live session the status row has a "Private" control: it pauses the
+/// log and the sharing of sentences for the session, and shows while it is
+/// on.
+///
 /// With a [media] store a tile shows its family photo once it is on this
 /// device; with a [speaker] a single tapped word plays its recorded clip.
+///
+/// With a [heroTag] the board is the landing place of a shared-element
+/// move from a screen whose board carries the same tag (home passes
+/// `'board-<boardId>'`). Under reduced motion there is no such move.
 class TalkerScreen extends StatefulWidget {
   const TalkerScreen({
     super.key,
@@ -87,6 +121,8 @@ class TalkerScreen extends StatefulWidget {
     this.live,
     this.media,
     this.speaker,
+    this.wordLog,
+    this.heroTag,
     this.onExit,
   });
 
@@ -97,12 +133,24 @@ class TalkerScreen extends StatefulWidget {
   /// The circle's live session, or null to run the board without one.
   final LiveSession? live;
 
-  /// The circle's pictures and clips, or null to show labels only.
+  /// The circle's pictures and clips, or null to show labels and symbols
+  /// only.
   final MediaStore? media;
 
   /// Plays a tile's recorded clip; null speaks every word with [speech].
   final TileSpeaker? speaker;
+
+  /// The circle's opt-in word log, or null to log nothing.
+  final WordLog? wordLog;
+
+  /// The tag of the [Hero] the board grid is wrapped in, or null for none.
+  final Object? heroTag;
+
   final VoidCallback? onExit;
+
+  /// The face of the "Private" control, for tests.
+  @visibleForTesting
+  static const Key privateKey = ValueKey('TalkerScreen.private');
 
   @override
   State<TalkerScreen> createState() => _TalkerScreenState();
@@ -123,6 +171,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
     speech: widget.speech,
     speaker: widget.speaker,
     live: widget.live,
+    wordLog: widget.wordLog,
   );
 
   @override
@@ -131,7 +180,8 @@ class _TalkerScreenState extends State<TalkerScreen> {
     if (oldWidget.store != widget.store ||
         oldWidget.speech != widget.speech ||
         oldWidget.speaker != widget.speaker ||
-        oldWidget.live != widget.live) {
+        oldWidget.live != widget.live ||
+        oldWidget.wordLog != widget.wordLog) {
       _controller.dispose();
       _warmUp();
       _controller = _newController();
@@ -149,9 +199,10 @@ class _TalkerScreenState extends State<TalkerScreen> {
     widget.speech.warmUp().catchError((Object _) {});
   }
 
-  void _tap(TileFacts tile) {
-    HapticFeedback.selectionClick();
-    _controller.tapTile(tile);
+  /// Speaks the sentence; felt only when there is one to speak.
+  void _speak() {
+    if (_controller.strip.isNotEmpty) ChorusHaptics.sentenceSpoken();
+    unawaited(_controller.speakStrip());
   }
 
   /// Reached only by holding the waiting pill; asks before moving anything.
@@ -176,7 +227,10 @@ class _TalkerScreenState extends State<TalkerScreen> {
         ],
       ),
     );
-    if (ok == true && mounted) _controller.applyAdultChanges();
+    if (ok == true && mounted) {
+      ChorusHaptics.wordPlaced();
+      _controller.applyAdultChanges();
+    }
   }
 
   @override
@@ -192,6 +246,7 @@ class _TalkerScreenState extends State<TalkerScreen> {
           ..showSnackBar(const SnackBar(content: Text(howToLeaveMessage)));
       },
       child: Scaffold(
+        // The board's own card, as on the home screen's miniature of it.
         backgroundColor: ChorusColors.of(context).surface,
         body: SafeArea(
           // Any finger anywhere counts as activity, whatever handles it.
@@ -204,8 +259,11 @@ class _TalkerScreenState extends State<TalkerScreen> {
               listenable: _controller,
               builder: (context, _) => LayoutBuilder(
                 builder: (context, box) => Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: _layout(talkerLayoutFor(box.biggest)),
+                  padding: const EdgeInsets.all(_edge),
+                  child: _layout(
+                    talkerLayoutFor(box.biggest),
+                    box.biggest.width - 2 * _edge,
+                  ),
                 ),
               ),
             ),
@@ -215,21 +273,38 @@ class _TalkerScreenState extends State<TalkerScreen> {
     );
   }
 
-  Widget _layout(TalkerLayout layout) {
+  /// Round the whole screen: the board needs every bit of it.
+  static const double _edge = 6;
+
+  /// Between rows of controls: the space between touch targets.
+  static const double _rowGap = ChorusSpace.targetGap;
+
+  Widget _layout(TalkerLayout layout, double width) {
     final controller = _controller;
     final snapshot = controller.snapshot;
-    const gap = SizedBox(height: 4);
-    final grid = snapshot == null
-        ? const Center(
-            child: Text('No board yet', style: TextStyle(fontSize: 24)),
-          )
+    final colors = ChorusColors.of(context);
+    Widget grid = snapshot == null
+        ? const _NoBoard()
         : _BoardGrid(
             snapshot: snapshot,
             media: widget.media,
             pulsing: controller.pulsing,
-            onTap: _tap,
+            onTap: controller.tapTile,
+            gap: layout == TalkerLayout.short ? 3 : 4,
           );
-    Widget status() => _StatusRow(
+    final heroTag = widget.heroTag;
+    if (heroTag != null && !ChorusMotion.reduced(context)) {
+      // The card the home screen's board flies in as; the same colour as
+      // the page once it lands. No shuttle of its own: home's draws the
+      // flight both ways. Linear, because the route already moves on the
+      // settle spring.
+      grid = Hero(
+        tag: heroTag,
+        curve: Curves.linear,
+        child: Material(color: colors.surface, child: grid),
+      );
+    }
+    final status = _StatusRow(
       controller: controller,
       speech: widget.speech,
       sync: widget.sync,
@@ -237,36 +312,51 @@ class _TalkerScreenState extends State<TalkerScreen> {
       onAdultUpdate: _confirmAdultChanges,
       layout: layout,
     );
-    Widget tabs(Axis axis) => BoardTabs(
-      boards: controller.boards,
+    final hasTabs = controller.showsTabs;
+    Widget tabs(Axis axis) => TalkerBoardTabs(
+      boards: controller.tabs,
       selectedId: controller.boardId,
       onSelect: controller.showBoard,
       attentionIds: controller.pulsingBoardIds,
       axis: axis,
     );
-    final sharing = controller.sharingSaid
-        ? [_SharingBar(onStop: controller.stopSharingSaid), gap]
+    final sharing = controller.sharingOn
+        ? [
+            _SharingBar(
+              paused: controller.private,
+              onStop: controller.stopSharingSaid,
+            ),
+            const SizedBox(height: _rowGap),
+          ]
         : const <Widget>[];
+    Widget strip({double fontSize = 32}) => _SentenceBox(
+      controller: controller,
+      onSpeak: _speak,
+      fontSize: fontSize,
+    );
 
     switch (layout) {
       case TalkerLayout.roomy:
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
               height: 72,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(child: _SentenceBox(controller: controller)),
-                  ..._stripButtons(controller, width: 64),
+                  Expanded(child: strip()),
+                  ..._stripButtons(controller, _speak, width: 64),
                 ],
               ),
             ),
-            gap,
-            status(),
-            gap,
-            tabs(Axis.horizontal),
-            gap,
+            const SizedBox(height: _rowGap),
+            status,
+            if (hasTabs) ...[
+              const SizedBox(height: _rowGap),
+              tabs(Axis.horizontal),
+            ],
+            const SizedBox(height: _rowGap),
             ...sharing,
             Expanded(child: grid),
           ],
@@ -276,26 +366,33 @@ class _TalkerScreenState extends State<TalkerScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // The whole width for the sentence.
-            SizedBox(height: 64, child: _SentenceBox(controller: controller)),
-            gap,
+            SizedBox(height: 64, child: strip()),
+            const SizedBox(height: _rowGap),
             SizedBox(
               height: 52,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: _stripButtons(controller, leadingGap: false),
+                children: _stripButtons(controller, _speak, leadingGap: false),
               ),
             ),
-            gap,
-            status(),
-            gap,
-            tabs(Axis.horizontal),
-            gap,
+            const SizedBox(height: _rowGap),
+            status,
+            if (hasTabs) ...[
+              const SizedBox(height: _rowGap),
+              tabs(Axis.horizontal),
+            ],
+            const SizedBox(height: _rowGap),
             ...sharing,
             Expanded(child: grid),
           ],
         );
       case TalkerLayout.short:
-        final manyBoards = liveBoards(controller.boards).length > 1;
+        // What the strip's buttons and the gaps round them take. The status
+        // marks get half of what is left, always the same half: sized to
+        // what they show, they would push Speak, Delete last word and Clear
+        // sideways each time a pill came or "Private" turned on.
+        const buttons = 3 * 52 + 4 * _rowGap;
+        final statusRoom = math.max(0.0, (width - buttons) / 2);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -305,23 +402,32 @@ class _TalkerScreenState extends State<TalkerScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: _SentenceBox(controller: controller, fontSize: 26),
+                  Expanded(child: strip(fontSize: 26)),
+                  ..._stripButtons(controller, _speak, width: 52),
+                  const SizedBox(width: _rowGap),
+                  SizedBox(
+                    width: statusRoom,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: status,
+                      ),
+                    ),
                   ),
-                  ..._stripButtons(controller, width: 52),
-                  const SizedBox(width: 6),
-                  status(),
                 ],
               ),
             ),
-            gap,
-            ...sharing,
+            // Sharing is a pill in the row above here, so the grid keeps
+            // its height.
+            const SizedBox(height: 4),
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Beside the grid, where a row of tabs would cost height.
-                  if (manyBoards) ...[
+                  if (hasTabs) ...[
                     SizedBox(width: 92, child: tabs(Axis.vertical)),
                     const SizedBox(width: 4),
                   ],
@@ -338,35 +444,37 @@ class _TalkerScreenState extends State<TalkerScreen> {
 /// Speak, delete the last word, clear. With a [width] each button is that
 /// wide; without, the three share the row equally.
 List<Widget> _stripButtons(
-  TalkerController controller, {
+  TalkerController controller,
+  VoidCallback onSpeak, {
   double? width,
   bool leadingGap = true,
 }) {
+  const gap = SizedBox(width: ChorusSpace.targetGap);
   Widget sized(Widget button) => width == null
       ? Expanded(child: button)
       : SizedBox(width: width, child: button);
   return [
-    if (leadingGap) const SizedBox(width: 6),
+    if (leadingGap) gap,
     sized(
       _StripButton(
-        icon: Icons.volume_up,
+        icon: Icons.volume_up_rounded,
         label: 'Speak',
-        filled: true,
-        onPressed: controller.speakStrip,
+        primary: true,
+        onPressed: onSpeak,
       ),
     ),
-    const SizedBox(width: 6),
+    gap,
     sized(
       _StripButton(
-        icon: Icons.backspace_outlined,
+        icon: Icons.backspace_rounded,
         label: 'Delete last word',
         onPressed: controller.backspace,
       ),
     ),
-    const SizedBox(width: 6),
+    gap,
     sized(
       _StripButton(
-        icon: Icons.clear,
+        icon: Icons.clear_rounded,
         label: 'Clear',
         onPressed: controller.clearStrip,
       ),
@@ -374,13 +482,114 @@ List<Widget> _stripButtons(
   ];
 }
 
+/// Shown in place of the board until the circle has one: grey laminated
+/// tiles holding the board's space, and a line saying why.
+class _NoBoard extends StatelessWidget {
+  const _NoBoard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
+    final corner = BorderRadius.circular(ChorusSpace.tileRadius);
+    Widget tile() => Padding(
+      padding: const EdgeInsets.all(4),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: ChorusSpace.edge),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: edgeFor(colors.line),
+                borderRadius: corner,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: ChorusSpace.edge),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.line,
+                borderRadius: corner,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return Semantics(
+      container: true,
+      label: 'No board yet. It shows here as soon as this device has it',
+      excludeSemantics: true,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Column(
+              children: [
+                for (var row = 0; row < starterRows; row++)
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var col = 0; col < starterCols; col++)
+                          Expanded(child: tile()),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(ChorusSpace.marginPhone),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(ChorusSpace.panelRadius),
+                  border: Border.all(color: colors.line),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'No board yet',
+                        textAlign: TextAlign.center,
+                        style: ChorusType.headline.copyWith(color: colors.ink),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'It shows here as soon as this device has it.',
+                        textAlign: TextAlign.center,
+                        style: ChorusType.body.copyWith(color: colors.inkMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// The grid: equal cells, each at its own row and column, every label at
 /// the one size the board's longest label allows.
+///
+/// A word that was not on this board a moment ago fades in where it lands;
+/// nothing else on the grid ever moves by itself.
 class _BoardGrid extends StatefulWidget {
   const _BoardGrid({
     required this.snapshot,
     required this.pulsing,
     required this.onTap,
+    required this.gap,
     this.media,
   });
 
@@ -391,34 +600,61 @@ class _BoardGrid extends StatefulWidget {
   final Set<String> pulsing;
   final ValueChanged<TileFacts> onTap;
 
+  /// Space round each cell.
+  final double gap;
+
   @override
   State<_BoardGrid> createState() => _BoardGridState();
 }
 
 class _BoardGridState extends State<_BoardGrid> {
-  /// Space round each cell.
-  static const double _gap = 3;
-
   /// Remembers the size until the layout or the labels change.
   final TileLabelSizer _sizer = TileLabelSizer();
+
+  /// Tiles new to the board on show since the last snapshot: they fade in.
+  /// A board the child has just switched to is shown at once.
+  Set<String> _arriving = const {};
+
+  @override
+  void didUpdateWidget(_BoardGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final before = oldWidget.snapshot;
+    final now = widget.snapshot;
+    if (identical(before, now) || before.board.id != now.board.id) {
+      _arriving = const {};
+      return;
+    }
+    final known = {for (final tile in before.cells.values) tile.id};
+    _arriving = {
+      for (final tile in now.cells.values)
+        if (!known.contains(tile.id)) tile.id,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final snapshot = widget.snapshot;
     final board = snapshot.board;
+    final gap = widget.gap;
     if (board.rows <= 0 || board.cols <= 0) return const SizedBox.expand();
+    final pictures = tilesHavePictures(
+      snapshot.cells.values,
+      media: widget.media,
+    );
     return LayoutBuilder(
       builder: (context, box) {
+        final tileSize = Size(
+          box.maxWidth / board.cols - 2 * gap,
+          box.maxHeight / board.rows - 2 * gap,
+        );
         final labelSize = _sizer.sizeFor(
           labels: snapshot.cells.values.map((tile) => tile.label),
-          tile: Size(
-            box.maxWidth / board.cols - 2 * _gap,
-            box.maxHeight / board.rows - 2 * _gap,
-          ),
-          style: DefaultTextStyle.of(context).style,
+          tile: tileSize,
           scaler: MediaQuery.textScalerOf(context),
           direction: Directionality.of(context),
+          pictures: pictures,
         );
+        final radius = ChorusSpace.tileRadiusFor(tileSize.shortestSide);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -430,8 +666,13 @@ class _BoardGridState extends State<_BoardGrid> {
                     for (var col = 0; col < board.cols; col++)
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(_gap),
-                          child: _cell(snapshot.cells[(row, col)], labelSize),
+                          padding: EdgeInsets.all(gap),
+                          child: _cell(
+                            snapshot.cells[(row, col)],
+                            labelSize,
+                            radius,
+                            pictures,
+                          ),
                         ),
                       ),
                   ],
@@ -443,7 +684,12 @@ class _BoardGridState extends State<_BoardGrid> {
     );
   }
 
-  Widget _cell(TileFacts? tile, double labelSize) {
+  Widget _cell(
+    TileFacts? tile,
+    double labelSize,
+    double radius,
+    bool pictures,
+  ) {
     if (tile == null) return const SizedBox.expand();
     final glowing = widget.pulsing.contains(tile.id);
     // The glow wraps the tile and is always in the tree, so a tile keeps
@@ -451,25 +697,86 @@ class _BoardGridState extends State<_BoardGrid> {
     return _Glow(
       key: ValueKey(tile.id),
       active: glowing,
-      child: TileView(
-        tile: tile,
-        media: widget.media,
-        highlighted: glowing,
-        labelSize: labelSize,
-        onTap: () => widget.onTap(tile),
+      radius: radius,
+      child: _Arrival(
+        fade: _arriving.contains(tile.id),
+        child: TileView(
+          tile: tile,
+          media: widget.media,
+          highlighted: glowing,
+          labelSize: labelSize,
+          pictures: pictures,
+          haptic: ChorusHaptic.wordTapped,
+          onTap: () => widget.onTap(tile),
+        ),
       ),
     );
   }
 }
 
-/// A ring that breathes around a tile while an adult is pointing at it.
+/// A word arriving on the board: it fades in where it lands, over
+/// [ChorusMotion.wordFade], and never slides. Any other tile is drawn at
+/// once.
+class _Arrival extends StatefulWidget {
+  const _Arrival({required this.fade, required this.child});
+
+  /// Read once, when the tile first appears.
+  final bool fade;
+  final Widget child;
+
+  @override
+  State<_Arrival> createState() => _ArrivalState();
+}
+
+class _ArrivalState extends State<_Arrival>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fade = AnimationController(
+    vsync: this,
+    value: 1,
+  );
+  late final Animation<double> _opacity = CurvedAnimation(
+    parent: _fade,
+    curve: ChorusMotion.entrance,
+  );
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (widget.fade) {
+      _fade.duration = ChorusMotion.duration(context, ChorusMotion.wordFade);
+      _fade.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _fade.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      FadeTransition(opacity: _opacity, child: widget.child);
+}
+
+/// An ink ring that breathes over a tile while an adult is pointing at it.
 ///
 /// It is drawn over the tile and takes no space, so nothing on the board
-/// moves. With animations turned off on the device the ring is steady.
+/// moves. It is in tile ink, which reads on every family's fill in both
+/// modes. With animations turned off on the device the ring is steady.
 class _Glow extends StatefulWidget {
-  const _Glow({super.key, required this.active, required this.child});
+  const _Glow({
+    super.key,
+    required this.active,
+    required this.radius,
+    required this.child,
+  });
 
   final bool active;
+  final double radius;
   final Widget child;
 
   @override
@@ -477,8 +784,6 @@ class _Glow extends StatefulWidget {
 }
 
 class _GlowState extends State<_Glow> with SingleTickerProviderStateMixin {
-  static const Color _ring = Color(0xFF1F4E9C);
-
   late final AnimationController _breath = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
@@ -488,7 +793,7 @@ class _GlowState extends State<_Glow> with SingleTickerProviderStateMixin {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _still = ChorusMotion.reduced(context);
     _sync();
   }
 
@@ -524,10 +829,10 @@ class _GlowState extends State<_Glow> with SingleTickerProviderStateMixin {
         return DecoratedBox(
           position: DecorationPosition.foreground,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(widget.radius),
             border: Border.all(
-              color: _ring.withValues(alpha: strength),
-              width: 6,
+              color: tileLabelInk.withValues(alpha: strength),
+              width: 4,
             ),
           ),
           child: child,
@@ -539,54 +844,137 @@ class _GlowState extends State<_Glow> with SingleTickerProviderStateMixin {
 }
 
 /// Says that spoken sentences are being sent to the circle, for as long as
-/// they are. A tap stops it; only a guardian can start it again, elsewhere.
+/// a guardian has that on. A tap stops it; only a guardian can start it
+/// again, elsewhere. While the board is private it says that nothing is
+/// being sent, and keeps its place, so the board under it does not move.
 class _SharingBar extends StatelessWidget {
-  const _SharingBar({required this.onStop});
+  const _SharingBar({required this.paused, required this.onStop});
 
+  /// The board is private: nothing is sent until it is not.
+  final bool paused;
   final VoidCallback onStop;
 
   @override
   Widget build(BuildContext context) {
     final colors = ChorusColors.of(context);
+    final words = Row(
+      children: [
+        Icon(
+          paused ? Icons.visibility_off_rounded : Icons.podcasts_rounded,
+          size: 20,
+          color: paused ? colors.ink : colors.surface,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            paused ? sharingPausedMessage : sharingSaidMessage,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: ChorusType.label.copyWith(
+              color: paused ? colors.ink : colors.surface,
+            ),
+          ),
+        ),
+        if (!paused)
+          Text(
+            'Tap to stop',
+            maxLines: 1,
+            style: ChorusType.status.copyWith(color: colors.surface),
+          ),
+      ],
+    );
+    if (paused) {
+      return Semantics(
+        container: true,
+        label: '$sharingSaidMessage is paused while the board is private',
+        excludeSemantics: true,
+        child: Container(
+          height: ChorusSpace.minTarget,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(ChorusSpace.buttonRadius),
+            border: Border.all(color: colors.ink, width: 1.5),
+          ),
+          child: words,
+        ),
+      );
+    }
+    return SizedBox(
+      height: ChorusSpace.minTarget,
+      child: PressableSurface(
+        onTap: onStop,
+        semanticLabel: '$sharingSaidMessage. Tap to stop',
+        foregroundColor: colors.surface,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: SizedBox.expand(child: words),
+      ),
+    );
+  }
+}
+
+/// [_SharingBar] as a pill in the status row of a phone on its side, where
+/// a bar would take height from the board.
+class _SharingPill extends StatelessWidget {
+  const _SharingPill({required this.paused, required this.onStop});
+
+  final bool paused;
+  final VoidCallback onStop;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
+    final ink = paused ? colors.ink : colors.surface;
+    final pill = Container(
+      constraints: const BoxConstraints(minHeight: 36),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: paused ? null : colors.ink,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colors.ink, width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            paused ? Icons.visibility_off_rounded : Icons.podcasts_rounded,
+            size: 18,
+            color: ink,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            paused ? 'Not shared' : 'Sharing',
+            maxLines: 1,
+            style: ChorusType.label.copyWith(color: ink),
+          ),
+        ],
+      ),
+    );
+    if (paused) {
+      return Semantics(
+        container: true,
+        label: '$sharingSaidMessage is paused while the board is private',
+        excludeSemantics: true,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: ChorusSpace.minTarget),
+          child: Center(widthFactor: 1, child: pill),
+        ),
+      );
+    }
     return Semantics(
+      container: true,
       button: true,
       label: '$sharingSaidMessage. Tap to stop',
-      excludeSemantics: true,
       onTap: onStop,
-      child: SizedBox(
-        height: 48,
-        child: Material(
-          color: colors.ink,
-          borderRadius: BorderRadius.circular(12),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onStop,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  Icon(Icons.podcasts, size: 20, color: colors.surface),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      sharingSaidMessage,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: colors.surface,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Tap to stop',
-                    maxLines: 1,
-                    style: TextStyle(fontSize: 14, color: colors.surface),
-                  ),
-                ],
-              ),
-            ),
+      excludeSemantics: true,
+      child: Tooltip(
+        message: '$sharingSaidMessage. Tap to stop',
+        child: InkWell(
+          onTap: onStop,
+          splashFactory: NoSplash.splashFactory,
+          borderRadius: BorderRadius.circular(ChorusSpace.minTarget / 2),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: ChorusSpace.minTarget),
+            child: Center(widthFactor: 1, child: pill),
           ),
         ),
       ),
@@ -598,60 +986,84 @@ class _SharingBar extends StatelessWidget {
 ///
 /// A sentence that fits starts at the left edge, so its first word is the
 /// first thing read; one that is too long scrolls, with the newest word kept
-/// in view.
+/// in view. Its words are in the tile-label face, ink on card.
 class _SentenceBox extends StatelessWidget {
-  const _SentenceBox({required this.controller, this.fontSize = 32});
+  const _SentenceBox({
+    required this.controller,
+    required this.onSpeak,
+    this.fontSize = 32,
+  });
 
   final TalkerController controller;
+  final VoidCallback onSpeak;
   final double fontSize;
+
+  /// The ink line round the strip.
+  static const double _line = 2;
 
   @override
   Widget build(BuildContext context) {
+    // From the strip's edge to its first word.
     const side = 12.0;
     final colors = ChorusColors.of(context);
     final words = controller.strip;
     final sentence = words.map((t) => t.label).join(' ');
-    return Semantics(
-      button: true,
-      label: words.isEmpty ? 'Sentence, empty' : 'Sentence: $sentence',
-      excludeSemantics: true,
-      onTap: controller.speakStrip,
-      child: Material(
-        color: colors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colors.ink, width: 2),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: controller.speakStrip,
-          child: LayoutBuilder(
-            builder: (context, box) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              // Reversed so the newest word of a long sentence is in view.
-              reverse: true,
-              padding: const EdgeInsets.symmetric(horizontal: side),
-              child: ConstrainedBox(
-                // At least the width on show, so a short sentence sits at
-                // the left and is not pushed to the right by the reversal.
-                constraints: BoxConstraints(
-                  minWidth: box.maxWidth.isFinite && box.maxWidth > 2 * side
-                      ? box.maxWidth - 2 * side
-                      : 0,
-                ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    sentence,
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.w700,
-                      color: colors.ink,
+    final radius = BorderRadius.circular(ChorusSpace.buttonRadius);
+    return PressableSurface(
+      onTap: onSpeak,
+      semanticLabel: words.isEmpty ? 'Sentence, empty' : 'Sentence: $sentence',
+      color: colors.card,
+      edgeColor: colors.ink,
+      foregroundColor: colors.ink,
+      borderRadius: ChorusSpace.buttonRadius,
+      child: SizedBox.expand(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: colors.ink, width: _line),
+          ),
+          child: ClipRRect(
+            borderRadius: radius,
+            child: LayoutBuilder(
+              builder: (context, box) {
+                // Large text grows only as far as the strip is tall, so a
+                // word is never cut through.
+                final line = fontSize * 1.3;
+                final room = math.max(1.0, (box.maxHeight - 8) / line);
+                final scaler = MediaQuery.textScalerOf(
+                  context,
+                ).clamp(maxScaleFactor: math.max(1.0, room));
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  // Reversed so the newest word of a long sentence is in
+                  // view.
+                  reverse: true,
+                  // The ink line is drawn over the first of this.
+                  padding: const EdgeInsets.symmetric(horizontal: side),
+                  child: ConstrainedBox(
+                    // At least the width on show, so a short sentence sits
+                    // at the left and is not pushed to the right by the
+                    // reversal.
+                    constraints: BoxConstraints(
+                      minWidth: box.maxWidth.isFinite && box.maxWidth > 2 * side
+                          ? box.maxWidth - 2 * side
+                          : 0,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        sentence,
+                        maxLines: 1,
+                        softWrap: false,
+                        textScaler: scaler,
+                        style: ChorusType.tileLabel(
+                          fontSize,
+                        ).copyWith(color: colors.ink, inherit: false),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ),
@@ -660,57 +1072,47 @@ class _SentenceBox extends StatelessWidget {
   }
 }
 
+/// One of the strip's three buttons: Speak is ink, the other two are
+/// card-grey. Each stands on its laminated edge and sinks when pressed.
 class _StripButton extends StatelessWidget {
   const _StripButton({
     required this.icon,
     required this.label,
     required this.onPressed,
-    this.filled = false,
+    this.primary = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
-  final bool filled;
+  final bool primary;
 
   @override
   Widget build(BuildContext context) {
     final colors = ChorusColors.of(context);
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
+    final ink = primary ? colors.surface : colors.ink;
+    return PressableSurface(
       onTap: onPressed,
-      child: Material(
-        color: filled ? colors.ink : colors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colors.ink, width: 2),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onPressed();
-          },
-          child: Center(
-            child: Icon(
-              icon,
-              size: 32,
-              color: filled ? colors.surface : colors.ink,
-            ),
-          ),
-        ),
+      semanticLabel: label,
+      color: primary ? colors.ink : colors.line,
+      foregroundColor: ink,
+      borderRadius: ChorusSpace.buttonRadius,
+      child: SizedBox.expand(
+        child: Center(child: Icon(icon, size: 30, color: ink)),
       ),
     );
   }
 }
 
-/// Waiting pill, the no-offline-voice warning, sync chip and the exit lock.
+/// Waiting pill, the private control, the no-offline-voice warning, sync
+/// chip and the exit lock.
 ///
 /// Roomy: a full row with the chip in words. Narrow: a full row with the
-/// chip as an icon and shorter pills. Short: the same compact marks, only as
-/// wide as they need, to sit at the end of the strip's row.
+/// chip as an icon and shorter pills. Short: the same compact marks, against
+/// the right edge of a space of fixed width at the end of the strip's row,
+/// so nothing before them moves when they change. Where the row is
+/// too narrow for all of it (large text on a small phone) it is drawn
+/// smaller as a whole, never cut.
 class _StatusRow extends StatelessWidget {
   const _StatusRow({
     required this.controller,
@@ -732,7 +1134,7 @@ class _StatusRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final waiting = controller.waitingCount;
     final compact = layout != TalkerLayout.roomy;
-    final ink = ChorusColors.of(context).ink;
+    const gap = SizedBox(width: ChorusSpace.targetGap);
     final pill = waiting > 0
         ? _WaitingPill(
             count: waiting,
@@ -741,100 +1143,201 @@ class _StatusRow extends StatelessWidget {
             compact: compact,
           )
         : null;
-    final marks = [
+    final trailing = <Widget>[
+      if (compact)
+        SyncChip(sync: sync, compact: true)
+      else
+        // Room for its longest words, so the row round it may be measured
+        // at its natural width and drawn smaller when that is too wide.
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.textScalerOf(context).scale(420),
+          ),
+          child: SyncChip(sync: sync),
+        ),
       // Anything live is shown: this board is joined to the circle and
       // the other adults can see that it is here.
       if (controller.liveConnected)
-        Padding(
-          padding: const EdgeInsets.only(left: 6),
-          child: Tooltip(
-            message: liveConnectedMessage,
-            child: Icon(
-              Icons.sensors,
-              color: ink,
-              semanticLabel: liveConnectedMessage,
-            ),
-          ),
-        ),
+        const _Mark(icon: Icons.sensors_rounded, message: liveConnectedMessage),
       // For the adult: without an offline voice the board is silent
       // whenever there is no network.
       ValueListenableBuilder<bool>(
         valueListenable: speech.offlineVoiceReady,
         builder: (context, ready, _) => ready
             ? const SizedBox.shrink()
-            : Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: Tooltip(
-                  message: noOfflineVoiceMessage,
-                  child: Icon(
-                    Icons.volume_off,
-                    color: ink,
-                    semanticLabel: noOfflineVoiceMessage,
-                  ),
-                ),
+            : const _Mark(
+                icon: Icons.volume_off_rounded,
+                message: noOfflineVoiceMessage,
               ),
       ),
-      const SizedBox(width: 6),
+      if (controller.offersPrivate) ...[
+        gap,
+        _PrivateToggle(
+          on: controller.private,
+          compact: compact,
+          onChanged: controller.setPrivate,
+        ),
+      ],
+      gap,
       _HoldTarget(
         semanticsLabel: 'Hold for 2 seconds to leave the board',
         onHeld: onExit,
+        haptic: ChorusHaptic.leftBoard,
         square: false,
         child: _LeavePill(compact: compact),
       ),
     ];
-    switch (layout) {
-      case TalkerLayout.roomy:
-        return SizedBox(
-          height: 48,
-          child: Row(
-            children: [
-              if (pill != null) ...[pill, const SizedBox(width: 6)],
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: SyncChip(sync: sync),
-                ),
-              ),
-              ...marks,
-            ],
-          ),
-        );
-      case TalkerLayout.narrow:
-        return SizedBox(
-          height: 48,
-          child: Row(
-            children: [
-              // Shrinks rather than overflows on the narrowest phones.
-              Expanded(
-                child: pill == null
-                    ? const SizedBox.shrink()
-                    : FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: pill,
-                      ),
-              ),
-              const SizedBox(width: 6),
-              SyncChip(sync: sync, compact: true),
-              ...marks,
-            ],
-          ),
-        );
-      case TalkerLayout.short:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (pill != null) ...[pill, const SizedBox(width: 6)],
-            SyncChip(sync: sync, compact: true),
-            ...marks,
+    if (layout == TalkerLayout.short) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (pill != null) ...[pill, gap],
+          if (controller.sharingOn) ...[
+            _SharingPill(
+              paused: controller.private,
+              onStop: controller.stopSharingSaid,
+            ),
+            gap,
           ],
-        );
+          ...trailing,
+        ],
+      );
     }
+    return SizedBox(
+      // Fixed, so the board under it never moves when "Sync now" comes and
+      // goes: the chip in words is a little taller than a target.
+      height: layout == TalkerLayout.roomy ? 52 : ChorusSpace.minTarget,
+      child: LayoutBuilder(
+        builder: (context, box) => FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: box.maxWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (pill != null) pill else const SizedBox.shrink(),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: pill == null ? 0 : ChorusSpace.targetGap,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: trailing,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
-/// "N words waiting". When an adult is needed, holding it for 2 seconds
-/// offers the update.
+/// A small ink sign in the status row, with its words for a screen reader
+/// and as a tooltip.
+class _Mark extends StatelessWidget {
+  const _Mark({required this.icon, required this.message});
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Tooltip(
+        message: message,
+        child: Icon(
+          icon,
+          size: 24,
+          color: ChorusColors.of(context).ink,
+          semanticLabel: message,
+        ),
+      ),
+    );
+  }
+}
+
+/// "Private": pauses the word log and the sharing of sentences for the
+/// session. While on it is filled ink and names itself, so it shows from
+/// across the room that nothing is being logged or shared.
+class _PrivateToggle extends StatelessWidget {
+  const _PrivateToggle({
+    required this.on,
+    required this.compact,
+    required this.onChanged,
+  });
+
+  final bool on;
+
+  /// The icon alone while off.
+  final bool compact;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
+    final ink = on ? colors.surface : colors.ink;
+    final words = !compact || on;
+    return Semantics(
+      container: true,
+      button: true,
+      toggled: on,
+      label: privateLabel,
+      hint: on ? privateOnMessage : privateOffMessage,
+      onTap: () => onChanged(!on),
+      excludeSemantics: true,
+      child: Tooltip(
+        message: on ? privateOnMessage : privateOffMessage,
+        child: InkWell(
+          onTap: () => onChanged(!on),
+          // Nothing spreads or moves on the child's board.
+          splashFactory: NoSplash.splashFactory,
+          borderRadius: BorderRadius.circular(ChorusSpace.minTarget / 2),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: ChorusSpace.minTarget,
+              minHeight: ChorusSpace.minTarget,
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Container(
+                key: TalkerScreen.privateKey,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                padding: EdgeInsets.symmetric(horizontal: words ? 12 : 0),
+                decoration: BoxDecoration(
+                  color: on ? colors.ink : colors.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: colors.ink, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.visibility_off_rounded, size: 18, color: ink),
+                    if (words) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        privateLabel,
+                        maxLines: 1,
+                        style: ChorusType.label.copyWith(color: ink),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "N words waiting", in the status face. When an adult is needed, holding
+/// it for 2 seconds offers the update.
 class _WaitingPill extends StatelessWidget {
   const _WaitingPill({
     required this.count,
@@ -855,28 +1358,28 @@ class _WaitingPill extends StatelessWidget {
     final text = count == 1 ? '1 word waiting' : '$count words waiting';
     final colors = ChorusColors.of(context);
     final pill = Container(
-      height: 36,
+      constraints: const BoxConstraints(minHeight: 36),
       padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: colors.ink,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (needsAdult) ...[
-            Icon(Icons.supervisor_account, size: 18, color: colors.surface),
+            Icon(
+              Icons.supervisor_account_rounded,
+              size: 18,
+              color: colors.surface,
+            ),
             const SizedBox(width: 6),
           ],
           Text(
             compact ? '$count waiting' : text,
             maxLines: 1,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: colors.surface,
-            ),
+            style: ChorusType.status.copyWith(color: colors.surface),
           ),
         ],
       ),
@@ -907,12 +1410,16 @@ class _HoldTarget extends StatefulWidget {
     required this.semanticsLabel,
     required this.onHeld,
     required this.child,
+    this.haptic,
     this.square = true,
   });
 
   final String semanticsLabel;
   final VoidCallback? onHeld;
   final Widget child;
+
+  /// Felt when the hold completes. Null is none.
+  final ChorusHaptic? haptic;
 
   /// A 48dp square with a progress ring; otherwise wraps [child] with a
   /// progress bar beneath it.
@@ -974,7 +1481,7 @@ class _HoldTargetState extends State<_HoldTarget>
 
   void _fire() {
     _hold.value = 0;
-    HapticFeedback.mediumImpact();
+    ChorusHaptics.play(widget.haptic);
     widget.onHeld?.call();
   }
 
@@ -1060,7 +1567,8 @@ class _HoldTargetState extends State<_HoldTarget>
                                 ? LinearProgressIndicator(
                                     value: _hold.value,
                                     color: colors.ink,
-                                    backgroundColor: colors.surface,
+                                    backgroundColor: colors.line,
+                                    borderRadius: BorderRadius.circular(2),
                                   )
                                 : null,
                           ),
@@ -1138,22 +1646,22 @@ class _LeavePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final ink = ChorusColors.of(context).ink;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 12, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 36),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14),
       decoration: BoxDecoration(
         border: Border.all(color: ink, width: 1.5),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.lock_outline, size: compact ? 16 : 18, color: ink),
+          Icon(Icons.lock_rounded, size: compact ? 16 : 18, color: ink),
           SizedBox(width: compact ? 4 : 6),
           Text(
             leaveLabel,
             maxLines: 1,
-            style: TextStyle(
+            style: ChorusType.label.copyWith(
               fontSize: compact ? 13 : null,
-              fontWeight: FontWeight.w600,
               color: ink,
             ),
           ),

@@ -1,9 +1,13 @@
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_flutter/client.dart';
 import 'package:chorus_flutter/screens/sign_in_screen.dart';
+import 'package:chorus_ui/brand/haptics.dart';
+import 'package:chorus_ui/brand/mark.dart';
 import 'package:chorus_ui/brand/test_fonts.dart';
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
@@ -25,6 +29,9 @@ Future<void> _pumpOnPhone(
   Size size, {
   double top = 0,
   double bottom = 0,
+  Widget screen = const SignInScreen(),
+  bool dark = false,
+  double textScale = 1,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -32,7 +39,18 @@ Future<void> _pumpOnPhone(
   tester.view.viewPadding = FakeViewPadding(top: top, bottom: bottom);
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    MaterialApp(theme: chorusTheme(), home: const SignInScreen()),
+    MaterialApp(
+      theme: chorusTheme(),
+      darkTheme: chorusDarkTheme(),
+      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
+      home: screen,
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -107,8 +125,10 @@ void main() {
     await pumpScreen(tester, const SignInScreen());
     await tester.pumpAndSettle();
 
-    // Once: the heading is the only place the name is written.
-    expect(find.text('Chorus'), findsOneWidget);
+    // Once, as the wordmark: the heading is the only place the name is
+    // written.
+    expect(find.text('chorus'), findsOneWidget);
+    expect(find.byType(ChorusLockup), findsOneWidget);
     expect(find.text(_whatItIs), findsOneWidget);
     expect(find.text(_howToStart), findsOneWidget);
     // The heading sits above the form.
@@ -162,4 +182,98 @@ void main() {
     expect(find.text('Sign Up with email'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('opened from "Make a board for my child" it starts on the '
+      'sign-up form, and says what happens there', (tester) async {
+    await pumpScreen(tester, const SignInScreen(startWithSignUp: true));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign Up with email'), findsOneWidget);
+    expect(find.text('Sign In with email'), findsNothing);
+    expect(find.text(_howToStart), findsNothing);
+    expect(
+      find.text(
+        'Use your own email address. A code is sent to it, to check it is '
+        'yours.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('demo'), findsNothing);
+  });
+
+  testWidgets('reached from onboarding it has a Back button; on its own it '
+      'has none', (tester) async {
+    var back = 0;
+    await pumpScreen(tester, SignInScreen(onBack: () => back++));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Back'));
+    expect(back, 1);
+    expect(
+      tester
+          .getSize(
+            find.ancestor(
+              of: find.byTooltip('Back'),
+              matching: find.byType(IconButton),
+            ),
+          )
+          .shortestSide,
+      greaterThanOrEqualTo(48),
+    );
+
+    await pumpScreen(tester, const SignInScreen());
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Back'), findsNothing);
+  });
+
+  testWidgets('a failure is felt as well as read', (tester) async {
+    final felt = <ChorusHaptic>[];
+    ChorusHaptics.sink = felt.add;
+    addTearDown(() => ChorusHaptics.sink = null);
+    await pumpScreen(tester, const SignInScreen());
+    await tester.pumpAndSettle();
+
+    tester.widget<EmailSignInWidget>(find.byType(EmailSignInWidget)).onError!(
+      Exception('Invalid email or password.'),
+    );
+    await tester.pump();
+    expect(felt, [ChorusHaptic.failed]);
+  });
+
+  testWidgets('in the dark the heading reads on slate', (tester) async {
+    await _pumpOnPhone(tester, const Size(360, 640), dark: true);
+    expect(tester.takeException(), isNull);
+    final whatItIs = tester
+        .renderObject<RenderParagraph>(find.text(_whatItIs))
+        .text
+        .style!
+        .color!;
+    expect(whatItIs, ChorusColors.dark.ink);
+    final howToStart = tester
+        .renderObject<RenderParagraph>(find.text(_howToStart))
+        .text
+        .style!
+        .color!;
+    expect(howToStart, ChorusColors.dark.inkMuted);
+  });
+
+  for (final size in const [
+    Size(360, 640),
+    Size(360, 820),
+    Size(820, 360),
+    Size(1280, 800),
+    Size(1440, 900),
+  ]) {
+    testWidgets('${size.width.toInt()}x${size.height.toInt()}: it builds '
+        'without an error, light and dark, and at twice the text size', (
+      tester,
+    ) async {
+      for (final (dark, scale) in [(false, 1.0), (true, 1.0), (false, 2.0)]) {
+        await _pumpOnPhone(tester, size, dark: dark, textScale: scale);
+        expect(tester.takeException(), isNull, reason: '$dark $scale');
+        await tester.ensureVisible(find.text('Sign up'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: '$dark $scale');
+      }
+    });
+  }
 }

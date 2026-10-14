@@ -6,8 +6,11 @@ library;
 
 import 'package:chorus_client/chorus_client.dart';
 import 'package:chorus_ui/contracts.dart' show BoardStore, SyncStatus;
+import 'package:chorus_ui/contracts_boards.dart';
 import 'package:chorus_ui/contracts_media.dart';
+import 'package:chorus_ui/contracts_sharing.dart';
 import 'package:chorus_ui/contracts_suggest.dart';
+import 'package:chorus_ui/contracts_wordlog.dart';
 
 import '../src/live/chorus_live_session.dart';
 
@@ -57,7 +60,8 @@ abstract class Workspace {
 }
 
 /// What one circle offers beyond its board: photos and voices, the live
-/// session, a suggested word, a paper copy.
+/// session, a suggested word, a paper copy, the word log and "This week",
+/// sharing a board outside the circle, and managing the circle's boards.
 ///
 /// Every part is optional and the screens work without any of them, so a
 /// part that cannot be made on this device is simply left out.
@@ -70,6 +74,10 @@ class CircleServices {
     this.live,
     this.suggester,
     this.publishBoard,
+    this.wordLog,
+    this.summary,
+    this.sharing,
+    this.boards,
   });
 
   /// UUID of the signed-in adult; names their settings on this device.
@@ -96,6 +104,25 @@ class CircleServices {
   /// a printable page and completes with the page's address. Needs the
   /// network; throws when the page could not be made.
   final Future<String> Function(String boardJson)? publishBoard;
+
+  /// The circle's opt-in word log on this device: the child's board calls
+  /// `noteSpoken` on it, "Word log" shows and changes it, and its
+  /// `private` flag pauses it and "Share what is said" for the session.
+  final WordLog? wordLog;
+
+  /// "This week" from the word log. Null where the adult's role may not
+  /// see it (guardians and therapists may).
+  final WeekSummarySource? summary;
+
+  /// View-only links and .obf exports of a board. Null for a read-only
+  /// partner.
+  final BoardSharing? sharing;
+
+  /// Adding, renaming, archiving and importing boards. Null for a read-only
+  /// partner. The circle's `ReplicaBoardStore` is a [BoardManager] too, so
+  /// a screen holding the store may use that instead; both write the same
+  /// replica.
+  final BoardManager? boards;
 }
 
 typedef WorkspaceOpener = Future<Workspace> Function();

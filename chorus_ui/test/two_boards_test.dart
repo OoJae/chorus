@@ -9,9 +9,11 @@ import 'package:chorus_ui/fakes_live.dart';
 import 'package:chorus_ui/fakes_media.dart';
 import 'package:chorus_ui/talker/talker_controller.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
+import 'package:chorus_ui/talker/talker_tabs.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:chorus_ui/widgets/board_tabs.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
+import 'package:chorus_ui/widgets/tile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -46,7 +48,7 @@ void main() {
       expect(find.bySemanticsLabel(noOfflineVoiceMessage), findsOneWidget);
       expect(find.text(leaveLabel), findsOneWidget);
 
-      final tabs = find.byType(BoardTabs);
+      final tabs = find.byType(TalkerBoardTabs);
       expect(
         find.descendant(of: tabs, matching: find.text('Home')),
         findsOneWidget,
@@ -94,7 +96,7 @@ void main() {
         const Size(1200, 1600),
       );
       expect(find.text('Grandma'), findsNothing);
-      expect(find.byType(Image), findsNothing);
+      expect(find.byKey(TileView.photoKey), findsNothing);
 
       // A word is in the strip, so nothing would merge by itself: going to
       // another board is the child's own act and happens anyway.
@@ -103,7 +105,7 @@ void main() {
       await tester.pump();
       expect(find.text('want'), findsOneWidget, reason: 'only in the strip');
       expect(find.text('Grandma'), findsOneWidget);
-      expect(find.byType(Image), findsOneWidget);
+      expect(find.byKey(TileView.photoKey), findsOneWidget);
 
       await tester.tap(find.text('Grandma'));
       await tester.pump();
@@ -258,7 +260,7 @@ void main() {
           find
               .ancestor(
                 of: find.descendant(
-                  of: find.byType(BoardTabs),
+                  of: find.byType(TalkerBoardTabs),
                   matching: find.text(tab),
                 ),
                 matching: find.byWidgetPredicate(
@@ -275,14 +277,14 @@ void main() {
       }
 
       expect(ring('My words'), 0);
-      final tabs = tester.getRect(find.byType(BoardTabs));
+      final tabs = tester.getRect(find.byType(TalkerBoardTabs));
 
       live.receivePulse(grandma.id);
       await tester.pump();
       expect(ring('My words'), 1);
       expect(ring('Home'), 0);
       expect(find.text('Grandma'), findsNothing, reason: 'not switched');
-      expect(tester.getRect(find.byType(BoardTabs)), tabs);
+      expect(tester.getRect(find.byType(TalkerBoardTabs)), tabs);
 
       // On that board the word itself glows, so its tab needs no ring.
       await tester.tap(find.text('My words'));
@@ -292,6 +294,233 @@ void main() {
       await tester.pump(livePulseFor);
       await tester.pump();
       expect(ring('My words'), 0);
+    });
+  });
+
+  group("the child's tabs stay where they are", () {
+    Finder tab(String name) => find.descendant(
+      of: find.byType(TalkerBoardTabs),
+      matching: find.text(name),
+    );
+    Finder tile(String label) =>
+        find.byWidgetPredicate((w) => w is TileView && w.tile.label == label);
+    Map<String, Rect> tiles(WidgetTester tester) => {
+      for (final element in find.byType(TileView).evaluate())
+        (element.widget as TileView).tile.label: tester.getRect(
+          find.byWidget(element.widget),
+        ),
+    };
+
+    testWidgets('an adult archives the board the child is on: it stays on '
+        'show with its tab, nothing moves, and the tab back to Home is '
+        'there', (tester) async {
+      final store = FakeBoardStore.seeded();
+      await store.addTile(
+        boardId: store.wordsBoardId,
+        row: 0,
+        col: 0,
+        label: 'Grandma',
+      );
+      final speech = FakeSpeech();
+      await _pump(
+        tester,
+        TalkerScreen(store: store, speech: speech, sync: FakeSyncStatus()),
+        const Size(360, 800),
+      );
+      await tester.tap(tab('My words'));
+      await tester.pump();
+      final grandma = tester.getRect(tile('Grandma'));
+      final tabs = tester.getRect(find.byType(TalkerBoardTabs));
+
+      // On another device.
+      await store.archiveBoard(store.wordsBoardId);
+      await tester.pump();
+      await tester.tap(tile('Grandma'));
+      await tester.pump();
+      expect(speech.spoken.last, 'Grandma');
+      expect(tester.getRect(tile('Grandma')), grandma);
+      expect(tester.getRect(find.byType(TalkerBoardTabs)), tabs);
+      expect(tab('My words'), findsOneWidget);
+      expect(tab('Home'), findsOneWidget);
+
+      // The way back: Home is where it was, and the grid under the tabs
+      // does not move up when the archived board's tab goes.
+      final home = tester.getRect(find.byKey(ValueKey(store.homeBoardId)));
+      await tester.tap(tab('Home'));
+      await tester.pump();
+      expect(tile('want'), findsOneWidget);
+      expect(tab('My words'), findsNothing);
+      expect(tester.getRect(find.byKey(ValueKey(store.homeBoardId))), home);
+      expect(tester.getRect(find.byType(TalkerBoardTabs)), tabs);
+      expect(tester.getRect(tile('like')).top, grandma.top);
+    });
+
+    testWidgets('boards added, archived and renamed elsewhere wait while '
+        'the child is building a sentence: no tile and no tab moves', (
+      tester,
+    ) async {
+      final store = FakeBoardStore.seeded();
+      await _pump(
+        tester,
+        TalkerScreen(
+          store: store,
+          speech: FakeSpeech(),
+          sync: FakeSyncStatus(),
+        ),
+        const Size(360, 800),
+      );
+      await tester.tap(tile('want'));
+      await tester.pump();
+      final before = tiles(tester);
+      final tabs = {
+        for (final id in [store.homeBoardId, store.wordsBoardId])
+          id: tester.getRect(find.byKey(ValueKey(id))),
+      };
+
+      Future<void> expectStill() async {
+        await tester.pump();
+        expect(tiles(tester), before);
+        for (final MapEntry(key: id, value: rect) in tabs.entries) {
+          expect(tester.getRect(find.byKey(ValueKey(id))), rect, reason: id);
+        }
+        expect(tab('My words'), findsOneWidget);
+      }
+
+      await store.archiveBoard(store.wordsBoardId);
+      await expectStill();
+      final school = await store.addBoard('School');
+      await expectStill();
+      await store.renameBoard(school, 'Class');
+      await expectStill();
+      await store.addBoard('Park');
+      await expectStill();
+      expect(tab('School'), findsNothing);
+      expect(tab('Class'), findsNothing);
+      expect(tab('Park'), findsNothing);
+    });
+
+    testWidgets('at a safe point the changes land in place: a new board '
+        'takes the empty place, and the grid does not move', (tester) async {
+      final store = FakeBoardStore.seeded();
+      await _pump(
+        tester,
+        TalkerScreen(
+          store: store,
+          speech: FakeSpeech(),
+          sync: FakeSyncStatus(),
+        ),
+        const Size(360, 800),
+      );
+      final before = tiles(tester);
+      final myWords = tester.getRect(find.byKey(ValueKey(store.wordsBoardId)));
+      // Merges wait for the board to be quiet for 2 seconds, timed on a
+      // real clock.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 2100)),
+      );
+
+      await store.archiveBoard(store.wordsBoardId);
+      await tester.pump();
+      expect(tab('My words'), findsNothing);
+      expect(tab('Home'), findsOneWidget, reason: 'the row stays');
+      expect(tiles(tester), before);
+
+      final school = await store.addBoard('School');
+      await tester.pump();
+      expect(tab('School'), findsOneWidget);
+      expect(tester.getRect(find.byKey(ValueKey(school))), myWords);
+      expect(tiles(tester), before);
+    });
+
+    test('nextTabs keeps every place: a board that leaves leaves a gap, the '
+        'board on show keeps its tab, a new board fills the first gap', () {
+      BoardFacts board(String id, {bool home = false, bool archived = false}) =>
+          BoardFacts(
+            id: id,
+            name: id,
+            rows: 6,
+            cols: 6,
+            isHome: home,
+            archived: archived,
+          );
+      final home = board('home', home: true);
+      final a = board('a'), b = board('b'), c = board('c');
+      List<String?> ids(List<BoardFacts?> tabs) => [
+        for (final t in tabs) t?.id,
+      ];
+
+      // The first tabs: home first, then the circle's order.
+      expect(ids(TalkerController.nextTabs(const [], [a, home, b])), [
+        'home',
+        'a',
+        'b',
+      ]);
+      final tabs = [home, a, b];
+      // "a" is archived while "b" is on show: a gap, nothing moves.
+      expect(
+        ids(
+          TalkerController.nextTabs(tabs, [
+            home,
+            board('a', archived: true),
+            b,
+          ], onShow: 'b'),
+        ),
+        ['home', null, 'b'],
+      );
+      // "b" is archived while on show: it keeps its tab.
+      expect(
+        ids(
+          TalkerController.nextTabs(tabs, [
+            home,
+            a,
+            board('b', archived: true),
+          ], onShow: 'b'),
+        ),
+        ['home', 'a', 'b'],
+      );
+      // A new board takes the first gap, else goes at the end.
+      expect(ids(TalkerController.nextTabs([home, null, b], [home, b, c])), [
+        'home',
+        'c',
+        'b',
+      ]);
+      expect(ids(TalkerController.nextTabs(tabs, [home, a, b, c])), [
+        'home',
+        'a',
+        'b',
+        'c',
+      ]);
+      // A rename is the same place with the new name.
+      final renamed = TalkerController.nextTabs(tabs, [
+        home,
+        const BoardFacts(id: 'a', name: 'School', rows: 6, cols: 6),
+        b,
+      ]);
+      expect(renamed[1]!.name, 'School');
+    });
+
+    test('a second board shows as tabs only at a safe point, and once shown '
+        'the tabs stay', () async {
+      final store = FakeBoardStore.seeded(withWordsBoard: false);
+      final talker = TalkerController(
+        store: store,
+        speech: FakeSpeech(),
+        quiet: Duration.zero,
+      );
+      addTearDown(talker.dispose);
+      expect(talker.showsTabs, isFalse);
+
+      talker.tapTile(store.tiles.first);
+      final school = await store.addBoard('School');
+      expect(talker.showsTabs, isFalse, reason: 'a sentence is being built');
+
+      talker.clearStrip();
+      expect(talker.checkSafePoint(), isTrue);
+      expect([for (final t in talker.tabs) t?.name], ['Home', 'School']);
+
+      await store.archiveBoard(school);
+      expect(talker.showsTabs, isTrue, reason: 'the grid never moves up');
+      expect([for (final t in talker.tabs) t?.name], ['Home', null]);
     });
   });
 

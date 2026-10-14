@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import '../contracts.dart';
 import '../contracts_live.dart';
 import '../contracts_media.dart';
+import '../contracts_wordlog.dart';
 
 /// Holds the board the child sees and the sentence being built.
 ///
@@ -16,18 +17,24 @@ import '../contracts_media.dart';
 /// as a waiting plan and only the automatic part of it is applied, and only at
 /// a safe point (strip empty, nothing playing, no finger down and no touch
 /// for [quiet]). Changes that would swap or move a visible tile, and a resize
-/// of the grid, wait for [applyAdultChanges].
+/// of the grid, wait for [applyAdultChanges]. The board tabs are held the
+/// same way; see [tabs].
 /// This class only reads the store.
 ///
 /// With a [LiveSession] the controller also reports which tiles an adult is
 /// pointing at ([pulsing]) and, only while a guardian has sharing on, sends
 /// each spoken sentence to the circle. A glow never changes the snapshot.
+///
+/// With a [WordLog] each tapped word is offered to it ([WordLog.noteSpoken]),
+/// which keeps it only while a guardian has the log on. [setPrivate] pauses
+/// the log and the sharing of sentences for the session.
 class TalkerController extends ChangeNotifier {
   TalkerController({
     required this._store,
     required this._speech,
     this._speaker,
     this._live,
+    this._wordLog,
     this._boardId,
     this._quiet = const Duration(seconds: 2),
   }) {
@@ -36,8 +43,10 @@ class TalkerController extends ChangeNotifier {
       _held = BoardSnapshot.of(board, _store.tiles, _store.boards);
       _fresh = _held;
     }
+    _tabs = nextTabs(const [], _store.boards, onShow: _held?.board.id);
     _store.addListener(_onStoreChanged);
     _live?.addListener(_onLiveChanged);
+    _wordLog?.addListener(_onLiveChanged);
     _timer = Timer.periodic(recheckEvery, (_) => checkSafePoint());
   }
 
@@ -51,13 +60,25 @@ class TalkerController extends ChangeNotifier {
   /// can play clips itself, and to the tile's text otherwise.
   final TileSpeaker? _speaker;
   final LiveSession? _live;
+  final WordLog? _wordLog;
   String? _boardId;
+
+  /// Private mode where there is no word log to keep it: for as long as
+  /// this controller lives.
+  bool _private = false;
   final Duration _quiet;
 
   Timer? _timer;
   BoardSnapshot? _held;
   BoardSnapshot? _fresh;
   SnapshotPlan? _plan;
+
+  /// The tabs the child sees; see [tabs].
+  List<BoardFacts?> _tabs = const [];
+
+  /// The tabs as the replica has them now, while that differs from
+  /// [_tabs]: they wait like a word does.
+  List<BoardFacts?>? _nextTabs;
 
   /// What the child last saw on each board they have left, by board id.
   /// Coming back to a board starts from this, not from the replica.
@@ -99,8 +120,12 @@ class TalkerController extends ChangeNotifier {
   /// True while this board is joined to the circle's live session.
   bool get liveConnected => _live?.connected ?? false;
 
-  /// True while each spoken sentence is being sent to the circle.
-  bool get sharingSaid => _live?.shareSaid ?? false;
+  /// True while a guardian has sharing on for this device, private or not.
+  bool get sharingOn => _live?.shareSaid ?? false;
+
+  /// True while each spoken sentence is being sent to the circle: a
+  /// guardian turned sharing on and the board is not [private].
+  bool get sharingSaid => sharingOn && !private;
 
   /// Turns sharing off on this device. Turning it on is a guardian's
   /// choice, made outside the child's board.
@@ -108,6 +133,35 @@ class TalkerController extends ChangeNotifier {
     noteTouch();
     final live = _live;
     if (live != null && live.shareSaid) live.shareSaid = false;
+  }
+
+  /// True when there is something for [private] to pause: a word log or a
+  /// live session that can share sentences.
+  bool get offersPrivate => _wordLog != null || _live != null;
+
+  /// True while the board is private: no word is logged and no sentence is
+  /// shared. Kept by the word log for the whole session when there is one,
+  /// otherwise for as long as this board is open.
+  bool get private => _wordLog?.private ?? _private;
+
+  /// Pauses ([value] true) or resumes the word log and the sharing of
+  /// sentences. It does not change the guardian's sharing setting, which
+  /// comes back as it was when private mode ends.
+  void setPrivate(bool value) {
+    noteTouch();
+    final log = _wordLog;
+    if (log == null) {
+      if (_private == value) return;
+      _private = value;
+      notifyListeners();
+      return;
+    }
+    // The log tells its listeners, this controller among them.
+    try {
+      log.setPrivate(value);
+    } catch (_) {
+      // The board must keep working whatever the log does.
+    }
   }
 
   /// Ids of the boards that hold a tile an adult is pointing at, so a tab
@@ -124,8 +178,66 @@ class TalkerController extends ChangeNotifier {
   /// Id of the board on show, if any.
   String? get boardId => _held?.board.id;
 
-  /// Every board of the circle, for the tabs.
-  List<BoardFacts> get boards => _store.boards;
+  /// The board tabs, in the places the child knows them: a child finds a
+  /// board by where its tab is.
+  ///
+  /// Like the words, they are held: a board added, renamed or archived on
+  /// another device shows here only at a safe point (see [checkSafePoint]),
+  /// when the child goes to another board, or when an adult accepts the
+  /// waiting changes. Each board keeps its place. A board that leaves
+  /// leaves an empty place (null), so no other tab moves, and a new board
+  /// takes the first empty place or else goes at the end. The board on show
+  /// keeps its tab even after an adult archives it, so the child can always
+  /// get back to the others.
+  List<BoardFacts?> get tabs => List.unmodifiable(_tabs);
+
+  /// True when the tabs are drawn: there are two places or more. Once
+  /// drawn they stay for as long as this board is open, so the grid under
+  /// them never moves up.
+  bool get showsTabs => _tabs.length > 1;
+
+  /// The tabs after the circle's boards became [boards]: see [tabs]. Pure.
+  /// [onShow] is the id of the board on show.
+  @visibleForTesting
+  static List<BoardFacts?> nextTabs(
+    List<BoardFacts?> tabs,
+    Iterable<BoardFacts> boards, {
+    String? onShow,
+  }) {
+    // Home first, then in the order the circle made them.
+    final inUse = <String, BoardFacts>{
+      for (final board in boards.where((b) => b.isHome && !b.archived))
+        board.id: board,
+      for (final board in boards.where((b) => !b.isHome && !b.archived))
+        board.id: board,
+    };
+    final next = <BoardFacts?>[];
+    for (final tab in tabs) {
+      final now = tab == null ? null : inUse.remove(tab.id);
+      next.add(now ?? (tab != null && tab.id == onShow ? tab : null));
+    }
+    for (final board in inUse.values) {
+      final empty = next.indexOf(null);
+      if (empty < 0) {
+        next.add(board);
+      } else {
+        next[empty] = board;
+      }
+    }
+    return next;
+  }
+
+  /// [nextTabs] for the replica as it is now, or null when nothing changes.
+  List<BoardFacts?>? _tabsToApply() {
+    final next = nextTabs(_tabs, _store.boards, onShow: boardId);
+    return listEquals(next, _tabs) ? null : next;
+  }
+
+  /// Shows the replica's boards in the tabs now.
+  void _applyTabs() {
+    _tabs = _tabsToApply() ?? _tabs;
+    _nextTabs = null;
+  }
 
   /// Goes to another board. Moving between boards is the child's own act,
   /// so it happens at once, strip or no strip.
@@ -150,16 +262,24 @@ class TalkerController extends ChangeNotifier {
     _fresh = fresh;
     final plan = reconcileSnapshot(held, fresh);
     _plan = plan.isEmpty ? null : plan;
+    // The child's own act: the tabs catch up too, and the board left, if
+    // it was archived meanwhile, leaves its place empty.
+    _applyTabs();
     notifyListeners();
   }
 
   /// Adds [tile] to the strip and speaks it: its recorded clip when the
-  /// speech service can play clips, its text otherwise.
+  /// speech service can play clips, its text otherwise. The word log, if
+  /// any, is told; it keeps the word only while it is on and not private.
   void tapTile(TileFacts tile) {
     noteTouch();
     _strip.add(tile);
     notifyListeners();
     unawaited(_sayTile(tile));
+    // After the word is spoken: the log must never slow or break a tap.
+    try {
+      _wordLog?.noteSpoken(tile);
+    } catch (_) {}
   }
 
   /// Speaks the whole strip as one sentence. Does nothing when it is empty.
@@ -168,7 +288,7 @@ class TalkerController extends ChangeNotifier {
     noteTouch();
     if (_strip.isEmpty) return;
     final live = _live;
-    if (live != null && live.shareSaid) {
+    if (live != null && sharingSaid) {
       // The live session must never break the board either.
       try {
         live.sendSaid(_strip.map((t) => t.label).join(' '));
@@ -222,32 +342,39 @@ class TalkerController extends ChangeNotifier {
     _held = fresh;
     _fresh = fresh;
     _plan = null;
+    _applyTabs();
     notifyListeners();
   }
 
-  /// Applies the automatic part of the waiting plan if this is a safe point.
-  /// Returns true when the held snapshot changed. The timer calls this.
+  /// Applies the automatic part of the waiting plan, and any change to the
+  /// tabs, if this is a safe point. Returns true when what the child sees
+  /// changed. The timer calls this.
   @visibleForTesting
   bool checkSafePoint() {
+    if (_disposed || _pointersDown > 0) return false;
     final plan = _plan;
     final fresh = _fresh;
-    if (_disposed ||
-        plan == null ||
-        fresh == null ||
-        plan.auto.isEmpty ||
-        _pointersDown > 0) {
-      return false;
-    }
+    final words = plan != null && fresh != null && plan.auto.isNotEmpty
+        ? (plan, fresh)
+        : null;
+    final tabs = _nextTabs;
+    if (words == null && tabs == null) return false;
     final activity = TalkerActivity(
       stripEmpty: _strip.isEmpty,
       speaking: _speech.speaking.value,
       sinceLastTouch: _sinceTouch.elapsed,
     );
     if (!isSafePoint(activity, quiet: _quiet)) return false;
-    _held = plan.next;
-    // What is left is only what needs an adult.
-    final rest = reconcileSnapshot(plan.next, fresh);
-    _plan = rest.isEmpty ? null : rest;
+    if (words case (final plan, final fresh)) {
+      _held = plan.next;
+      // What is left is only what needs an adult.
+      final rest = reconcileSnapshot(plan.next, fresh);
+      _plan = rest.isEmpty ? null : rest;
+    }
+    if (tabs != null) {
+      _tabs = tabs;
+      _nextTabs = null;
+    }
     notifyListeners();
     return true;
   }
@@ -255,27 +382,31 @@ class TalkerController extends ChangeNotifier {
   void _onStoreChanged() {
     final board = _targetBoard();
     if (board == null) {
-      // The board is gone or archived: keep showing what the child has.
-      if (_plan != null) {
-        _plan = null;
-        notifyListeners();
-      }
+      // The board is gone or archived: keep showing what the child has,
+      // its tab included.
+      _plan = null;
+      _nextTabs = _tabsToApply();
+      if (!checkSafePoint()) notifyListeners();
       return;
     }
     final fresh = BoardSnapshot.of(board, _store.tiles, _store.boards);
     _fresh = fresh;
     final held = _held;
     if (held == null) {
+      // Nothing was on show to keep still.
       _held = fresh;
+      _applyTabs();
       notifyListeners();
       return;
     }
     final plan = reconcileSnapshot(held, fresh);
     _plan = plan.isEmpty ? null : plan;
+    _nextTabs = _tabsToApply();
     if (!checkSafePoint()) notifyListeners();
   }
 
-  /// A glow or the sharing switch changed; the held snapshot is untouched.
+  /// A glow, the sharing switch or private mode changed; the held snapshot
+  /// is untouched.
   void _onLiveChanged() {
     if (!_disposed) notifyListeners();
   }
@@ -313,6 +444,7 @@ class TalkerController extends ChangeNotifier {
     _timer?.cancel();
     _store.removeListener(_onStoreChanged);
     _live?.removeListener(_onLiveChanged);
+    _wordLog?.removeListener(_onLiveChanged);
     super.dispose();
   }
 }

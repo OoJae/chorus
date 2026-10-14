@@ -6,6 +6,7 @@ import 'package:chorus_ui/brand/laminated_border.dart';
 import 'package:chorus_ui/brand/tokens.dart';
 import 'package:chorus_ui/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// A page with one of each component the screens use.
@@ -253,6 +254,42 @@ void main() {
             );
           }
         }
+      });
+
+      testWidgets('a list row\'s second line is muted ink under its ink '
+          'title, and a disabled row fades on the tokens', (tester) async {
+        Color colourOf(String text) => tester
+            .renderObject<RenderParagraph>(find.text(text))
+            .text
+            .style!
+            .color!;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: build(),
+            home: Scaffold(
+              body: ListView(
+                children: [
+                  SwitchListTile(
+                    title: const Text('T'),
+                    subtitle: const Text('S'),
+                    value: false,
+                    onChanged: (_) {},
+                  ),
+                  const ListTile(
+                    title: Text('Off'),
+                    subtitle: Text('Off too'),
+                    enabled: false,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(colourOf('T'), colors.ink);
+        expect(colourOf('S'), colors.inkMuted);
+        expect(colourOf('Off'), colors.ink.withValues(alpha: 0.38));
+        expect(colourOf('Off too'), colors.ink.withValues(alpha: 0.38));
       });
 
       testWidgets('every component draws, and opens, without an error', (

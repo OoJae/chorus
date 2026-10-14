@@ -275,8 +275,12 @@ class _PressableSurfaceState extends State<PressableSurface>
         mouseCursor: _enabled ? SystemMouseCursors.click : MouseCursor.defer,
         onFocusChange: (focused) => setState(() => _focused = focused),
         onShowFocusHighlight: (show) => setState(() => _showRing = show),
+        // The Semantics above is the button and its tap: a second tap
+        // action here would split the child's words off into a node of
+        // their own, away from the button.
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
+          excludeFromSemantics: true,
           onTapDown: _enabled ? (_) => _down() : null,
           onTapUp: _enabled ? (_) => _up() : null,
           onTapCancel: _enabled ? _up : null,

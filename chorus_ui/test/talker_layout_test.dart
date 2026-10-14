@@ -7,8 +7,8 @@ import 'package:chorus_ui/editor/editor_screen.dart';
 import 'package:chorus_ui/fakes.dart';
 import 'package:chorus_ui/fakes_live.dart';
 import 'package:chorus_ui/talker/talker_screen.dart';
+import 'package:chorus_ui/talker/talker_tabs.dart';
 import 'package:chorus_ui/theme.dart';
-import 'package:chorus_ui/widgets/board_tabs.dart';
 import 'package:chorus_ui/widgets/label_fit.dart';
 import 'package:chorus_ui/widgets/sync_chip.dart';
 import 'package:chorus_ui/widgets/tile_view.dart';
@@ -225,7 +225,7 @@ void main() {
       expect(gridHeight, greaterThanOrEqualTo(0.7 * _landscape.height));
       expect(first.height, greaterThanOrEqualTo(40));
 
-      final tabs = tester.getRect(find.byType(BoardTabs));
+      final tabs = tester.getRect(find.byType(TalkerBoardTabs));
       expect(tabs.right, lessThanOrEqualTo(first.left));
       expect(tabs.top, greaterThanOrEqualTo(strip.bottom));
       expect(tabs.height, greaterThanOrEqualTo(0.7 * _landscape.height));
@@ -240,7 +240,7 @@ void main() {
 
       await tester.tap(
         find.descendant(
-          of: find.byType(BoardTabs),
+          of: find.byType(TalkerBoardTabs),
           matching: find.text('My words'),
         ),
       );
@@ -248,7 +248,7 @@ void main() {
       expect(_tile('like'), findsNothing);
       await tester.tap(
         find.descendant(
-          of: find.byType(BoardTabs),
+          of: find.byType(TalkerBoardTabs),
           matching: find.text('Home'),
         ),
       );
@@ -446,6 +446,57 @@ void main() {
       expect(fit(['I', 'go'], const Size(180, 40)), lessThan(maxTileLabelSize));
       // No labels at all is not an error.
       expect(fit([], tile), maxTileLabelSize);
+    });
+
+    test('TileLabelSizer measures in the tile-label style, whatever style '
+        'it is handed', () {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      double fit(TextStyle? style) => TileLabelSizer().sizeFor(
+        labels: ['I', 'go', 'different'],
+        tile: const Size(180, 180),
+        style: style,
+        scaler: TextScaler.noScaling,
+        direction: TextDirection.ltr,
+      );
+      final plain = fit(null);
+      expect(fit(const TextStyle(letterSpacing: 12, fontSize: 90)), plain);
+      expect(fit(const TextStyle(fontWeight: FontWeight.w100)), plain);
+    });
+
+    test('TileLabelSizer: on a board with pictures every label is sized for '
+        'the room a picture leaves', () {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      double fit(Size tile, {required bool pictures}) =>
+          TileLabelSizer().sizeFor(
+            labels: ['I', 'go'],
+            tile: tile,
+            scaler: TextScaler.noScaling,
+            direction: TextDirection.ltr,
+            pictures: pictures,
+          );
+      // An upright tile: the label shares the height with the picture.
+      const upright = Size(80, 80);
+      expect(fit(upright, pictures: false), maxTileLabelSize);
+      final under = fit(upright, pictures: true);
+      expect(under, lessThan(maxTileLabelSize));
+      final room = TileLayout(upright, picture: true).labelBox;
+      expect(under, lessThanOrEqualTo(room.height));
+      // A wide tile: the picture stands beside the label instead.
+      final beside = TileLayout(const Size(240, 90), picture: true);
+      expect(beside.pictureLayout, TilePictureLayout.beside);
+      expect(
+        TileLayout(upright, picture: true).pictureLayout,
+        TilePictureLayout.above,
+      );
+      // Larger text takes more of the tile from the picture.
+      expect(
+        TileLayout(
+          upright,
+          picture: true,
+          labelShare: pictureLabelShareFor(TextScaler.linear(2)),
+        ).labelBox.height,
+        greaterThan(room.height),
+      );
     });
   });
 

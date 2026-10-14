@@ -2,19 +2,28 @@
 library;
 
 import 'package:chorus_client/chorus_client.dart';
+import 'package:chorus_ui/brand/pressable_surface.dart';
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'messages.dart';
 import 'services.dart';
-import 'status_views.dart';
 
 /// Pick who is being invited, then show a single-use code to pass on.
+///
+/// The choices read from the top; the action is at the bottom, in reach of
+/// the thumb. While the code is being made the choices stay where they are
+/// and the button says so.
 class InviteScreen extends StatefulWidget {
   const InviteScreen({super.key, required this.gateway, required this.circle});
 
   final CircleGateway gateway;
   final CircleInfo circle;
+
+  /// The code, for tests.
+  @visibleForTesting
+  static const Key codeKey = ValueKey('invite-code');
 
   @override
   State<InviteScreen> createState() => _InviteScreenState();
@@ -65,110 +74,205 @@ class _InviteScreenState extends State<InviteScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Invite someone')),
       body: SafeArea(
-        child: _busy
-            ? const LoadingView(message: 'Making a code…')
-            : Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 520),
-                  child: _code == null ? _picker(context) : _result(context),
-                ),
-              ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: _code == null ? _picker(context) : _result(context),
+          ),
+        ),
       ),
     );
   }
 
   Widget _picker(BuildContext context) {
-    final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          "Who are you inviting to ${widget.circle.childName}'s board?",
-          style: theme.textTheme.titleLarge,
+    final colors = ChorusColors.of(context);
+    final error = _error;
+    return _Page(
+      key: const ValueKey('invite-picker'),
+      content: [
+        Semantics(
+          header: true,
+          child: Text(
+            "Who are you inviting to ${widget.circle.childName}'s board?",
+            style: ChorusType.headline.copyWith(color: colors.ink),
+          ),
         ),
-        const SizedBox(height: 8),
-        for (final role in CircleRole.values)
+        const SizedBox(height: 16),
+        for (final role in CircleRole.values) ...[
           _RoleOption(
             role: role,
             selected: role == _role,
-            onTap: () => setState(() => _role = role),
+            onTap: _busy ? null : () => setState(() => _role = role),
           ),
-        const SizedBox(height: 8),
-        if (_error != null) ...[
-          Text(_error!, style: theme.textTheme.bodyLarge),
-          const SizedBox(height: 12),
+          const SizedBox(height: ChorusSpace.targetGap + 4),
         ],
-        BigButton(
-          icon: _error == null ? Icons.vpn_key : Icons.refresh,
-          label: _error == null ? 'Make a code' : 'Retry',
-          onPressed: _makeCode,
-        ),
+        const SizedBox(height: 4),
         Text(
           'Everyone in the circle can see the whole board.',
-          style: theme.textTheme.bodyMedium,
+          style: ChorusType.body.copyWith(color: colors.inkMuted),
+        ),
+      ],
+      actions: [
+        if (error != null) ...[
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              error,
+              style: ChorusType.body.copyWith(color: colors.alert),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        FilledButton.icon(
+          onPressed: _busy ? null : _makeCode,
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+          icon: Icon(
+            error == null ? Icons.vpn_key_rounded : Icons.refresh_rounded,
+          ),
+          label: Text(
+            _busy
+                ? 'Making a code…'
+                : (error == null ? 'Make a code' : 'Retry'),
+          ),
         ),
       ],
     );
   }
 
   Widget _result(BuildContext context) {
-    final theme = Theme.of(context);
+    final colors = ChorusColors.of(context);
     final code = _code!;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'Give this code to the person you are inviting.',
-          style: theme.textTheme.titleLarge,
+    // A page of its own, read from the top.
+    return _Page(
+      key: const ValueKey('invite-result'),
+      content: [
+        Semantics(
+          header: true,
+          child: Text(
+            'Give this code to the person you are inviting.',
+            style: ChorusType.headline.copyWith(color: colors.ink),
+          ),
         ),
         const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        // The code on a laminated card, in the machine's face: it is made
+        // by Chorus, to be read out or typed.
+        DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.colorScheme.onSurface, width: 2),
+            color: colors.line,
+            borderRadius: BorderRadius.circular(ChorusSpace.panelRadius),
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: SelectableText(
-              code,
-              key: const ValueKey('invite-code'),
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 6,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: ChorusSpace.edge),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(ChorusSpace.panelRadius),
+                border: Border.all(color: colors.line),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 16,
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SelectableText(
+                    code,
+                    key: InviteScreen.codeKey,
+                    style: ChorusType.status.copyWith(
+                      fontSize: 44,
+                      height: 52 / 44,
+                      letterSpacing: 8,
+                      color: colors.ink,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 16),
-        BigButton(
-          icon: Icons.copy,
-          label: 'Copy code',
-          onPressed: () => _copy(code),
-        ),
         Text(
           'They join as: ${roleLabel(_codeRole!)}. They sign in, choose '
           '"Join with a code" and type it in. The code works once and '
           'runs out after 7 days.',
-          style: theme.textTheme.bodyLarge,
+          style: ChorusType.body.copyWith(color: colors.ink),
         ),
-        const SizedBox(height: 16),
-        BigButton(
-          icon: Icons.person_add_alt,
-          label: 'Invite someone else',
-          primary: false,
+      ],
+      actions: [
+        FilledButton.icon(
+          onPressed: () => _copy(code),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+          icon: const Icon(Icons.copy_rounded),
+          label: const Text('Copy code'),
+        ),
+        const SizedBox(height: ChorusSpace.targetGap + 4),
+        OutlinedButton.icon(
           onPressed: () => setState(() {
             _code = null;
             _codeRole = null;
           }),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+          ),
+          icon: const Icon(Icons.person_add_alt_rounded),
+          label: const Text('Invite someone else'),
         ),
       ],
     );
   }
 }
 
-/// One selectable role, named in plain words.
+/// [content] from the top, [actions] at the bottom in reach of the thumb.
+/// On a window too short for both, the actions follow the content in one
+/// scroll.
+class _Page extends StatelessWidget {
+  const _Page({super.key, required this.content, required this.actions});
+
+  final List<Widget> content;
+  final List<Widget> actions;
+
+  /// Below this height the actions are not held at the bottom.
+  static const double _pinFrom = 480;
+
+  @override
+  Widget build(BuildContext context) {
+    final margin = ChorusSpace.marginOf(context);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final actionColumn = Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: actions,
+        );
+        if (box.maxHeight < _pinFrom) {
+          return ListView(
+            padding: EdgeInsets.fromLTRB(margin, 16, margin, 24),
+            children: [...content, const SizedBox(height: 24), actionColumn],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(margin, 16, margin, 16),
+                children: content,
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(margin, 8, margin, 24),
+              child: actionColumn,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// One selectable role, named in plain words, on a laminated card.
 class _RoleOption extends StatelessWidget {
   const _RoleOption({
     required this.role,
@@ -178,33 +282,43 @@ class _RoleOption extends StatelessWidget {
 
   final CircleRole role;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Semantics(
-        selected: selected,
-        button: true,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.onSurface,
-                width: selected ? 3 : 1,
-              ),
+    final colors = ChorusColors.of(context);
+    final radius = BorderRadius.circular(ChorusSpace.buttonRadius);
+    // One node for a screen reader: a radio button with its words, in
+    // place of the surface's own.
+    return Semantics(
+      container: true,
+      checked: selected,
+      inMutuallyExclusiveGroup: true,
+      enabled: onTap != null,
+      label: '${roleLabel(role)}. ${roleDetail(role)}',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: PressableSurface(
+        onTap: onTap,
+        color: colors.surface,
+        edgeColor: selected ? colors.ink : colors.line,
+        foregroundColor: colors.ink,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(
+              color: selected ? colors.ink : colors.inkMuted,
+              width: selected ? 2 : 1,
             ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
                   selected
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_unchecked_rounded,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -213,12 +327,18 @@ class _RoleOption extends StatelessWidget {
                     children: [
                       Text(
                         roleLabel(role),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                        style: ChorusType.label.copyWith(
+                          fontSize: 17,
+                          height: 22 / 17,
+                          color: colors.ink,
                         ),
                       ),
-                      Text(roleDetail(role)),
+                      Text(
+                        roleDetail(role),
+                        style: ChorusType.body.copyWith(
+                          color: colors.inkMuted,
+                        ),
+                      ),
                     ],
                   ),
                 ),

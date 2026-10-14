@@ -95,6 +95,25 @@ class BoardObject extends StatefulWidget {
   @visibleForTesting
   static const Key focusRingKey = ValueKey('BoardObject.focusRing');
 
+  /// The card's height when it is [width] wide, laid flat: square tiles in
+  /// [rows] and [cols], with the gaps, padding and laminated edge the card
+  /// gives them. A screen that sizes the room round a board uses this
+  /// instead of guessing.
+  ///
+  /// A tile is about a quarter of the card's width over the number of
+  /// columns: keep it at least 52 dp where tiles are buttons
+  /// ([onTileTap]), so each press target stays 48 dp and 8 dp apart once the
+  /// tile's own gap is taken off.
+  static double heightFor({
+    required int rows,
+    required int cols,
+    required double width,
+  }) => _BoardLayout.fit(rows, cols, Size(width, double.infinity)).size.height;
+
+  /// The width of the card whose tiles are [tile] wide.
+  static double widthForTile({required int cols, required double tile}) =>
+      _BoardLayout._(1, cols, tile).size.width;
+
   @override
   State<BoardObject> createState() => _BoardObjectState();
 }
@@ -339,12 +358,23 @@ class _BoardObjectState extends State<BoardObject>
   Widget _board(BuildContext context, _BoardLayout layout, bool reduced) {
     final colors = ChorusColors.of(context);
     final brightness = Theme.of(context).brightness;
+    final scaler = MediaQuery.textScalerOf(context);
+    // One size for every label, measured in the room the label has on a
+    // tile of this board (beside a picture when any tile has one), as the
+    // child's board does.
+    final pictures = widget.cells.any((cell) => cell.image != null);
+    final tile = Size.square(layout.cell);
+    final tileLayout = TileLayout(
+      tile,
+      picture: pictures,
+      labelShare: pictureLabelShareFor(scaler),
+    );
     final labelSize = _sizer.sizeFor(
       labels: widget.cells.map((cell) => cell.label),
-      tile: Size(layout.cell, layout.cell - layout.tileEdge),
-      style: DefaultTextStyle.of(context).style.merge(ChorusType.body),
-      scaler: MediaQuery.textScalerOf(context),
+      tile: tile,
+      scaler: scaler,
       direction: Directionality.of(context),
+      pictures: pictures,
     );
     final radius = BorderRadius.circular(layout.cardRadius);
     return Stack(
@@ -375,7 +405,7 @@ class _BoardObjectState extends State<BoardObject>
               child: _depth(
                 cell,
                 reduced,
-                _tile(cell, layout, brightness, labelSize),
+                _tile(cell, layout, brightness, labelSize, tileLayout),
               ),
             ),
       ],
@@ -399,10 +429,15 @@ class _BoardObjectState extends State<BoardObject>
     _BoardLayout layout,
     Brightness brightness,
     double labelSize,
+    TileLayout tileLayout,
   ) {
     final colors = cell.family.colorsFor(brightness);
     final radius = ChorusSpace.tileRadiusFor(layout.cell);
-    final content = _TileContent(cell: cell, labelSize: labelSize);
+    final content = _TileContent(
+      cell: cell,
+      labelSize: labelSize,
+      layout: tileLayout,
+    );
     final onTileTap = widget.onTileTap;
     if (onTileTap != null) {
       return PressableSurface(
@@ -438,45 +473,82 @@ class _BoardObjectState extends State<BoardObject>
   }
 }
 
-/// A tile's label, under its picture when it has one.
+/// A tile's label, under its picture when it has one, in the box
+/// [TileLayout] gave it: the box the board's one label size was measured
+/// for. A word with no picture on a board with pictures is centred at the
+/// same size.
 class _TileContent extends StatelessWidget {
-  const _TileContent({required this.cell, required this.labelSize});
+  const _TileContent({
+    required this.cell,
+    required this.labelSize,
+    required this.layout,
+  });
 
   final BoardCell cell;
   final double labelSize;
+  final TileLayout layout;
 
   @override
   Widget build(BuildContext context) {
+    // Drawn exactly as the sizer measured it: nothing inherited from the
+    // text round the board (the body's line height would make it taller),
+    // so the fit is only ever a rounding error away.
     final label = FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
         cell.label,
         maxLines: 1,
+        softWrap: false,
         textAlign: TextAlign.center,
-        style: ChorusType.tileLabel(labelSize).copyWith(color: tileLabelInk),
+        style: ChorusType.tileLabel(
+          labelSize,
+        ).copyWith(color: tileLabelInk, inherit: false),
       ),
     );
+    // Every label in the same box, a word with no picture included: where
+    // even the smallest size is too large, all shrink alike.
+    final box = layout.labelBox;
+    final fitted = ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: box.width, maxHeight: box.height),
+      child: label,
+    );
     final image = cell.image;
+    final where = layout.pictureLayout;
+    if (image == null || where == null) {
+      return Padding(
+        padding: EdgeInsets.all(layout.padding),
+        child: Center(child: fitted),
+      );
+    }
+    final picture = Image(
+      image: image,
+      fit: BoxFit.contain,
+      gaplessPlayback: true,
+      excludeFromSemantics: true,
+      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+    );
     return Padding(
-      padding: const EdgeInsets.all(4),
-      child: image == null
-          ? Center(child: label)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Image(
-                    image: image,
-                    fit: BoxFit.contain,
-                    gaplessPlayback: true,
-                    excludeFromSemantics: true,
-                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                  ),
-                ),
-                Expanded(flex: 2, child: Center(child: label)),
-              ],
+      padding: EdgeInsets.all(layout.padding),
+      child: switch (where) {
+        TilePictureLayout.above => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: picture),
+            const SizedBox(height: tilePictureGap),
+            SizedBox(
+              height: box.height,
+              child: Center(child: fitted),
             ),
+          ],
+        ),
+        TilePictureLayout.beside => Row(
+          children: [
+            SizedBox.square(dimension: layout.besideSide, child: picture),
+            const SizedBox(width: tilePictureGap),
+            Expanded(child: Center(child: fitted)),
+          ],
+        ),
+      },
     );
   }
 }

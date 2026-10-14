@@ -69,6 +69,8 @@ ThemeData _chorusTheme(ChorusColors c, Brightness brightness) {
     scaffoldBackgroundColor: c.card,
     canvasColor: c.card,
     dividerColor: c.line,
+    // What a disabled list tile, among others, falls back to.
+    disabledColor: c.ink.withValues(alpha: 0.38),
     visualDensity: VisualDensity.standard,
     materialTapTargetSize: MaterialTapTargetSize.padded,
     textTheme: text,
@@ -326,9 +328,10 @@ ThemeData _chorusTheme(ChorusColors c, Brightness brightness) {
       disabledActionTextColor: c.card.withValues(alpha: 0.6),
       elevation: 0,
     ),
+    // No textColor: a list tile gives it to the subtitle too, over the
+    // muted ink of subtitleTextStyle.
     listTileTheme: ListTileThemeData(
       iconColor: c.ink,
-      textColor: c.ink,
       selectedColor: c.ink,
       titleTextStyle: ChorusType.body.copyWith(color: c.ink),
       subtitleTextStyle: ChorusType.body.copyWith(color: c.inkMuted),

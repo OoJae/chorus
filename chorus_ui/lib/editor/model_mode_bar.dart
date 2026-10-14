@@ -59,8 +59,11 @@ class ModelModeBar extends StatelessWidget {
           child: Material(
             color: on ? colors.card : colors.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: colors.ink, width: on ? 2 : 1),
+              borderRadius: BorderRadius.circular(ChorusSpace.buttonRadius),
+              side: BorderSide(
+                color: on ? colors.ink : colors.line,
+                width: on ? 2 : 1,
+              ),
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -70,14 +73,18 @@ class ModelModeBar extends StatelessWidget {
                 SwitchListTile(
                   value: on,
                   onChanged: onChanged,
-                  secondary: const Icon(Icons.touch_app_outlined),
-                  title: const Text('Show words on the board'),
+                  secondary: Icon(Icons.touch_app_rounded, color: colors.ink),
+                  title: Text(
+                    'Show words on the board',
+                    style: ChorusType.label.copyWith(color: colors.ink),
+                  ),
                   subtitle: Text(
                     on
                         ? 'Tap a word and it glows on the other devices. '
                               'Nothing is changed.'
                         : 'Turn on to point at words instead of '
                               'changing them.',
+                    style: ChorusType.body.copyWith(color: colors.inkMuted),
                   ),
                 ),
                 if (on)
@@ -105,7 +112,7 @@ class _LiveDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!live.connected) {
       return const _Line(
-        icon: Icons.cloud_off_outlined,
+        icon: Icons.cloud_off_rounded,
         text: modelNeedsConnectionMessage,
       );
     }
@@ -117,7 +124,7 @@ class _LiveDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _Line(
-          icon: Icons.people_outline,
+          icon: Icons.people_rounded,
           text: present.isEmpty
               ? modelNobodyHereMessage
               : 'Here now: ${present.join(', ')}',
@@ -126,7 +133,7 @@ class _LiveDetails extends StatelessWidget {
           const SizedBox(height: 6),
           Semantics(
             liveRegion: true,
-            child: _Line(icon: Icons.flare, text: showing),
+            child: _Line(icon: Icons.flare_rounded, text: showing),
           ),
         ],
         if (said != null && said.isNotEmpty) ...[
@@ -134,7 +141,7 @@ class _LiveDetails extends StatelessWidget {
           Semantics(
             liveRegion: true,
             child: _Line(
-              icon: Icons.chat_bubble_outline,
+              icon: Icons.chat_bubble_outline_rounded,
               text: 'Just said: $said',
               strong: true,
             ),
@@ -173,8 +180,7 @@ class _Line extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 16,
+            style: ChorusType.body.copyWith(
               fontWeight: strong ? FontWeight.w700 : FontWeight.w400,
               color: ink,
             ),

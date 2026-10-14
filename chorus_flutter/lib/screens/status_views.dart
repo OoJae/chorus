@@ -1,9 +1,15 @@
 /// Full-screen loading and failure states, and the large action button.
 library;
 
+import 'package:chorus_ui/brand/mark.dart';
+import 'package:chorus_ui/brand/motion.dart';
+import 'package:chorus_ui/brand/tokens.dart';
 import 'package:flutter/material.dart';
 
-/// A spinner with a line saying what is happening. Never a blank screen.
+/// The mark, a line saying what is happening, and a thin moving rule under
+/// it. Never a blank screen, and never a spinner filling it.
+///
+/// Under reduced motion there is no rule: the words say it.
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key, required this.message});
 
@@ -11,19 +17,35 @@ class LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 20),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+            const ChorusMark(size: 56),
+            const SizedBox(height: 24),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: ChorusType.headline.copyWith(color: colors.ink),
+              ),
             ),
+            if (!ChorusMotion.reduced(context)) ...[
+              const SizedBox(height: 20),
+              SizedBox(
+                width: 120,
+                child: ExcludeSemantics(
+                  child: LinearProgressIndicator(
+                    minHeight: 3,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -48,29 +70,30 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ChorusColors.of(context);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 48),
+              Icon(Icons.error_outline_rounded, size: 48, color: colors.alert),
               const SizedBox(height: 16),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: ChorusType.body.copyWith(color: colors.ink),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Retry'),
               ),
               if (onSignOut != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: ChorusSpace.targetGap),
                 TextButton(onPressed: onSignOut, child: const Text('Sign out')),
               ],
             ],
@@ -81,7 +104,8 @@ class ErrorView extends StatelessWidget {
   }
 }
 
-/// A full-width button tall enough to hit without aiming.
+/// A full-width button tall enough to hit without aiming: ink on a
+/// laminated edge when [primary], an ink outline otherwise.
 class BigButton extends StatelessWidget {
   const BigButton({
     super.key,
@@ -100,9 +124,8 @@ class BigButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const text = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
-    const size = Size.fromHeight(64);
-    final ink = Theme.of(context).colorScheme.onSurface;
+    final text = ChorusType.label.copyWith(fontSize: 17, height: 22 / 17);
+    const size = Size.fromHeight(60);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: primary
@@ -117,8 +140,6 @@ class BigButton extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 minimumSize: size,
                 textStyle: text,
-                foregroundColor: ink,
-                side: BorderSide(color: ink, width: 1.5),
               ),
               icon: Icon(icon),
               label: Text(label),

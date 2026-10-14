@@ -316,4 +316,89 @@ void main() {
     );
     expect(tester.widget<Hero>(find.byType(Hero)).tag, 'maya-board');
   });
+
+  testWidgets('heightFor and widthForTile say the size the card is drawn at', (
+    tester,
+  ) async {
+    await _pump(tester, reduced: true);
+    final card = tester.getSize(
+      find
+          .descendant(
+            of: find.byType(BoardObject),
+            matching: find.byType(Align),
+          )
+          .first,
+    );
+    expect(card.width, moreOrLessEquals(320));
+    expect(
+      BoardObject.heightFor(rows: 2, cols: 3, width: 320),
+      moreOrLessEquals(card.height),
+    );
+    final tile = tester.getSize(
+      find.ancestor(of: find.text('want'), matching: find.byType(Positioned)),
+    );
+    expect(
+      BoardObject.widthForTile(cols: 3, tile: tile.width),
+      moreOrLessEquals(320),
+    );
+  });
+
+  for (final width in [320.0, 120.0]) {
+    testWidgets('on a board with pictures every label is drawn at one size, '
+        'a word without a picture included, ${width.toInt()} wide', (
+      tester,
+    ) async {
+      final picture = MemoryImage(Uint8List.fromList(_onePixelPng));
+      const labels = ['I', 'we', 'me', 'up', 'go', 'no'];
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: chorusTheme(),
+          // Flat, so the sizes on screen are not those of the perspective.
+          home: MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: width,
+                  child: BoardObject(
+                    rows: 2,
+                    cols: 3,
+                    cells: [
+                      for (final (i, label) in labels.indexed)
+                        BoardCell(
+                          row: i ~/ 3,
+                          col: i % 3,
+                          label: label,
+                          image: label == 'go' ? null : picture,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final sizes = {
+        for (final label in labels)
+          tester.widget<Text>(find.text(label)).style!.fontSize,
+      };
+      expect(sizes, hasLength(1));
+      // Drawn, not only set, at one size: no label is shrunk to fit under
+      // its picture while the word with none stays large.
+      final pictured = tester.getRect(find.text('we')).height;
+      final alone = tester.getRect(find.text('go')).height;
+      expect(pictured, moreOrLessEquals(alone, epsilon: 0.5));
+    });
+  }
 }
+
+/// A transparent 1 x 1 PNG.
+const List<int> _onePixelPng = [
+  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, //
+  0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+  0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+  0x0D, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+  0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+  0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+];
