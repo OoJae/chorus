@@ -44,13 +44,13 @@ serverpod:
       windows: >-
         (if exist web\app rmdir /S /Q web\app)
         & cd /D ..\chorus_flutter
-        & set ARGS=web --base-href /
+        & set ARGS=web --base-href /app/
         && (call flutter build %ARGS% || (flutter clean && call flutter build %ARGS%))
         && xcopy /E /I /Y build\web ..\chorus_server\web\app
       posix: |
         rm -rf ../chorus_server/web/app
         cd ../chorus_flutter
-        set -- web --base-href / --output ../chorus_server/web/app
+        set -- web --base-href /app/ --output ../chorus_server/web/app
         flutter build "$@" || { flutter clean && flutter build "$@"; }
 
   # Companion Flutter apps that `serverpod start` can launch (Ctrl+R), keyed

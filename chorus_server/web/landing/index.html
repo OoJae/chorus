@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chorus: a talking board her whole circle keeps in step</title>
+<meta name="description" content="Chorus is a talking picture board for a non-speaking child. Every adult around her edits it from their own device, it speaks with no signal, and her buttons never move.">
+<meta name="theme-color" content="#F6F2EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101214" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/svg+xml" href="/landing/mark.v1.svg">
+<link rel="preload" href="/landing/fonts/fraunces.v1.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/landing/fonts/atkinson-next.v1.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/landing/landing.v1.css">
+<script src="/landing/landing.v1.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="lockup" href="#top" aria-label="Chorus, back to the top">
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <rect x="3" y="1.5" width="25" height="25" rx="6" fill="#7DB863"/><rect x="3" y="1.5" width="25" height="22" rx="6" fill="#C7EFB2"/>
+      <rect x="36" y="4.5" width="25" height="25" rx="6" fill="#D6B53F"/><rect x="36" y="4.5" width="25" height="22" rx="6" fill="#FFEFA0"/>
+      <rect x="3" y="37.5" width="25" height="25" rx="6" fill="#6E9FE0"/><rect x="3" y="37.5" width="25" height="22" rx="6" fill="#C0DBFF"/>
+      <rect x="36" y="37.5" width="25" height="25" rx="6" fill="#9B7BDF"/><rect x="36" y="37.5" width="25" height="22" rx="6" fill="#DDCBFF"/>
+    </svg>
+    <span class="wordmark">chorus</span>
+  </a>
+  <nav aria-label="Sections">
+    <ul class="nav-links">
+      <li><a href="#story">How it works</a></li>
+      <li><a href="#serverpod">Built on Serverpod</a></li>
+      <li><a href="#try">Try it</a></li>
+    </ul>
+  </nav>
+  <a class="btn btn-ink btn-small open-app" href="/app/">Open Chorus</a>
+</header>
+
+<main id="main">
+
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <p class="meta eyebrow"><span class="dot" aria-hidden="true"></span>A talking picture board for a child who does not speak</p>
+    <h1 id="hero-title" class="display hero-title">Many hands on one board. <em>Her words never move.</em></h1>
+    <p class="lede">Parents, a therapist and a teacher each change her board from their own phone or laptop, and Chorus keeps every copy in step. It speaks with no signal, and a button she already knows never changes place.</p>
+    <div class="hero-actions">
+      <a class="btn btn-ink btn-large open-app" href="/app/">Open Chorus</a>
+      <a class="btn btn-surface btn-large" href="#story">See how it works</a>
+    </div>
+  </div>
+
+  <div class="hero-board" id="hero-board">
+    <div class="strip-bar">
+      <p class="strip" id="strip"><span class="strip-hint">Tap the words to make a sentence</span></p>
+      <button class="btn btn-ink btn-act" type="button" id="say">Say it</button>
+      <button class="btn btn-surface btn-act" type="button" id="clear">Clear</button>
+    </div>
+    <div class="board-stage">
+      <div class="board3d" id="board3d">
+        <div class="board-grid" role="group" aria-label="Try the board: each word speaks">
+          <button class="tile c-person" type="button" data-say="I"><img src="/landing/symbols/i.svg" alt="" width="48" height="48"><span>I</span></button>
+          <button class="tile c-action" type="button" data-say="want"><img src="/landing/symbols/want.svg" alt="" width="48" height="48"><span>want</span></button>
+          <button class="tile c-describe" type="button" data-say="more"><img src="/landing/symbols/more.svg" alt="" width="48" height="48"><span>more</span></button>
+          <button class="tile c-action" type="button" data-say="help"><img src="/landing/symbols/help.svg" alt="" width="48" height="48"><span>help</span></button>
+          <button class="tile c-action" type="button" data-say="go"><img src="/landing/symbols/go.svg" alt="" width="48" height="48"><span>go</span></button>
+          <button class="tile c-action" type="button" data-say="look"><img src="/landing/symbols/look.svg" alt="" width="48" height="48"><span>look</span></button>
+          <button class="tile c-action" type="button" data-say="open"><img src="/landing/symbols/open.svg" alt="" width="48" height="48"><span>open</span></button>
+          <button class="tile c-describe" type="button" data-say="up"><img src="/landing/symbols/up.svg" alt="" width="48" height="48"><span>up</span></button>
+          <button class="tile c-question" type="button" data-say="what"><img src="/landing/symbols/what.svg" alt="" width="48" height="48"><span>what</span></button>
+          <button class="tile c-not tile-text" type="button" data-say="stop"><span>stop</span></button>
+          <button class="tile c-action tile-text" type="button" data-say="eat"><span>eat</span></button>
+          <button class="tile c-other tile-text" type="button" data-say="juice"><span>juice</span></button>
+        </div>
+      </div>
+      <div class="board-shadow" aria-hidden="true"></div>
+    </div>
+    <p class="board-note">Speaks with your device's own voice. Nothing is sent anywhere.</p>
+  </div>
+  <p class="sr-only" id="announce" aria-live="polite"></p>
+</section>
+
+<section class="story" id="story" aria-labelledby="story-title">
+  <div class="story-stage" id="story-stage" data-step="0">
+    <div class="story-head">
+      <p class="meta">How it works</p>
+      <h2 id="story-title" class="display section-title wipe">One board, three devices, no surprises.</h2>
+      <ol class="captions">
+        <li class="caption" data-for="1"><span class="meta">01</span><strong>No signal? She still talks.</strong><span>Her tablet speaks from its own copy of the board.</span></li>
+        <li class="caption" data-for="2"><span class="meta">02</span><strong>Dad adds &lsquo;juice&rsquo; from work.</strong><span>It waits until she pauses. Nothing moves.</span></li>
+        <li class="caption" data-for="3"><span class="meta">03</span><strong>Two adults, one empty spot, both offline.</strong><span>One word takes the spot, the other waits under &ldquo;Needs a home&rdquo;. Both words survive.</span></li>
+      </ol>
+    </div>
+
+    <div class="devices" aria-hidden="true">
+      <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="link link-a" d="M0 0"/>
+        <path class="link link-b" d="M0 0"/>
+      </svg>
+      <span class="pulse pulse-a"></span>
+      <span class="pulse pulse-b"></span>
+
+      <div class="device phone" id="dev-phone">
+        <div class="device-screen">
+          <p class="meta dev-who">Dad &middot; phone</p>
+          <p class="dev-title">Add a word</p>
+          <span class="chip-word c-other">juice</span>
+          <span class="chip-word c-action chip-late">outside</span>
+          <p class="meta dev-status">At work</p>
+        </div>
+      </div>
+
+      <div class="device tablet" id="dev-tablet">
+        <div class="device-screen">
+          <div class="dev-bar">
+            <p class="meta net"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="net-off">No signal</span><span class="net-on">Back in step</span></p>
+            <p class="meta waiting">1 waiting</p>
+          </div>
+          <p class="mini-strip"><span>I</span> <span>want</span> <span>more</span></p>
+          <div class="mini-grid">
+            <span class="mini c-person">I</span>
+            <span class="mini c-action m-want">want</span>
+            <span class="mini c-describe m-more">more</span>
+            <span class="mini c-action">help</span>
+            <span class="mini c-action">go</span>
+            <span class="mini c-action">look</span>
+            <span class="mini c-not">stop</span>
+            <span class="mini empty slot-juice"><span class="mini c-other lander lander-juice">juice</span></span>
+            <span class="mini c-question">what</span>
+            <span class="mini c-action">open</span>
+            <span class="mini c-describe">up</span>
+            <span class="mini empty slot-clash"><span class="mini c-action lander lander-a">outside</span><span class="mini c-action lander lander-b">swing</span></span>
+          </div>
+          <div class="tray">
+            <p class="meta">Needs a home</p>
+            <span class="mini c-action tray-word">swing</span>
+          </div>
+          <span class="bubble">&ldquo;I want more&rdquo;</span>
+        </div>
+      </div>
+
+      <div class="device laptop" id="dev-laptop">
+        <div class="device-screen">
+          <p class="meta dev-who">Therapist &middot; laptop</p>
+          <p class="dev-title">Board editor</p>
+          <span class="chip-word c-action chip-late">swing</span>
+          <p class="meta dev-status">Offline</p>
+        </div>
+        <div class="laptop-base"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features" aria-labelledby="features-title">
+  <div class="section-head">
+    <p class="meta">For the adults around her</p>
+    <h2 id="features-title" class="display section-title wipe">What the circle gets</h2>
+  </div>
+  <!-- One line per feature. Cut or add lines freely: the page lays out
+       whatever is here. -->
+  <ul class="cards" id="cards">
+    <li class="card"><h3>Speaks with no network</h3><p>Her board lives on her device and talks from there, in a car park or a lift.</p></li>
+    <li class="card"><h3>New words wait for a pause</h3><p>A word added mid-sentence waits behind a small chip until she stops tapping.</p></li>
+    <li class="card"><h3>Both words survive</h3><p>Two adults fill one spot offline: one word keeps it, the other waits under &ldquo;Needs a home&rdquo;.</p></li>
+    <li class="card"><h3>Try a clash on one device</h3><p>A guided demo plays two adults at once, so you can see it without a second phone.</p></li>
+    <li class="card"><h3>See who changed what</h3><p>Every change carries a name and a time, and undo takes one tap.</p></li>
+    <li class="card"><h3>Find a word, light it up</h3><p>Search from your phone and the button glows on her board, so you can show where it is.</p></li>
+    <li class="card"><h3>Modelled versus said</h3><p>Words you showed her and words she said are counted apart, with words of the week.</p></li>
+    <li class="card"><h3>Scanning and touch settings</h3><p>Switch scanning, hold time and guarding against repeat taps, set for her hands.</p></li>
+    <li class="card"><h3>Her voice, everywhere</h3><p>The voice chosen for her follows the board to every device in the circle.</p></li>
+    <li class="card"><h3>A second language</h3><p>The same buttons in the same places can speak a family's other language.</p></li>
+    <li class="card"><h3>Photo to word suggestions</h3><p>Snap the fridge and get word ideas for the adults to accept. It never speaks for her.</p></li>
+    <li class="card"><h3>Picture scenes</h3><p>A photo of a real place with spots that speak, for words that live somewhere.</p></li>
+    <li class="card"><h3>Paper copy and sitter link</h3><p>Print the board for the bath or the beach, or send a sitter a view-only link.</p></li>
+    <li class="card"><h3>Open Board Format, in and out</h3><p>Bring a board from another tool, or take hers with you.</p></li>
+    <li class="card"><h3>Private by default</h3><p>Counts, not transcripts. What she says stays hers.</p></li>
+  </ul>
+</section>
+
+<section class="serverpod" id="serverpod" aria-labelledby="serverpod-title">
+  <div class="section-head">
+    <p class="meta">Under the hood</p>
+    <h2 id="serverpod-title" class="display section-title wipe">Built on Serverpod</h2>
+    <p class="lede">Each device keeps its own copy of the board in SQLite. Serverpod's offline sync module carries changes to PostgreSQL and back, and the rest of the server does the quiet jobs around it.</p>
+  </div>
+  <figure class="diagram" id="diagram">
+    <svg class="diagram-wide" viewBox="0 0 1000 520" role="img" aria-labelledby="dg-title">
+      <title id="dg-title">Each device's SQLite copy syncs through the offline sync module to PostgreSQL on Serverpod Cloud, with future calls, streaming, file storage and web routes around it.</title>
+      <g class="dg-lines">
+        <path d="M250 110 C 330 110 330 260 400 260" pathLength="1"/>
+        <path d="M250 260 L 400 260" pathLength="1"/>
+        <path d="M250 410 C 330 410 330 260 400 260" pathLength="1"/>
+        <path d="M600 260 L 700 260" pathLength="1"/>
+        <path d="M820 220 L 820 120" pathLength="1"/>
+        <path d="M900 260 C 950 260 950 330 950 360" pathLength="1"/>
+        <path d="M820 300 L 820 400" pathLength="1"/>
+        <path d="M740 300 C 740 380 640 400 600 430" pathLength="1"/>
+      </g>
+      <g class="dg-node"><rect x="40" y="75" width="210" height="70" rx="16"/><text x="64" y="106" class="dg-t">Child's tablet</text><text x="64" y="128" class="dg-m">SQLITE COPY</text></g>
+      <g class="dg-node"><rect x="40" y="225" width="210" height="70" rx="16"/><text x="64" y="256" class="dg-t">Parent's phone</text><text x="64" y="278" class="dg-m">SQLITE COPY</text></g>
+      <g class="dg-node"><rect x="40" y="375" width="210" height="70" rx="16"/><text x="64" y="406" class="dg-t">Therapist's laptop</text><text x="64" y="428" class="dg-m">SQLITE COPY</text></g>
+      <g class="dg-node dg-core"><rect x="400" y="215" width="200" height="90" rx="20"/><text x="424" y="252" class="dg-t">Offline sync</text><text x="424" y="276" class="dg-m">SERVERPOD MODULE</text></g>
+      <g class="dg-node dg-core"><rect x="700" y="220" width="200" height="80" rx="20"/><text x="724" y="254" class="dg-t">PostgreSQL</text><text x="724" y="277" class="dg-m">SERVERPOD CLOUD</text></g>
+      <g class="dg-node dg-sat"><rect x="720" y="50" width="200" height="70" rx="16"/><text x="744" y="81" class="dg-t">Future calls</text><text x="744" y="103" class="dg-m">SCHEDULED JOBS</text></g>
+      <g class="dg-node dg-sat"><rect x="850" y="360" width="140" height="70" rx="16"/><text x="870" y="391" class="dg-t">Streaming</text><text x="870" y="413" class="dg-m">LIVE UPDATES</text></g>
+      <g class="dg-node dg-sat"><rect x="700" y="400" width="140" height="70" rx="16"/><text x="720" y="431" class="dg-t">Files</text><text x="720" y="453" class="dg-m">PICTURES</text></g>
+      <g class="dg-node dg-sat"><rect x="380" y="400" width="220" height="90" rx="16"/><text x="404" y="431" class="dg-t">Web routes</text><text x="404" y="453" class="dg-m">THIS PAGE, PAPER COPY,</text><text x="404" y="473" class="dg-m">SITTER LINK</text></g>
+    </svg>
+    <svg class="diagram-tall" viewBox="0 0 360 820" role="img" aria-labelledby="dg-title-tall">
+      <title id="dg-title-tall">Each device's SQLite copy syncs through the offline sync module to PostgreSQL on Serverpod Cloud, with future calls, streaming, file storage and web routes around it.</title>
+      <g class="dg-lines">
+        <path d="M60 110 L 60 150 C 60 180 180 170 180 210" pathLength="1"/>
+        <path d="M180 110 L 180 210" pathLength="1"/>
+        <path d="M300 110 L 300 150 C 300 180 180 170 180 210" pathLength="1"/>
+        <path d="M180 300 L 180 370" pathLength="1"/>
+        <path d="M100 460 L 100 530" pathLength="1"/>
+        <path d="M260 460 L 260 530" pathLength="1"/>
+        <path d="M100 460 C 100 600 100 640 100 650" pathLength="1"/>
+        <path d="M260 460 C 260 600 260 640 260 650" pathLength="1"/>
+      </g>
+      <g class="dg-node"><rect x="8" y="30" width="104" height="80" rx="14"/><text x="22" y="66" class="dg-t">Tablet</text><text x="22" y="90" class="dg-m">SQLITE</text></g>
+      <g class="dg-node"><rect x="128" y="30" width="104" height="80" rx="14"/><text x="142" y="66" class="dg-t">Phone</text><text x="142" y="90" class="dg-m">SQLITE</text></g>
+      <g class="dg-node"><rect x="248" y="30" width="104" height="80" rx="14"/><text x="262" y="66" class="dg-t">Laptop</text><text x="262" y="90" class="dg-m">SQLITE</text></g>
+      <g class="dg-node dg-core"><rect x="50" y="210" width="260" height="90" rx="18"/><text x="74" y="250" class="dg-t">Offline sync</text><text x="74" y="276" class="dg-m">SERVERPOD MODULE</text></g>
+      <g class="dg-node dg-core"><rect x="50" y="370" width="260" height="90" rx="18"/><text x="74" y="410" class="dg-t">PostgreSQL</text><text x="74" y="436" class="dg-m">SERVERPOD CLOUD</text></g>
+      <g class="dg-node dg-sat"><rect x="8" y="530" width="164" height="90" rx="14"/><text x="22" y="566" class="dg-t">Future calls</text><text x="22" y="592" class="dg-m">JOBS</text></g>
+      <g class="dg-node dg-sat"><rect x="188" y="530" width="164" height="90" rx="14"/><text x="202" y="566" class="dg-t">Streaming</text><text x="202" y="592" class="dg-m">LIVE UPDATES</text></g>
+      <g class="dg-node dg-sat"><rect x="8" y="650" width="164" height="90" rx="14"/><text x="22" y="686" class="dg-t">Files</text><text x="22" y="712" class="dg-m">PICTURES</text></g>
+      <g class="dg-node dg-sat"><rect x="188" y="650" width="164" height="110" rx="14"/><text x="202" y="686" class="dg-t">Web routes</text><text x="202" y="712" class="dg-m">THIS PAGE,</text><text x="202" y="734" class="dg-m">PAPER, SITTER</text></g>
+    </svg>
+    <figcaption>Everything runs on Serverpod 4. The sync module is experimental, so its version is pinned.</figcaption>
+  </figure>
+</section>
+
+<section class="try" id="try" aria-labelledby="try-title">
+  <div class="section-head">
+    <p class="meta">Try it</p>
+    <h2 id="try-title" class="display section-title wipe">Pick it up and tap.</h2>
+  </div>
+  <div class="try-buttons">
+    <a class="big-btn open-app" href="/app/"><span class="big-label">Open the web app</span><span class="meta">Works in any modern browser</span></a>
+    <a class="big-btn" href="https://github.com/OoJae/chorus/releases/latest"><span class="big-label">Get the Android app</span><span class="meta">APK on GitHub</span></a>
+    <a class="big-btn" href="https://github.com/OoJae/chorus"><span class="big-label">Read the code</span><span class="meta">MIT licence</span></a>
+  </div>
+  <p class="note">Demo sign-ins are in the submission text.</p>
+  <div class="guide">
+    <h3 class="guide-title">See a clash in 60 seconds</h3>
+    <ol class="steps">
+      <li><span class="step-n meta">1</span>Open the web app.</li>
+      <li><span class="step-n meta">2</span>Sign in with a demo account.</li>
+      <li><span class="step-n meta">3</span>Open the editor.</li>
+      <li><span class="step-n meta">4</span>Tap &ldquo;Try a clash&rdquo;.</li>
+      <li><span class="step-n meta">5</span>Follow the three steps and watch both words survive.</li>
+    </ol>
+    <button class="btn btn-surface btn-large film" type="button" id="film" hidden>Watch the film</button>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-lockup">
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <rect x="3" y="1.5" width="25" height="25" rx="6" fill="#7DB863"/><rect x="3" y="1.5" width="25" height="22" rx="6" fill="#C7EFB2"/>
+      <rect x="36" y="4.5" width="25" height="25" rx="6" fill="#D6B53F"/><rect x="36" y="4.5" width="25" height="22" rx="6" fill="#FFEFA0"/>
+      <rect x="3" y="37.5" width="25" height="25" rx="6" fill="#6E9FE0"/><rect x="3" y="37.5" width="25" height="22" rx="6" fill="#C0DBFF"/>
+      <rect x="36" y="37.5" width="25" height="25" rx="6" fill="#9B7BDF"/><rect x="36" y="37.5" width="25" height="22" rx="6" fill="#DDCBFF"/>
+    </svg>
+    <span class="wordmark">chorus</span>
+  </div>
+  <div class="credits">
+    <p>Vocabulary from Universal Core, Center for Literacy and Disability Studies, UNC Chapel Hill, CC BY-SA 4.0.</p>
+    <p>Mulberry Symbols &copy; Steve Lee, CC BY-SA 4.0.</p>
+    <p>Fraunces, Atkinson Hyperlegible Next and IBM Plex Mono under the SIL Open Font License.</p>
+    <p>The child in this story is a persona.</p>
+    <p>MIT licence. Built for the Serverpod hackathon.</p>
+  </div>
+</footer>
+
+<div class="veil" id="veil" aria-hidden="true">
+  <div class="veil-mark">
+    <span class="vt v1"></span><span class="vt v2"></span><span class="vt v3"></span><span class="vt v4"></span>
+  </div>
+</div>
+</body>
+</html>

@@ -35,6 +35,10 @@
   <title>Chorus</title>
   <link rel="manifest" href="manifest.json">
   <style>
+    /* The landing page at / cross-fades into the app where the browser
+       supports cross-document view transitions. */
+    @view-transition { navigation: auto; }
+
     /* Shown until the app's first frame, so a slow connection is not a blank
        page: the mark on card (slate in dark mode), its four tiles rising one
        after another like voices joining, and the name under it. Fraunces is

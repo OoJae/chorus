@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
@@ -12,7 +11,6 @@ import 'src/jobs/scheduled_jobs.dart';
 import 'src/printing/print_routes.dart';
 import 'src/sharing/sharing_routes.dart';
 import 'src/web/app_route.dart';
-import 'src/web/routes/app_config_route.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -48,43 +46,8 @@ void run(List<String> args) async {
     cacheBustingConfig.mountPrefix,
   );
 
-  // Setup the app config route.
-  // We build this configuration based on the servers api url and serve it to
-  // the flutter app.
-  pod.webServer.addRoute(
-    AppConfigRoute(apiConfig: pod.config.apiServer),
-    '/assets/assets/config.json',
-  );
-
-  // Checks if the flutter web app has been built and serves it if it has.
-  final appDir = Directory(Uri(path: 'web/app').toFilePath());
-  if (appDir.existsSync()) {
-    // Serve the flutter web app under /. The server's own pages keep their
-    // own 404s; see `AppRoute`.
-    pod.webServer.addRoute(
-      AppRoute(
-        appDir,
-        // If building the Flutter app with WASM, set the below parameter to
-        // true and add the --wasm flag to the flutter build command.
-        enableWasmHeaders: false,
-      ),
-      '/',
-    );
-  } else {
-    // If the flutter web app has not been built, serve the build app page.
-    final defaultRoute = StaticRoute.file(
-      File(
-        Uri(path: 'web/pages/build_flutter_app.html').toFilePath(),
-      ),
-    );
-
-    pod.webServer.addMiddleware(appFallback(defaultRoute), '/');
-
-    pod.webServer.addRoute(
-      defaultRoute,
-      '/**',
-    );
-  }
+  // The landing page at /, and the Flutter web app with its config at /app.
+  registerSiteRoutes(pod);
 
   // Configure cloud storage.
   // This setup works with Serverpod Cloud without extra configuration.

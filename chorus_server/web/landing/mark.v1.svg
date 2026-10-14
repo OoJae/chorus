@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Chorus</title>
+  <!-- The Chorus mark: four laminated word tiles in the colour key, in the
+       order action, person, describe, question. Each tile is its edge colour
+       with the face 3 units shorter laid on top, so the darker edge shows
+       along the bottom like a tile's laminated edge. The top-left tile sits
+       3 units higher than the others. The 8-unit gaps keep the four tiles
+       apart at 29 pt. Every app icon and splash picture is drawn from this. -->
+  <g>
+    <rect x="3" y="1.5" width="25" height="25" rx="6" fill="#7DB863"/>
+    <rect x="3" y="1.5" width="25" height="22" rx="6" fill="#C7EFB2"/>
+  </g>
+  <g>
+    <rect x="36" y="4.5" width="25" height="25" rx="6" fill="#D6B53F"/>
+    <rect x="36" y="4.5" width="25" height="22" rx="6" fill="#FFEFA0"/>
+  </g>
+  <g>
+    <rect x="3" y="37.5" width="25" height="25" rx="6" fill="#6E9FE0"/>
+    <rect x="3" y="37.5" width="25" height="22" rx="6" fill="#C0DBFF"/>
+  </g>
+  <g>
+    <rect x="36" y="37.5" width="25" height="25" rx="6" fill="#9B7BDF"/>
+    <rect x="36" y="37.5" width="25" height="22" rx="6" fill="#DDCBFF"/>
+  </g>
+</svg>
